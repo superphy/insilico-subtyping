@@ -38,7 +38,7 @@ phylotyper$makePriors = function(tree, x) {
 
 	# Add flat priors for leaves with no subtype
 	priors <- rbind(prior, matrix(1/length(levels(x)),
-    	length(undefined), 2, dimnames=list(undefined)))
+		length(undefined), 2, dimnames=list(undefined)))
 
 
 	return(prior.matrix=priors, untyped=undefined)
