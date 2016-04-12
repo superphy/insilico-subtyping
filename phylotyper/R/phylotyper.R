@@ -34,6 +34,10 @@ phylotyper$runSubtypeProcedure = function(tree, priorM, scheme=1) {
 	#    Possible procedures (phytool method, model):
 	#      1=rerootingMethod, ER
 	#      2=rerootingMethod, SYM
+	#      3=rerootingMethod, ARD
+	#      4=make.simmap, ER
+	#      5=make.simmap, SYM
+	#      6=make.simmap, ARD
 	#
 	# Returns list with:
 	#   ?
@@ -48,7 +52,17 @@ phylotyper$runSubtypeProcedure = function(tree, priorM, scheme=1) {
 		# Rerooting method, SYM model
 		fit = rerootingMethod(tree, priorM, model='SYM', tips=TRUE)
 		return(list(result=fit, tip.pp=fit$marginal.anc[tree$tip.label,], plot.function='plotRR'))
-	}
+
+	} else if(scheme == 3) {
+		# Rerooting method, SYM model
+		fit = rerootingMethod(tree, priorM, model='SYM', tips=TRUE)
+		return(list(result=fit, tip.pp=fit$marginal.anc[tree$tip.label,], plot.function='plotRR'))
+	} else if(scheme == 4) {
+		# simmap method, ER model
+		trees = make.simmap(tree, priorM, model='ER', nsim=1000)
+		fit = describe.simmap(trees, plot=FALSE)
+		return(list(result=fit, tip.pp=fit$tips, plot.function='plotSM'))
+	} 
 
 }
 
@@ -86,27 +100,6 @@ phylotyper$makePriors = function(tree, subtypes) {
 	return(list(prior.matrix=priors, untyped=undefined))
 }
 
-phylotyper$plotRR = function(tree, result, plot.nodes=TRUE) {
-	# plot tree with posterior probabilities from 
-	# rerootingMethod function displayed as pies
-	#
-	# Args:
-	#  tree: phylo object containing subtype tree
-	#  result: output object from rerootingMethod()
-	#  plot.nodes: display interior tree node ancestral state
-	#    posterior probability
-	#
-	# Returns:
-	#   nothing
-	#
-
-	plot(tree)
-	tiplabels(pie=result$marginal.anc[tree$tip.label,], cex=0.5)
-	if(plot.nodes) {
-		nodelabels(pie=result$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],cex=0.6)
-	}
-}
-
 phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat.sfu.ca/") {
 	# Attempt to load required libraries
 	# If library not installed, attempt install
@@ -133,7 +126,9 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 
 	# Install libraries from Bioconductor
 	bioc.libs = c("Biostrings")
-	source("http://bioconductor.org/biocLite.R")
+	if(!exists('biocLite')) {
+		source("http://bioconductor.org/biocLite.R")
+	}
 	for(x in bioc.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		biocLite(x)
@@ -142,7 +137,7 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 	}
 	
 	# Install libraries from CRAN
-	cran.libs = c("devtools", "ape", "phangorn")
+	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
@@ -160,11 +155,101 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
     		if(!require(lib, character.only = TRUE)) stop(paste("Package not loaded:",lib))
 		}
 	}
+
+	# Install older version of root, unroot, and is.root functions from APE packages
+	# New version have bug
+	source('root.R')
+	source('rerootingMethod.R')
 	
 	TRUE
 }
 
+phylotyper$loadSubtype = function(treefile, stfile) {
+	# Load tree and subtype assignments associated with subtype scheme
+	#
+	# Args:
+	#  treefile: Path to tree in newick format
+	#  stfile: Path to subtype assignments in format: tree_tip_label\tsubtype
+	#
+	# Returns:
+	#   list:
+	#     tree = phylo object
+    #     untyped = list of tree_tip_labels not found in stfile
+    #     subtypes = factor of subtype assignments. Names() match tree_tip_labels
+	#
+	# 
+	# 
 
+	tree = read.tree(treefile)
+	st = read.table(stfile, sep="\t", row.names=1)
+
+	# Convert to factor list
+	subtypes = st[,1]
+	names(subtypes) = rownames(st)
+
+	# Make note of labels to find subtypes for
+	undefined = setdiff(tree$tip.label, names(subtypes))
+
+	return(list(tree=tree, untyped=undefined, subtypes=subtypes))
+}
+
+phylotyper$palette = function(subtypes) {
+	# Generate a set of colors representing subtypes
+	#
+	# Args:
+	#   subtypes: factor list of subtype assignments. List names
+	#    must match tip names in tree, except for tips
+	#    with unknown subtypes (which subtypes
+	#    will be predicted for)
+	#
+	# Returns:
+	#   list of color assignments. List names match subtype names
+	# 
+	# 
+
+	colors = brewer.pal(12,"Set3")
+	states = levels(subtypes)
+	n = length(states)
+
+	if(n > length(colors)) {
+		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")
+	}
+
+	pal = colors[1:n]
+	names(pal) = states
+
+	return(pal)
+}
+
+phylotyper$plotRR = function(tree, fit, subtypes, plot.nodes=TRUE) {
+	# plot tree with posterior probabilities from 
+	# rerootingMethod function displayed as pies
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  fit: output object from rerootingMethod()
+	#  subtypes: factor list of subtype assignments
+	#  plot.nodes: display interior tree node ancestral state
+	#    posterior probability
+	#
+	# Returns:
+	#   nothing
+	#
+
+	cols = phylotyper$palette(subtypes)
+
+	plot(tree)
+	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
+		piecol=cols,
+		cex=0.3)
+	if(plot.nodes) {
+		nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
+			piecol=cols,
+			cex=0.6)
+	}
+	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
+		y=0.9*par()$usr[4],prompt=FALSE)
+}
 
 while("phylotyper" %in% search())
   detach("phylotyper")

@@ -74,9 +74,15 @@ if __name__ == "__main__":
 		pass
 	elif options.which == 'tree':
 		# Build tree
+
+		# Nucleotide sequences
+		nt = options.nt
+
+		# Fast mode of tree calculation
+		fast = False
 		
 		tree = FastTreeWrapper(config)
-		tree.build(options.input, options.output)
+		tree.build(options.input, options.output, nt, fast)
 
 	else:
 		raise Exception("Unrecognized command")

@@ -37,7 +37,7 @@ testTree = function() {
 	return(list(tree=tree, subtypes=y))
 }
 
-testSimulation = function(tree, subtypes, scheme=1) {
+testSimulation = function(tree, subtypes, scheme=4) {
 	# Estimate tip subtype posterior probability for each 
 	# by setting tip prior to flat/unassigned and running
 	# esimtation procedure
@@ -48,9 +48,8 @@ testSimulation = function(tree, subtypes, scheme=1) {
 	#  subtypes: factor list of subtype assignments. List names
 	#    must match tip names in tree
 	#
-	# Returns list with:
-	#   prior.matrix: matrix containing prior values
-	#   untyped: vector of tree tip names with no subtype 
+	# Returns:
+	# 	posterior  
 	#
 
 	n = length(subtypes)
@@ -113,12 +112,19 @@ simulationSummary = function(subtypes, pp) {
 	colnames(numCorrect) = c('max', 'over50', 'over70', 'over90')
 
 	subtype.states = colnames(pp)
+	nc = length(subtype.states)+2
+	nr = length(subtypes)
+	pp.tips = data.frame(matrix(,nrow=nr, ncol=nc))
+	colnames(pp.tips) = c('subtype','correct', subtype.states)
+	rownames(pp.tips) = names(subtypes)
+
 
 	for(i in names(subtypes)) {
 		st = subtypes[i]
 		mxi = which.max(pp[i,])
 		mx = pp[i,mxi]
-		
+
+
 		# Total
 		numCorrect['n', 'max'] = numCorrect['n', 'max'] + 1
 
@@ -128,6 +134,8 @@ simulationSummary = function(subtypes, pp) {
 			numCorrect['correct', 'max'] = numCorrect['correct', 'max'] + 1
 			gotit = TRUE
 		}
+
+		pp.tips[i, ] = c(as.character(subtypes[i]), gotit, pp[i,])
 
 		if(mx > 0.5) {
 			numCorrect['n', 'over50'] = numCorrect['n', 'over50'] + 1
@@ -189,7 +197,7 @@ simulationSummary = function(subtypes, pp) {
 	}
 
 
-	return('frequency'=numCorrect, 'pp.evalulation'=pp.frequencies)
+	return(list('frequency'=numCorrect, 'pp.evalulation'=pp.frequencies, 'n.tips'=nr, 'pp.tips'=pp.tips))
 }
 
 evaluateModels = function(tree, subtypes, models=list(equal="ER",
@@ -230,15 +238,22 @@ evaluateModels = function(tree, subtypes, models=list(equal="ER",
 # Run tests
 
 # Get tree
-rs = testTree()
+#rs = testTree()
+rs = loadSubtype('../data/ecoli_stx/stx1_subtypes.tree','../data/ecoli_stx/stx1_subtypes.txt')
 tree = rs$tree; subtypes = rs$subtypes
 
 # Run model evaluation
-aic = evaluateModels(tree,subtypes)
+# aic = evaluateModels(tree,subtypes)
 
 # Run one method/model parameter set
-#pp = testSimulation(tree, subtypes)
+pp = testSimulation(tree, subtypes)
 
 # Summarize performance
-#results = simulationSummary(subtypes, pp)
+results = simulationSummary(subtypes, pp)
+
+# Overlay posterior probabilities in tree plot
+# priorR = phylotyper$makePriors(tree, subtypes)
+# priorM = priorR$prior.matrix
+# result = phylotyper$runSubtypeProcedure(tree, priorM, 1)
+# phylotyper$plotPP(tree,,subtypes)
 

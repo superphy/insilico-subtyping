@@ -51,9 +51,7 @@ class FastTreeWrapper(object):
             'nt_fast': '-gtr -nt -nosupport -fastest -mlnni 4'
         }
 
-     
 
-       
     @property
     def fasttree(self):
         """str: Path to FastTree executable."""
@@ -61,11 +59,31 @@ class FastTreeWrapper(object):
         return self._fasttree
 
    
-    def build(self, alignment_file, tree_file, ft_args='nt'):
+    def build(self, alignment_file, tree_file, nt=False, fast=False):
+        """Run fasttree
 
-        cmd_args = self._fasttree_args[ft_args];
+
+        Args:
+            alignment_file (str): Filepath to input alignment file
+            tree_file (str): Filepath for output from fasttree
+            ft (bool[Default=False]): Set to true for nucleotide sequences
+            fast (bool[Default=False]): Set to true to run fasttree in mode optimized for speed
+
+        Returns:
+            None
+
+        """
+
+
+        cmd_args = None
+        if nt and not fast:
+            cmd_args = self._fasttree_args['nt']
+        elif nt and fast:
+            cmd_args = self._fasttree_args['nt_fast']
+
+
         if not cmd_args:
-            raise Exception("Unrecognized ft_args parameter: {}".format(ft_args))
+            raise Exception("No fasttree mode defined for argument settings nt: {}, fast: {}".format(nt, fast))
 
         cmd = "{} {} {} > {}".format(self.fasttree, cmd_args, alignment_file, tree_file)
 
@@ -75,7 +93,6 @@ class FastTreeWrapper(object):
             msg = "FastTree failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
             raise Exception(msg)
 
-
-
+        None
 
 
