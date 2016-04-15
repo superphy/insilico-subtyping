@@ -137,7 +137,7 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 	}
 	
 	# Install libraries from CRAN
-	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer")
+	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)

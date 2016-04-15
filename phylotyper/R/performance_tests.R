@@ -37,7 +37,7 @@ testTree = function() {
 	return(list(tree=tree, subtypes=y))
 }
 
-testSimulation = function(tree, subtypes, scheme=4) {
+loocv = function(tree, subtypes, scheme=4) {
 	# Estimate tip subtype posterior probability for each 
 	# by setting tip prior to flat/unassigned and running
 	# esimtation procedure
@@ -83,8 +83,161 @@ testSimulation = function(tree, subtypes, scheme=4) {
 	return(pp)
 }
 
-simulationSummary = function(subtypes, pp) {
-	# Summarize performance of simulation
+loocv = function(tree, subtypes, scheme=1) {
+	# Estimate prediction accuracy by predicting subtypes 
+	# for each tip using leave-one-out validation. 
+	# Method sets tip prior to flat/unassigned and runs
+	# esimtation procedure to get posterior probability for
+	# unassigned tip
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  subtypes: factor list of subtype assignments. List names
+	#    must match tip names in tree
+	#
+	# Returns:
+	# 	data.frame of posterior probabilities 
+	#
+
+	n = length(subtypes)
+
+	# Make prior matrix
+	priorR = phylotyper$makePriors(tree, subtypes)
+	priorM = priorR$prior.matrix
+	nstates = ncol(priorM)
+
+	# Make result matrix
+	pp = data.frame(matrix(0,n,nstates))
+	colnames(pp) = colnames(priorM)
+	pp = cbind("tip"=names(subtypes),"true_value"=subtypes, pp)
+	nc = ncol(pp)
+
+	# Flat prior
+	flat = matrix(1/nstates,1,nstates)
+
+	for(i in 1:n) {
+
+		tip = as.character(pp$tip[i])
+		testprior = priorM
+		testprior[i,] = flat
+
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme)
+
+		pp[i,3:nc] = testfit$tip.pp[tip, ]
+
+		cat("Completed test iteration",i,"...\n")
+	}
+
+	return(pp)
+}
+
+kfcv = function(tree, subtypes, scheme=1) {
+	# Estimate prediction accuracy by predicting subtypes 
+	# for each tip using k-fold cross validation. 
+	# Method sets tip priors to flat/unassigned and runs
+	# esimtation procedure to get posterior probability for
+	# unassigned tips.
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  subtypes: factor list of subtype assignments. List names
+	#    must match tip names in tree
+	#
+	# Returns:
+	# 	posterior  
+	#
+
+	# Compute k-fold size
+	n = length(subtypes)
+	iter = 100
+	k = 5
+	ksize = floor(n/5)
+	cat("Cross-validation test set size: ",ksize,"\n")
+
+	if(ksize < 2)
+		stop("Test set too small for 5-fold cross validation. Test set size is less than 2.")
+
+	# Make prior matrix
+	priorR = phylotyper$makePriors(tree, subtypes)
+	priorM = priorR$prior.matrix
+	nstates = ncol(priorM)
+
+	# Make result matrix
+	pp = data.frame(matrix(0,ksize*iter,nstates))
+	colnames(pp) = colnames(priorM)
+	pp = cbind("iteration"=c(0),
+		"tip"=factor(c("NA"), levels=c("NA",names(subtypes))),
+		"true_value"=factor(c("NA"), levels=c("NA",levels(subtypes))),
+		pp)
+	nc = ncol(pp)
+
+	# Flat prior
+	flat = matrix(1/nstates,1,nstates)
+	row = 1
+
+	for(i in 1:iter) {
+
+		row = (ksize * (i-1)) + 1
+		lastrow = row+ksize-1
+
+		testset = sample(1:n, ksize)
+
+		tips = names(subtypes)[testset]
+		true_values = as.character(subtypes[testset])
+		testprior = priorM
+		testprior[testset,] = flat
+
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme)
+
+		pp[row:lastrow, 1] = i
+		pp[row:lastrow, 2] = tips
+		pp[row:lastrow, 3] = true_values
+		pp[row:lastrow, 4:nc] = testfit$tip.pp[tips, ]
+
+		cat("Completed test iteration",i,",",row,",",lastrow,"...\n")
+	}
+
+	return(pp)
+}
+
+updateClassificationSums = function(true_class, predicted_class, count_matrix) {
+
+	correct = true_class == predicted_class
+
+	for(i in 1:nrow(count_matrix)) {
+		c = rownames(count_matrix)[i]
+		if(c == true_class) {
+			# condition positive
+			if(correct) {
+				# tp
+				count_matrix[i,'tp'] = count_matrix[i,'tp'] + 1
+			} else {
+				# fn
+				count_matrix[i,'fn'] = count_matrix[i,'fn'] + 1
+			}
+
+		} else {
+			# condition negative
+			if(correct) {
+				# tn
+				count_matrix[i,'tn'] = count_matrix[i,'tn'] + 1
+			} else {
+				if(c == predicted_class) {
+					# fp
+					count_matrix[i,'fp'] = count_matrix[i,'fp'] + 1
+				} else {
+					# tn
+					count_matrix[i,'tn'] = count_matrix[i,'tn'] + 1
+				}
+			}
+		}
+	}
+
+	return(count_matrix)
+}
+
+simulationSummary = function(subtypes, pp, threshold=.9) {
+	# Summarize performance of validation
 	# 
 	# 
 	#
@@ -107,98 +260,153 @@ simulationSummary = function(subtypes, pp) {
 	# 'over90': highest posterior probability, when pp is > 90
 
 	
-	numCorrect = matrix(0, 3, 4)
-	rownames(numCorrect) = c('frequency', 'n', 'correct')
-	colnames(numCorrect) = c('max', 'over50', 'over70', 'over90')
+	
+	subtype.states = levels(subtypes)
+	if(!all(subtype.states %in% colnames(pp)))
+		stop("Posterior probability data.frame is missing subtype states")
 
-	subtype.states = colnames(pp)
-	nc = length(subtype.states)+2
-	nr = length(subtypes)
-	pp.tips = data.frame(matrix(,nrow=nr, ncol=nc))
-	colnames(pp.tips) = c('subtype','correct', subtype.states)
-	rownames(pp.tips) = names(subtypes)
+	# Record true positive, false positive etc for each subtype class
+	classification_results = matrix(0, nrow=length(subtype.states), ncol=4)
+	rownames(classification_results) = subtype.states
+	colnames(classification_results) = c('tp','fp','tn','fn')
+	metrics = matrix(0, nrow=length(subtype.states)+1, 4)
+	rownames(metrics) = c(subtype.states,'ave / total')
+	colnames(metrics) = c('precision','recall','F-score','support')
 
+	# Process result for each test sample case using no cutoff, and cutoffs of 50, 70, 90 & 95
+	cases = cbind(pp, 'max'=factor(c('unassigned'),levels=c('unassigned','correct','wrong')),
+		'over50'=factor(c('unassigned'),levels=c('unassigned','correct','wrong')),
+		'over70'=factor(c('unassigned'),levels=c('unassigned','correct','wrong')),
+		'over90'=factor(c('unassigned'),levels=c('unassigned','correct','wrong')),
+		'over95'=factor(c('unassigned'),levels=c('unassigned','correct','wrong'))
+	)
+	ppvals = cases[,subtype.states]
 
-	for(i in names(subtypes)) {
-		st = subtypes[i]
-		mxi = which.max(pp[i,])
-		mx = pp[i,mxi]
+	# Confusion matrix
+	confusion = matrix(0, nrow=length(subtype.states), ncol=length(subtype.states))
+	rownames(confusion) = paste('true_',subtype.states,sep="")
+	colnames(confusion) = paste('predicted_',subtype.states,sep="")
 
+	for(i in 1:nrow(pp)) {
+		true_st = as.character(pp$true_value[i])
+		mxi = which.max(ppvals[i,])
+		mx = ppvals[i,mxi]
+		pred_st = subtype.states[mxi]
 
-		# Total
-		numCorrect['n', 'max'] = numCorrect['n', 'max'] + 1
-
+		# Increment confusion matrix counts
+		k = which(subtype.states == true_st)
+		confusion[k,mxi] = confusion[k,mxi] + 1
+		
 		# Correct
 		gotit = FALSE
-		if(st == subtype.states[mxi]) {
-			numCorrect['correct', 'max'] = numCorrect['correct', 'max'] + 1
+		if(true_st == pred_st) {
 			gotit = TRUE
+			cases[i, 'max'] = 'correct'
+		} else {
+			cases[i, 'max'] = 'wrong'
 		}
 
-		pp.tips[i, ] = c(as.character(subtypes[i]), gotit, pp[i,])
-
 		if(mx > 0.5) {
-			numCorrect['n', 'over50'] = numCorrect['n', 'over50'] + 1
-			if(gotit)
-				numCorrect['correct', 'over50'] = numCorrect['correct', 'over50'] + 1
+			if(gotit) {
+				cases[i, 'over50'] = 'correct'
+			} else {
+				cases[i, 'over50'] = 'wrong'
+			}
 
 			if(mx > 0.7) {
-				numCorrect['n', 'over70'] = numCorrect['n', 'over70'] + 1
-				if(gotit)
-					numCorrect['correct', 'over70'] = numCorrect['correct', 'over70'] + 1
+				if(gotit) {
+					cases[i, 'over70'] = 'correct'
+				} else {
+					cases[i, 'over70'] = 'wrong'
+				}
 
 				if(mx > 0.9) {
-					numCorrect['n', 'over90'] = numCorrect['n', 'over90'] + 1
-					if(gotit)
-						numCorrect['correct', 'over90'] = numCorrect['correct', 'over90'] + 1
+					if(gotit) {
+						cases[i, 'over90'] = 'correct'
+					} else {
+						cases[i, 'over90'] = 'wrong'
+					}
 
+					if(mx > 0.95) {
+						if(gotit) {
+							cases[i, 'over95'] = 'correct'
+						} else {
+							cases[i, 'over95'] = 'wrong'
+						}
+					}
 				}
 			}
 		}
 
-		# Frequencies
-		numCorrect['frequency',] = apply(numCorrect, 2, function(x) if(x['n'] == 0){ 0 } else { x['correct']/x['n'] } )
-
-	}
-
-	# Check accuracy of posterior probabilities
-
-	# Record true state for each tip in each state column
-	match.colsubtype = t(sapply(names(subtypes), function(x) subtypes[x] == colnames(pp)))
-	colnames(match.colsubtype) = colnames(pp)
-
-	# Record frequencies for different pp windows
-	w.size = 0.1 
-	boundaries = seq(from=w.size, to=(1-w.size), by=0.05)
-	pp.frequencies = matrix(0, length(boundaries), 4)
-	colnames(pp.frequencies) = c('frequency', 'n', 'correct', 'pp')
-	pp.frequencies[,'pp'] = boundaries
-	rownames(pp.frequencies) = as.character(boundaries)
-
-	
-	for(j in  boundaries) {
-		l = j-w.size
-		u = j+w.size
-
-		# Find pp that fall in window
-		for(k in 1:ncol(pp)) {
-			in.win = which(pp[,k] >= l & pp[,k] <= u)
-
-			n = length(in.win)
-			if(n > 0) {
-				ncorrect = sum(match.colsubtype[in.win,k])
-
-				i = which(pp.frequencies[,'pp'] == j)
-				pp.frequencies[i,'n'] = n
-				pp.frequencies[i,'correct'] = ncorrect
-				pp.frequencies[i, 'frequency'] = ncorrect / n
-			}
+		if(mx > threshold) {
+			classification_results = updateClassificationSums(true_st,pred_st,classification_results)
+		} else {
+			# Missed result = false negative... and  a bunch of true negatives
+			classification_results[true_st, 'fn'] = classification_results[true_st, 'fn'] + 1
+			classification_results[which(rownames(classification_results) != true_st), 'tn'] = 
+				classification_results[which(rownames(classification_results) != true_st), 'tn'] + 1
 		}
 	}
 
+	# Compute metrics from classication results
+	tots = apply(classification_results, 2, sum)
+	classification_results = rbind(classification_results, "totals"=tots)
+	ncls = nrow(classification_results)
 
-	return(list('frequency'=numCorrect, 'pp.evalulation'=pp.frequencies, 'n.tips'=nr, 'pp.tips'=pp.tips))
+	# precision
+	metrics[1:ncls,'precision'] = classification_results[1:ncls,'tp'] / (classification_results[1:ncls,'tp']+classification_results[1:ncls,'fp'])
+	# recall
+	metrics[1:ncls,'recall'] = classification_results[1:ncls,'tp'] / (classification_results[1:ncls,'tp']+classification_results[1:ncls,'fn'])
+	# F-score
+	beta = 1
+	denom = (beta^2*metrics[1:ncls,'precision'])+metrics[1:ncls,'recall']
+	metrics[1:ncls,'F-score'] = (1+beta^2)*(metrics[1:ncls,'precision']*metrics[1:ncls,'recall']/denom)
+	# support
+	metrics[1:ncls,'support'] = classification_results[1:ncls,'tp'] + classification_results[1:ncls,'fn']
+
+
+	# # Check accuracy of posterior probabilities
+
+	# # Record true state for each tip in each state column
+	# match.colsubtype = t(sapply(pp$true_value, function(x) x == colnames(ppvals)))
+	# colnames(match.colsubtype) = colnames(ppvals)
+
+	# # Record frequencies for different pp windows
+	# w.size = 0.1
+	# boundaries = seq(from=w.size, to=(1-w.size), by=0.05)
+	# pp.frequencies = matrix(0, length(boundaries), 4)
+	# colnames(pp.frequencies) = c('accuracy', 'n', 'correct', 'pp')
+	# pp.frequencies[,'pp'] = boundaries
+	# rownames(pp.frequencies) = as.character(boundaries)
+
+	# for(j in  boundaries) {
+	# 	l = j-w.size
+	# 	u = j+w.size
+
+	# 	# Find pp that fall in window
+	# 	for(k in 1:ncol(ppvals)) {
+	# 		# Find rows with pp in that window
+	# 		in.win = which(ppvals[,k] >= l & ppvals[,k] <= u)
+	# 		n = length(in.win)
+
+	# 		if(n > 0) {
+	# 			ncorrect = sum(match.colsubtype[in.win,k])
+
+	# 			i = which(pp.frequencies[,'pp'] == j)
+	# 			pp.frequencies[i,'n'] = n + pp.frequencies[i,'n']
+	# 			pp.frequencies[i,'correct'] = ncorrect + pp.frequencies[i,'correct']
+	# 		}
+	# 	}
+	# }
+
+	# pp.frequencies[,'accuracy'] = apply(pp.frequencies, 1, function(x) if(x['n'] == 0){ 0 } else { x['correct']/x['n'] } )
+
+
+	return(list('metrics'=metrics, 'test.results'=cases, 'confusion.matrix'=confusion))
 }
+
+
+
 
 evaluateModels = function(tree, subtypes, models=list(equal="ER",
 	symmetrical="SYM", different="ARD")) {
@@ -209,7 +417,6 @@ evaluateModels = function(tree, subtypes, models=list(equal="ER",
 	# 1. ER = equal rates
 	# 2. SYM = symmetrical rates
 	# 3. ARD = All rates different
-	# 4. PGN = A single subtype gives rise to all other types
 	# 
 	# Args:
 	#  tree: phylo object containing subtype tree
@@ -234,6 +441,43 @@ evaluateModels = function(tree, subtypes, models=list(equal="ER",
 	return(aic)
 }
 
+plotConfusionMatrix = function(counts) {
+
+
+	input.matrix.normalized <- sweep(counts, 1, rowSums(counts), FUN="/")
+
+	colnames(input.matrix.normalized) = gsub("^predicted_","",colnames(results$confusion.matrix))
+	rownames(input.matrix.normalized) = colnames(input.matrix.normalized)
+
+	confusion <- as.data.frame(as.table(input.matrix.normalized))
+
+	plot <- ggplot(confusion)
+	plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq)) + scale_x_discrete(name="Actual Subtype") + scale_y_discrete(name="Predicted Subtype") + scale_fill_gradient(breaks=seq(from=0, to=1, by=.2)) + labs(fill="Normalized\nFrequency")
+
+}
+
+plotPPHistogram = function(test.results, subtypes) {
+
+	subtype.states = levels(subtypes)
+	if(!all(subtype.states %in% colnames(test.results)))
+		stop("Posterior probability result data.frame is missing subtype states")
+
+	# posterior probability
+	pp = test.results[,subtype.states]
+
+	# Create correct/incorrect distributions
+	correct = unlist(sapply(1:length(subtype.states), function(i) pp[test.results$true_value == subtype.states[i],i]))
+	wrong = unlist(sapply(1:length(subtype.states), function(i) pp[test.results$true_value != subtype.states[i],i]))
+
+	dist = data.frame("result"=c(rep('positive',length(correct)), rep('negative',length(wrong))), 
+		"posterior probability"=c(correct, wrong))
+
+	# Plot with density and rug
+	ggplot(dist, aes(x=posterior.probability, colour = result)) +
+		geom_freqpoly(binwidth = .05, aes(y=..density..)) +
+		geom_rug()
+}
+
 
 # Run tests
 
@@ -242,18 +486,36 @@ evaluateModels = function(tree, subtypes, models=list(equal="ER",
 rs = loadSubtype('../data/ecoli_stx/stx1_subtypes.tree','../data/ecoli_stx/stx1_subtypes.txt')
 tree = rs$tree; subtypes = rs$subtypes
 
-# Run model evaluation
-# aic = evaluateModels(tree,subtypes)
-
-# Run one method/model parameter set
-pp = testSimulation(tree, subtypes)
-
-# Summarize performance
-results = simulationSummary(subtypes, pp)
+# Iterate through esimtation procedures
 
 # Overlay posterior probabilities in tree plot
 # priorR = phylotyper$makePriors(tree, subtypes)
 # priorM = priorR$prior.matrix
 # result = phylotyper$runSubtypeProcedure(tree, priorM, 1)
 # phylotyper$plotPP(tree,,subtypes)
+
+# Run model evaluation
+# aic = evaluateModels(tree,subtypes)
+
+# Iterate through validation procedures
+
+# Run LOOCV
+pp = loocv(tree, subtypes, 1)
+
+# Run 5-fold CV
+#pp = kfcv(tree, subtypes, 1)
+
+
+# Summarize performance
+results = simulationSummary(subtypes, pp)
+
+# Write performance metrics to file
+
+# Plots
+
+# Plot confusion matrix
+plotConfusionMatrix(results$confusion.matrix)
+
+# Plot posterior probability histogram
+plotPPHistogram(results$test.results, subtypes)
 

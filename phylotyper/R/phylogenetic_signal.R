@@ -23,7 +23,7 @@ http://www.carlboettiger.info/2013/10/11/is-it-time-to-retire-pagels-lambda.html
 http://artax.karlin.mff.cuni.cz/r-help/library/geiger/html/deltaTree.html - lambda transformation
 http://www.eve.ucdavis.edu/~wainwrightlab/Roi/Site/Teaching_files/Intro2Phylo_S4.R - lambda approach
 https://github.com/juliema/publications/blob/master/BrueeliaMS/Maddison.Slatkin.R - Slatkin & Madison approach
-
+http://cpansearch.perl.org/src/CJFIELDS/BioPerl-1.6.924/Bio/Tree/Statistics.pm - AI, PS and MC tree stats
 
 
 
