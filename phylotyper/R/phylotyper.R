@@ -137,10 +137,11 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 	}
 	
 	# Install libraries from CRAN
-	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2")
+	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
+	  		library(x)
 	    	if(!require(x,character.only = TRUE)) stop(paste("Package not loaded: ",x))
 		}
 	}
@@ -221,9 +222,37 @@ phylotyper$palette = function(subtypes) {
 	return(pal)
 }
 
-phylotyper$plotRR = function(tree, fit, subtypes, plot.nodes=TRUE) {
+phylotyper$plotRR = function(tree, fit, subtypes) {
 	# plot tree with posterior probabilities from 
 	# rerootingMethod function displayed as pies
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  fit: output object from rerootingMethod()
+	#  subtypes: factor list of subtype assignments
+	#
+	# Returns:
+	#   nothing
+	#
+
+	cols = phylotyper$palette(subtypes)
+
+	plot(tree)
+	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
+		piecol=cols,
+		cex=0.3)
+	
+	nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
+		piecol=cols,
+		cex=0.6)
+	
+	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
+		y=0.9*par()$usr[4],prompt=FALSE)
+}
+
+phylotyper$plotSM = function(tree, fit, subtypes) {
+	# plot tree with posterior probabilities from 
+	# make.simmap function displayed as pies
 	#
 	# Args:
 	#  tree: phylo object containing subtype tree
@@ -238,15 +267,8 @@ phylotyper$plotRR = function(tree, fit, subtypes, plot.nodes=TRUE) {
 
 	cols = phylotyper$palette(subtypes)
 
-	plot(tree)
-	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
-		piecol=cols,
-		cex=0.3)
-	if(plot.nodes) {
-		nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
-			piecol=cols,
-			cex=0.6)
-	}
+	plot(fit, colors=cols, fsize=0.6)
+
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
 }
