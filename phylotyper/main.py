@@ -24,6 +24,7 @@ import logging
 import argparse
 from config import PhylotyperOptions
 from tree.fasttree import FastTreeWrapper
+from tree.seqaligner import SeqAligner
 
 
 __author__ = "Matthew Whiteside"
@@ -31,10 +32,59 @@ __copyright__ = "Copyright 2015, Public Health Agency of Canada"
 __license__ = "APL"
 __version__ = "2.0"
 __maintainer__ = "Matthew Whiteside"
-__email__ = "mwhiteside@canada.ca"
+__email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 
 
+def align_sequences(input, output, config):
+	"""Build MSA
+
+	Args:
+	  input (str): Fasta file
+	  output (str): Output file for MSA
+	  config (obj): PhylotyperOptions object
+
+    """
+
+	aln = SeqAligner(config)
+	aln.align(input, output)
+	
+
+
+def build_tree(input, output, nt, fast, config):
+	"""Build phylogenetic tree
+
+	Args:
+	  input (str): Fasta file
+	  output (str): Output file for newick tree
+	  nt (bool): True when nucleotide sequences
+	  fast (bool): True to prioritize speed over accuracy
+	  config (obj): PhylotyperOptions object
+
+    """
+
+	tree = FastTreeWrapper(config)
+	tree.build(input, output, nt, fast)
+	
+
+def predict_subtypes(inputs):
+	pass
+
+
+def subtype_pipeline(inputs):
+	"""Run phylotyper pipeline
+
+    """
+
+    # Validate inputs
+
+
+    # Align
+
+    # Compute tree
+
+    # Predict subtypes
+	pass
 
 if __name__ == "__main__":
 	"""Run phylotyper function
@@ -54,8 +104,8 @@ if __name__ == "__main__":
 	aln_parser.add_argument('config', action='store', help='Phylotyper config options file')
 	aln_parser.add_argument('input', action='store', help='Fasta input')
 	aln_parser.add_argument('output', action='store', help='Alignment output')
-	aln_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
-
+	aln_parser.add_alignment('add', action='store', help='Existing Alignment file')
+	aln_parser.add_alignment('reference', action='store', help='Phylotyper reference alignment file')
 	aln_parser.set_defaults(which='aln')
 
 	# Tree command
@@ -66,12 +116,26 @@ if __name__ == "__main__":
 	tree_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
 	tree_parser.set_defaults(which='tree')
 
+	# Subtype command
+	subtype_parser = subparsers.add_parser('subtype', help='Predict subtype')
+	subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
+	subtype_parser.add_argument('sequences', action='store', help='Reference sequences for tree')
+	subtype_parser.add_argument('subtype', action='store', help='Reference subtypes')
+	subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
+	subtype_parser.add_argument('output', action='store', help='Subtype predictions')
+	subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+	subtype_parser.set_defaults(which='subtype')
+
 	options = parser.parse_args()
 
 	config = PhylotyperOptions(options.config)
 
 	if options.which == 'aln':
-		pass
+		# Build alignment
+
+		# Run
+		align_sequences(options.input, options.output, config)
+		
 	elif options.which == 'tree':
 		# Build tree
 
@@ -81,10 +145,22 @@ if __name__ == "__main__":
 		# Fast mode of tree calculation
 		fast = False
 		
-		tree = FastTreeWrapper(config)
-		tree.build(options.input, options.output, nt, fast)
+		# Run
+		build_tree(options.input, options.output, nt, fast, config)
+
+	elif options.which == 'subtype':
+		# Compute subtype
+
+		# Nucleotide sequences
+		nt = options.nt
+
+		# Fast mode of tree calculation
+		fast = False
+		
+		
 
 	else:
 		raise Exception("Unrecognized command")
 
   
+

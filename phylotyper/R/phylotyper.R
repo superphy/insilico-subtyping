@@ -240,11 +240,11 @@ phylotyper$plotRR = function(tree, fit, subtypes) {
 	plot(tree)
 	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
 		piecol=cols,
-		cex=0.3)
+		cex=0.5)
 	
 	nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
 		piecol=cols,
-		cex=0.6)
+		cex=1)
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
