@@ -22,7 +22,11 @@ are also implicitly created anytime a new section starts.
 
 import logging
 import argparse
+import os
+from Bio import SeqIO
 from config import PhylotyperOptions
+from builtin_subtypes import SubtypeConfig
+from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
 
@@ -36,7 +40,7 @@ __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 
 
-def align_sequences(input, output, config):
+def align_all_sequences(input, output, config):
 	"""Build MSA
 
 	Args:
@@ -48,6 +52,22 @@ def align_sequences(input, output, config):
 
 	aln = SeqAligner(config)
 	aln.align(input, output)
+
+
+def align_new_sequences(input, alignment, output, config):
+	"""Add new sequences to existing MSA using
+	profile alignment
+
+	Args:
+	  input (str): Fasta file
+	  alignment (str): Aligned fasta file
+	  output (str): Output file for MSA
+	  config (obj): PhylotyperOptions object
+
+    """
+
+	aln = SeqAligner(config)
+	aln.add(input, alignment, output)
 	
 
 
@@ -67,30 +87,79 @@ def build_tree(input, output, nt, fast, config):
 	tree.build(input, output, nt, fast)
 	
 
-def predict_subtypes(inputs):
-	pass
+def predict_subtypes(options, config):
+	"""Phylotyper subtype prediction
 
 
-def subtype_pipeline(inputs):
+	"""
+
+	# Define files
+	subtfile = os.path.abspath(options['subtype'])
+	treefile = os.path.abspath(os.path.join(options['output_directory'], 'combined.tree'))
+
+	pt = Phylotyper()
+
+	pt.subtype(treefile, subtfile, config)
+
+
+
+def subtype_pipeline(options, config):
 	"""Run phylotyper pipeline
 
     """
 
-    # Validate inputs
+    # Define files
+	alnfile = os.path.join(options['output_directory'], 'combined.aln')
+	oldalnfile = options['alignment']
+	treefile = os.path.join(options['output_directory'], 'combined.tree')
 
+	# Rename sequences with unique ids
+	uniquify_sequences(options)
 
     # Align
+	align_new_sequences(options['input'], oldalnfile, alnfile, config)
 
-    # Compute tree
+	# Compute tree
+	nt = options['seq'] == 'nt'
+	build_tree(alnfile, treefile, nt, options['fast'], config)
 
     # Predict subtypes
-	pass
+	predict_subtypes(options, config)
+
+
+def uniquify_sequences(options):
+	"""Create temporary sequence names that are unique
+
+    """
+
+    # Define files
+	output_file = os.path.join(options['output_directory'], 'input.fasta')
+	mapping_file = os.path.join(options['output_directory'], 'mapping.txt')
+	input_file = options['input']
+	
+	i = 1
+	pre = 'pt_'
+	fasta_sequences = SeqIO.parse(open(input_file),'fasta')
+	with open(output_file, 'w') as out, open(mapping_file, 'w') as mapping:
+	    for fasta in fasta_sequences:
+	        name, sequence = fasta.description, str(fasta.seq)
+	        newname = '%s%i' % (pre, i)
+	        i += 1
+	        mapping.write('%s\t%s\n' % (name, newname))
+	        out.write('>%s\n%s\n' % (newname, sequence))
+
+	options['input'] = output_file
+	options['user_input'] = input_file
+
+
 
 if __name__ == "__main__":
 	"""Run phylotyper function
 
     """
-    
+
+   	subtype_config_file = 'builtin_subtypes.yaml'
+   
 	logging.basicConfig(level=logging.DEBUG)
 
     # Parse command-line args
@@ -104,8 +173,8 @@ if __name__ == "__main__":
 	aln_parser.add_argument('config', action='store', help='Phylotyper config options file')
 	aln_parser.add_argument('input', action='store', help='Fasta input')
 	aln_parser.add_argument('output', action='store', help='Alignment output')
-	aln_parser.add_alignment('add', action='store', help='Existing Alignment file')
-	aln_parser.add_alignment('reference', action='store', help='Phylotyper reference alignment file')
+	aln_parser.add_argument('add', action='store', help='Existing Alignment file')
+	aln_parser.add_argument('reference', action='store', help='Phylotyper reference alignment file')
 	aln_parser.set_defaults(which='aln')
 
 	# Tree command
@@ -116,15 +185,25 @@ if __name__ == "__main__":
 	tree_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
 	tree_parser.set_defaults(which='tree')
 
-	# Subtype command
-	subtype_parser = subparsers.add_parser('subtype', help='Predict subtype')
+	# User-supplied subtype command
+	subtype_parser = subparsers.add_parser('custom', help='Predict subtype for user-defined subtype scheme')
 	subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
-	subtype_parser.add_argument('sequences', action='store', help='Reference sequences for tree')
-	subtype_parser.add_argument('subtype', action='store', help='Reference subtypes')
+	subtype_parser.add_argument('sequences', action='store', help='Fasta sequences of aligned reference genes for tree')
+	subtype_parser.add_argument('subtype', action='store', help='Reference gene subtypes')
 	subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
-	subtype_parser.add_argument('output', action='store', help='Subtype predictions')
+	subtype_parser.add_argument('output', action='store', help='Directory for Subtype predictions')
+	subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+	subtype_parser.set_defaults(which='custom')
+
+	# Builtin subtype command
+	subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
+	subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
+	subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
+	subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
+	subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
 	subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
 	subtype_parser.set_defaults(which='subtype')
+
 
 	options = parser.parse_args()
 
@@ -134,7 +213,7 @@ if __name__ == "__main__":
 		# Build alignment
 
 		# Run
-		align_sequences(options.input, options.output, config)
+		align_all_sequences(options.input, options.output, config)
 		
 	elif options.which == 'tree':
 		# Build tree
@@ -149,13 +228,46 @@ if __name__ == "__main__":
 		build_tree(options.input, options.output, nt, fast, config)
 
 	elif options.which == 'subtype':
-		# Compute subtype
+		# Compute subtype for builtin scheme
+
+		# Check arguments
 
 		# Nucleotide sequences
 		nt = options.nt
 
 		# Fast mode of tree calculation
 		fast = False
+
+		# Check input file exists
+		if not os.path.isfile(options.input):
+			msg = 'Invalid/missing input file argument.'
+			raise Exception(msg)
+
+		# Check output directory exists, if not create it if possible
+		if not os.path.exists(options.output):
+			os.makedirs(options.output)
+
+		# Load requested subtype data files
+		stConfig = SubtypeConfig(subtype_config_file)
+		scheme = options.gene
+
+		subtype_options = stConfig.get_subtype_config(scheme)
+		subtype_options['input'] = options.input
+		subtype_options['output_directory'] = options.output
+		subtype_options['fast'] = False
+
+		if options.nt and (subtype_options['seq'] != 'nt'):
+			msg = 'Sequence type of input does not match Phylotyper gene sequences for %s' % (scheme)
+			raise Exception(msg)
+
+		# Run pipeline
+		subtype_pipeline(subtype_options, config)
+
+
+
+
+
+
 		
 		
 

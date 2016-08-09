@@ -18,6 +18,8 @@
 ##
 ##########################################################
 
+wd <- setwd(".")
+setwd(wd)
 
 # Create enviroment to keep phylotyper functions
 phylotyper = new.env()
@@ -194,7 +196,7 @@ phylotyper$loadSubtype = function(treefile, stfile) {
 	return(list(tree=tree, untyped=undefined, subtypes=subtypes))
 }
 
-phylotyper$palette = function(subtypes) {
+phylotyper$mypalette = function(subtypes) {
 	# Generate a set of colors representing subtypes
 	#
 	# Args:
@@ -235,7 +237,7 @@ phylotyper$plotRR = function(tree, fit, subtypes) {
 	#   nothing
 	#
 
-	cols = phylotyper$palette(subtypes)
+	cols = phylotyper$mypalette(subtypes)
 
 	plot(tree)
 	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
@@ -265,7 +267,7 @@ phylotyper$plotSM = function(tree, fit, subtypes) {
 	#   nothing
 	#
 
-	cols = phylotyper$palette(subtypes)
+	cols = phylotyper$mypalette(subtypes)
 
 	plot(fit, colors=cols, fsize=0.6)
 

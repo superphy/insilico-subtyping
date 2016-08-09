@@ -5,9 +5,10 @@ root_dir: data/
 
 subtypes:
   ecoli_stx1:
-  	alignment: ecoli_stx/stx1_subtypes.affn
-  	subtype: ecoli_stx/stx1_subtypes.txt
-
+    alignment: ecoli_stx/stx1_subtypes.affn
+    subtype: ecoli_stx/stx1_subtypes.txt
+    seq: nt
   ecoli_stx2:
-  	alignment: ecoli_stx/stx2_subtypes.affn
-  	subtype: ecoli_stx/stx2_subtypes.txt
+    alignment: ecoli_stx/stx2_subtypes.affn
+    subtype: ecoli_stx/stx2_subtypes.txt
+    seq: nt

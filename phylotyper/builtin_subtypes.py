@@ -37,10 +37,6 @@ class SubtypeConfig(object):
 
     Paths are loaded from yaml file
 
-    # External programs required in Phylotyper
-    [external]
-    fasttree=fastree_exe # (Required) Path to FastTree double-precision executable 
-    
     Raises:
         Exception if required option is missing/invalid.
 
@@ -80,13 +76,12 @@ class SubtypeConfig(object):
                 
 
 
-    def _is_invalid_subtype_config(self, root_dir, config):
+    def _is_invalid_subtype_config(self, config):
         """Check for required config and valid filepaths.
-        root_dir will be prepended to all filepaths.
+        self._root_dir will be prepended to all filepaths.
 
 
         Args:
-            root_dir (str): Prepended to all filepaths
             config (dict): Config dictionary
 
         Returns:
@@ -95,6 +90,7 @@ class SubtypeConfig(object):
             str when error encountered
 
         """
+        root_dir = self._root_dir
 
         for filepath_parameter in ['alignment', 'subtype']:
 
@@ -106,6 +102,9 @@ class SubtypeConfig(object):
 
             else:
                 return "no <%s> parameter" % (filepath_parameter)
+
+        if not config['seq'] and (config['seq'] != 'nt' or config['seq'] != 'aa'):
+            return "missing/invalid <seq> parameter"
 
 
     

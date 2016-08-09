@@ -92,13 +92,17 @@ class PhylotyperOptions(object):
 
         required = {
             'external': [
-                'fasttree'
+                'fasttree',
+                'mafft'
+            ],
+            'R': [
+                'lib',
+                'repo'
             ]
         }
 
         # optional = {
-        #     'external': [
-        #     ]
+            
         # }
 
         config = ConfigParser.ConfigParser()
@@ -124,6 +128,7 @@ class PhylotyperOptions(object):
 
                 self._options[section][option] = value
                 self._valid_option_names.append(option_name)
+
 
 
     @property
@@ -156,7 +161,7 @@ class PhylotyperOptions(object):
         """
 
         if not self._valid_option(section, option):
-            raise Exception("Unknown config option: %s.%s" % (section.option))
+            raise Exception("Unknown config option: %s.%s" % (section, option))
 
         return self._options[section][option]
 

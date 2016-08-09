@@ -20,6 +20,9 @@ are also implicitly created anytime a new section starts.
 """
 
 import logging
+import os
+import pkg_resources
+import rpy2.robjects as robjects
 
 
 __author__ = "Matthew Whiteside"
@@ -33,7 +36,7 @@ __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 class Phylotyper(object):
     """Phylotyper functions.
 
-    
+
     Raises:
         Exception if required option is missing/invalid.
 
@@ -50,10 +53,15 @@ class Phylotyper(object):
         """
 
         self.logger = logging.getLogger('phylotyper.phylotyper.Phylotyper')
+        self.rwd = pkg_resources.resource_filename(__name__,  '/'.join(('R')))
+        self.rfiles = {
+            'phylotyper': os.path.join(self.rwd, 'phylotyper.R')
+        }
 
-  
-  	def subtype(self, tree, subtypes, unknowns):
-  		"""Constructor
+
+
+    def subtype(self, tree, subtypes, config):
+    	"""Run phylotyper subtyping method
 
         Description
         
@@ -61,7 +69,31 @@ class Phylotyper(object):
             something (str): Description
             
         """
-  		pass
+
+        # Set work dir
+        robjects.r('setwd("%s")' % self.rwd)
+
+        # Load Phylotyper R functions
+        rcode = 'source("%s", chdir=TRUE)' % (self.rfiles['phylotyper']) 
+        robjects.r(rcode)
+
+        # Load libraries
+        rcode = 'suppressMessages(phylotyper$loadInstallLibraries(libloc="%s",repo="%s"))' % (config.get('R', 'lib'), config.get('R', 'repo')) 
+        robjects.r(rcode)
+
+        # Load data files
+        rcode = 'rs = phylotyper$loadSubtype("%s","%s"); tree = rs$tree; subtypes = rs$subtypes; untyped = rs$untyped' % (tree, subtypes)
+        robjects.r(rcode)
+
+
+        
+        print robjects.r('untyped')
+
+
+        None
+  		
+
+
 
 
 

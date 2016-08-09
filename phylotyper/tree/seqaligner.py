@@ -98,7 +98,8 @@ class SeqAligner(object):
 
         Args:
             fasta_file (str): Filepath to input fasta file
-            alignment_file (str): Filepath for output from alignment
+            existing_alignment_file (str): Filepath to aliged fasta file
+            output_alignment_file (str): Filepath for output from alignment
 
         Returns:
             None
