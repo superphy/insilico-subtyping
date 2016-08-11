@@ -29,6 +29,7 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "mwhiteside@canada.ca"
 
 
+# Validation functions
 def which(program):
     """Checks if program is executable.
 
@@ -55,6 +56,38 @@ def which(program):
                 return exe_file
 
     return None
+
+
+def is_number(val):
+    """Checks if value is is_number
+
+    Args:
+        val (str)
+        
+    Returns:
+        bool: True if successful, False otherwise
+
+    """
+
+    try:
+        float(val)
+        return True
+    except ValueError:
+        return False
+
+
+def is_string(val):
+    """Checks if value is string
+
+    Args:
+        val (str)
+        
+    Returns:
+        bool: True if successful, False otherwise
+
+    """
+
+    return isinstance(val, str)
 
 
 
@@ -92,12 +125,15 @@ class PhylotyperOptions(object):
 
         required = {
             'external': [
-                'fasttree',
-                'mafft'
+                ('fasttree', which),
+                ('mafft', which)
             ],
             'R': [
-                'lib',
-                'repo'
+                ('lib', is_string),
+                ('repo', is_string)
+            ],
+            'phylotyper': [
+                ('prediction_threshold', is_number)
             ]
         }
 
@@ -113,7 +149,9 @@ class PhylotyperOptions(object):
             self._options[section] = {}
 
             # Load options for section
-            for option in required[section]:
+            for option_set in required[section]:
+                option = option_set[0]
+                validation_func = option_set[1]
                 option_name = "%s.%s" % (section,option)
 
                 if not config.has_option(section, option):
@@ -121,10 +159,8 @@ class PhylotyperOptions(object):
 
                 value = config.get(section, option)
 
-                if section == 'external':
-                    # Make sure path is executable
-                    if not which(value):
-                        raise Exception("External program option not executable: %s" % option_name)
+                if not validation_func(value):
+                    raise Exception("Invalid option in config file: %s" % option_name)
 
                 self._options[section][option] = value
                 self._valid_option_names.append(option_name)
@@ -165,4 +201,20 @@ class PhylotyperOptions(object):
 
         return self._options[section][option]
 
-   
+
+    def pformat(self):
+        """Return string representation of current config
+
+        Returns:
+            str
+
+        """
+
+        pstr = ''
+        for section in self._options.keys():
+            pstr += '%s:\n' % (section)
+            for option, value in self._options[section].items():
+                pstr += '    %s: %s\n' % (option,value)
+
+
+        return pstr 

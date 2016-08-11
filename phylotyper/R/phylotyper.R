@@ -239,7 +239,7 @@ phylotyper$plotRR = function(tree, fit, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 
-	plot(tree)
+	plot(tree, label.offset=.03)
 	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
 		piecol=cols,
 		cex=0.5)

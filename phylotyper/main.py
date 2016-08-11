@@ -1,29 +1,24 @@
 #!/usr/bin/env python
 
-"""Phylotyper program
+"""Phylotyper program main
 
 Script for running various phylotyper functions
 
+Examples:
+	To run subtyping routine on Stx1 genes:
 
+        $ python main.py subtype ../phylotyper_example.ini ecoli_stx1 test/ecoli_stx1.ffn output/test/
 
-Example:
-    Examples can be given using either the ``Example`` or ``Examples``
-    sections. Sections support any reStructuredText formatting, including
-    literal blocks::
-
-        $ python example_google.py
-
-Section breaks are created by resuming unindented text. Section breaks
-are also implicitly created anytime a new section starts.
-
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
 """
 
-import logging
+
 import argparse
+import csv
+import logging
 import os
+import pprint
 from Bio import SeqIO
+
 from config import PhylotyperOptions
 from builtin_subtypes import SubtypeConfig
 from phylotyper import Phylotyper
@@ -39,16 +34,19 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 
+logger = None
 
 def align_all_sequences(input, output, config):
 	"""Build MSA
 
 	Args:
-	  input (str): Fasta file
-	  output (str): Output file for MSA
-	  config (obj): PhylotyperOptions object
+		input (str): Fasta file
+		output (str): Output file for MSA
+		config (obj): PhylotyperOptions object
 
     """
+
+	logger.debug('Performing full alignment')
 
 	aln = SeqAligner(config)
 	aln.align(input, output)
@@ -59,12 +57,14 @@ def align_new_sequences(input, alignment, output, config):
 	profile alignment
 
 	Args:
-	  input (str): Fasta file
-	  alignment (str): Aligned fasta file
-	  output (str): Output file for MSA
-	  config (obj): PhylotyperOptions object
+		input (str): Fasta file
+		alignment (str): Aligned fasta file
+		output (str): Output file for MSA
+		config (obj): PhylotyperOptions object
 
     """
+
+	logger.debug('Aligning genes to existing alignment')
 
 	aln = SeqAligner(config)
 	aln.add(input, alignment, output)
@@ -75,36 +75,84 @@ def build_tree(input, output, nt, fast, config):
 	"""Build phylogenetic tree
 
 	Args:
-	  input (str): Fasta file
-	  output (str): Output file for newick tree
-	  nt (bool): True when nucleotide sequences
-	  fast (bool): True to prioritize speed over accuracy
-	  config (obj): PhylotyperOptions object
+		input (str): Fasta file
+	  	output (str): Output file for newick tree
+	  	nt (bool): True when nucleotide sequences
+	  	fast (bool): True to prioritize speed over accuracy
+	  	config (obj): PhylotyperOptions object
 
     """
+
+	logger.debug('Building fasttree')
 
 	tree = FastTreeWrapper(config)
 	tree.build(input, output, nt, fast)
 	
 
 def predict_subtypes(options, config):
-	"""Phylotyper subtype prediction
+	"""Calls subtype method
 
+	Wrapper around the Phylotyper.subtype method. Identifies
+	predictions above significance cutoff. Writes results to 
+	file.
+
+	Args:
+        options (dict): user defined settings from __main__
+        config (obj): PhylotyperConfig with .ini file settings
 
 	"""
 
+	logger.debug('Running phylotyper')
+
 	# Define files
-	subtfile = os.path.abspath(options['subtype'])
-	treefile = os.path.abspath(os.path.join(options['output_directory'], 'combined.tree'))
+	subtfile = options['subtype']
+	treefile = options['tree_file']
+	assfile = options['result_file']
 
-	pt = Phylotyper()
+	pt = Phylotyper(config)
 
-	pt.subtype(treefile, subtfile, config)
+	assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'])
 
+	# Load mapping
+	rev_mapping = {}
+	for x in csv.reader(open(options['mapping_file'],'r'), delimiter='\t'):
+		rev_mapping[x[1]] = x[0]
+
+	# Write assignments
+	cutoff = float(config.get('phylotyper','prediction_threshold'))
+	logger.debug('Using posterior probability cutoff: %f' % (cutoff))
+
+	with open(assfile, 'w') as outf:
+		outf.write('#genome\tsubtype\tprobability\tphylotyper_assignment\n')
+		for genome_id,subtup in assignment_dict.items():
+
+			pp = subtup[1]
+			subt = ','.join(subtup[0])
+
+			pred = 'undetermined'
+			print pp
+			if pp > cutoff:
+				pred = subt
+			
+			outf.write('\t'.join((
+				rev_mapping[genome_id],
+				','.join(subt),
+				str(pp),
+				pred +'\n'
+			)))
+
+	None
 
 
 def subtype_pipeline(options, config):
-	"""Run phylotyper pipeline
+	"""Run phylotyper pipeline 
+
+	Runs individual steps in phylotyper pipeline
+	for internal subtype scheme
+        
+        Args:
+            options (dict): user defined settings from __main__
+            config (obj): PhylotyperConfig with .ini file settings
 
     """
 
@@ -112,9 +160,14 @@ def subtype_pipeline(options, config):
 	alnfile = os.path.join(options['output_directory'], 'combined.aln')
 	oldalnfile = options['alignment']
 	treefile = os.path.join(options['output_directory'], 'combined.tree')
+	options['tree_file'] = treefile
+	options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.txt')
 
-	# Rename sequences with unique ids
+	# Rename sequences with unique ids, change input files
 	uniquify_sequences(options)
+
+	logger.info('Settings:\n%s' % (pprint.pformat(options)))
+	logger.info('Config:\n%s' % (config.pformat()))
 
     # Align
 	align_new_sequences(options['input'], oldalnfile, alnfile, config)
@@ -123,44 +176,60 @@ def subtype_pipeline(options, config):
 	nt = options['seq'] == 'nt'
 	build_tree(alnfile, treefile, nt, options['fast'], config)
 
-    # Predict subtypes
+    # Predict subtypes & write to file
 	predict_subtypes(options, config)
 
 
 def uniquify_sequences(options):
 	"""Create temporary sequence names that are unique
 
+	Autogenerate temporary name placeholders and rewrite
+	inputs with these names.
+
+	Sets filename key-values in options dict for new temp input file
+	and mapping file.
+        
+        Args:
+            options (dict): user defined settings from __main__
+
     """
+
+	logger.debug('Renaming sequences')
 
     # Define files
 	output_file = os.path.join(options['output_directory'], 'input.fasta')
 	mapping_file = os.path.join(options['output_directory'], 'mapping.txt')
 	input_file = options['input']
-	
+
 	i = 1
 	pre = 'pt_'
 	fasta_sequences = SeqIO.parse(open(input_file),'fasta')
-	with open(output_file, 'w') as out, open(mapping_file, 'w') as mapping:
+	with open(output_file, 'w') as outf, open(mapping_file, 'w') as mapf:
 	    for fasta in fasta_sequences:
 	        name, sequence = fasta.description, str(fasta.seq)
 	        newname = '%s%i' % (pre, i)
 	        i += 1
-	        mapping.write('%s\t%s\n' % (name, newname))
-	        out.write('>%s\n%s\n' % (newname, sequence))
+	        mapf.write('%s\t%s\n' % (name, newname))
+	        outf.write('>%s\n%s\n' % (newname, sequence))
 
 	options['input'] = output_file
 	options['user_input'] = input_file
+	options['mapping_file'] = mapping_file
 
 
 
 if __name__ == "__main__":
-	"""Run phylotyper function
+	"""Run phylotyper functions
+
+	Parses command-line arguments and calls appropriate
+	functions
 
     """
 
    	subtype_config_file = 'builtin_subtypes.yaml'
    
 	logging.basicConfig(level=logging.DEBUG)
+	logger = logging.getLogger('phylotyper.main')
 
     # Parse command-line args
     # Phylotyper functions are broken up into commands
@@ -207,6 +276,7 @@ if __name__ == "__main__":
 
 	options = parser.parse_args()
 
+	# Parse .ini config file
 	config = PhylotyperOptions(options.config)
 
 	if options.which == 'aln':
@@ -252,8 +322,8 @@ if __name__ == "__main__":
 		scheme = options.gene
 
 		subtype_options = stConfig.get_subtype_config(scheme)
-		subtype_options['input'] = options.input
-		subtype_options['output_directory'] = options.output
+		subtype_options['input'] = os.path.abspath(options.input)
+		subtype_options['output_directory'] = os.path.abspath(options.output)
 		subtype_options['fast'] = False
 
 		if options.nt and (subtype_options['seq'] != 'nt'):
@@ -263,13 +333,6 @@ if __name__ == "__main__":
 		# Run pipeline
 		subtype_pipeline(subtype_options, config)
 
-
-
-
-
-
-		
-		
 
 	else:
 		raise Exception("Unrecognized command")
