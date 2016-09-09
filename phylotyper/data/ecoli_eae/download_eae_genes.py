@@ -12,7 +12,7 @@ Example:
 import argparse
 import logging
 
-from utils import DownloadUtils
+from utils import DownloadUtils, SubtypeParser
 
 __author__ = "Matthew Whiteside"
 __copyright__ = "Copyright Government of Canada 2012-2015. Funded by the Government of Canada Genomics Research and Development Initiative"
@@ -50,13 +50,22 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
+    # Initialize Subtype parser
+    subtype_names = '((?:alpha|beta|gamma|delta|epsilon|zeta|eta|theta|jota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma)(?:[\-_\s]?\d)?)'
+    pattern1 = "(?:intimin|eae)[-_\s]%s" % subtype_names
+    pattern2 = "%s[-_\s](?:intimin|eae)" % subtype_names
+
+    stparser = SubtypeParser([re.compile(pattern1),re.compile(pattern2)])
+
+
     # Initialize Download object
-
-    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['eae','Intimin'])
-
-    dutil.download()
+    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['eae','Intimin'], stparser)
 
     # Perform Download
+    #dutil.download()
+
+    # Parse genbank files for known intimin types
+    dutil.parse()
 
 
 

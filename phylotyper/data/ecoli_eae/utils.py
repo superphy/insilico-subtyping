@@ -3,7 +3,7 @@
 Classes for downloading genes from NCBI
 
 Examples:
-	To retrieve eae genes in E.coli:
+    To retrieve eae genes in E.coli:
 
         $ python main.py subtype ../phylotyper_example.ini ecoli_stx1 test/ecoli_stx1.ffn output/test/
 
@@ -15,51 +15,66 @@ import logging
 import os
 import time
 
+
+
 class GeneFilter(object):
-	"""
+    """
+    test
+    """
 
-	"""
-
-	None
+    def __init(self):
+        None
 
 class SubtypeParser(object):
-	"""Extract subtypes assignments from Genbank records
+    """Extract subtypes assignments from Genbank records
 
-	Needs apriori list of valid subtype regular expressions and searches for
-	instances of these in definition, keyword fields of the top-level record, 
-	and in CDS feature fields allele, gene, product
+        Needs apriori list of valid subtype regular expressions and searches for
+        instances of these in definition, keyword fields of the top-level record, 
+        and in CDS feature fields allele, gene, product, note
 
-	"""
+    """
 
-	def __init__(self, valid_subtypes):
+    def __init__(self, valid_subtypes, 
+        record_fields=['definition','keyword'],
+        feature_fields=['allele','gene','product','note']):
         """Constructor
         
-        	Args:
-            
-   
-
+            Args:
+        
         """
 
         self._subtype_regexp = valid_subtypes
+        self._feature_fields = feature_fields
+        self._record_fields = record_fields
 
 
-    def find_subtype(self, input):
-    	"""Find instances of subtype in input
 
-    	"""
+    def search_feature(self, feature):
+        """Find instances of subtype in genbank feature
 
-    	
-	
+        """
+
+        matches = []
+
+        for f in feature_fields:
+            if f in feature.qualifiers:
+
+                for re in self._subtype_regexp:
+                    matches.append(re.findall(feature.qualifiers[f]))
+               
+
+        return None
+
 
 class DownloadUtils(object):
     """Use Biopython's Eutils to retrieve gene sequences from NCBI
 
     """
 
-    def __init__(self, output_dir, organism, gene_names, email="superphy.info@gmail.com"):
+    def __init__(self, output_dir, organism, gene_names, subtype_parser, email="superphy.info@gmail.com"):
         """Constructor
 
-        	Args:
+            Args:
             
    
 
@@ -68,23 +83,26 @@ class DownloadUtils(object):
         # Set email for eutils interface
         Entrez.email = email
        
-    	# Logger
+        # Logger
         self.logger = logging.getLogger(__name__)
 
         # Output
+        self._genes = gene_names
         filename = gene_names[0]
         self._outdir = output_dir
         self._gbfile = os.path.join(self._outdir, filename+'.gb')
         self._fastafile = os.path.join(self._outdir, filename+'.fasta')
-        self._subtypefile = os.path.join(self._outdir, self._outdir, filename+'.txt'
+        self._subtypefile = os.path.join(self._outdir, self._outdir, filename+'.txt')
 
         # Search string
-        gene_names = ("\"%s\"[Gene]" %x for x in gene_names)
-        self._search_string = "(" + " OR ".join(gene_names) + ") AND \""+organism+"\"[Organism]"
+        self._search_string = "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + ") AND \""+organism+"\"[Organism]"
         
         self._db = "nucleotide"
 
         self._batch_size = 500
+
+        # SubtypeParser object
+        self._subtype_parser = subtype_parser
 
 
 
@@ -96,24 +114,28 @@ class DownloadUtils(object):
     def output_directory(self):
         return self._outdir
 
+    @property
+    def subtype_parser(self):
+        return self._subtype_parser
+
 
     def download(self):
-    	"""Perform download of genes
+        """Perform download of genes
 
-    	"""
+        """
 
-    	# Create directory to store genbank files
-    	gbout = open(self._gbfile, 'w')
+        # Create directory to store genbank files
+        gbout = open(self._gbfile, 'w')
 
-    	search = Entrez.esearch(db=self._db, term=self._search_string,
-        	retmax=1, usehistory="y")
+        search = Entrez.esearch(db=self._db, term=self._search_string,
+            retmax=1, usehistory="y")
 
-    	search_results = Entrez.read(search)
+        search_results = Entrez.read(search)
         search.close()
 
-    	count = int(search_results["Count"])
-    	webenv = search_results["WebEnv"]
-    	query_key = search_results["QueryKey"]
+        count = int(search_results["Count"])
+        webenv = search_results["WebEnv"]
+        query_key = search_results["QueryKey"]
 
 
         self.logger.info("%i genes sequences in NCBI matching query %s" % (count, self._search_string))
@@ -150,11 +172,43 @@ class DownloadUtils(object):
         return True
 
 
-    def parse(self,):
-    	"""Extract sequence and subtype for valid genes in each genbank record
+    def parse(self):
+        """Extract sequence and subtype for valid genes in each genbank record
 
-    	"""
+        """
 
-    	for gb_record in SeqIO.parse(open(self._gbfile,"r"), "genbank"):
+        for gb_record in SeqIO.parse(open(self._gbfile,"r"), "genbank"):
+
+            # Find the CDS matching the gene
+            for (index, feature) in enumerate(gb_record.features):
+
+                if feature.type == 'CDS':
+
+                    # Check if this CDS is what we are looking for
+                    matched = False
+                    if 'gene' in feature.qualifiers and feature.qualifiers['gene'][0] in self._genes:
+                        matched = True
+                    elif 'product' in feature.qualifiers and feature.qualifiers['product'][0] in self._genes:
+                        matched = True
+
+                    # Found
+                    if matched:
+
+                        # Get sequence
+                        dnaseq = feature.extract(gb_record.seq)
+                        protseq = None
+
+                        if feature.qualifiers['translation']:
+                            protseq = feature.qualifiers['translation'][0]
+                        else:
+                            protseq = dnaseq.translate(table=11, to_stop=True)
+
+                        dlen = len(dnaseq)
+                        plen = len(protseq)
+
+                        # Try to find subtype
+                        subtype = self.subtype_parser.search_feature(feature)
+
+
 
 
