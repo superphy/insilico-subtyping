@@ -49,6 +49,14 @@ class SeqAligner(object):
             'add': '--add'
         }
 
+        self._trimal = config.get('external', 'trimal')
+        self._trimal_args = {
+            'auto': '-automated1 -in',
+            'html': '-htmlout'
+            'matrix': '-sident'
+            'output': '-out'
+        }
+
 
     @property
     def aligner(self):
@@ -57,16 +65,35 @@ class SeqAligner(object):
         return self._mafft
 
     @property
-    def aligner_args(self):
+    def trimmer(self):
         """str: Path to executable."""
+
+        return self._trimal
+
+
+    @property
+    def aligner_args(self):
+        """str: Command-line args."""
 
         return self._mafft_args['auto']
 
     @property
     def aligner_add_args(self):
-        """str: Path to executable."""
-
+        """str: Command-line args."""
+        
         return self._mafft_args['add']
+
+    @property
+    def trim_args(self):
+        """str: Command-line args."""
+        
+        return self._trimal_args['auto']
+
+    @property
+    def trim_output_args(self):
+        """str: Command-line args."""
+        
+        return self._trimal_args['output']
 
    
     def align(self, fasta_file, alignment_file):
@@ -98,7 +125,7 @@ class SeqAligner(object):
 
         Args:
             fasta_file (str): Filepath to input fasta file
-            existing_alignment_file (str): Filepath to aliged fasta file
+            existing_alignment_file (str): Filepath to aligned fasta file
             output_alignment_file (str): Filepath for output from alignment
 
         Returns:
@@ -117,5 +144,48 @@ class SeqAligner(object):
             raise Exception(msg)
 
         None
+
+
+    def trim(self, alignment_file, trimmed_file, ident_matrix_file=None, 
+        trimming_summary_file=None):
+        """Trim alignment using external program trimal
+
+        Args:
+            alignment_file (str): Filepath to aligned fasta file
+            trimmed_file (str): Filepath for output with trimmed alignment
+            ident_matrix_file(str)[OPTIONAL]: Filepath for output figure 
+                showing pairwise sequence identities
+            trimming_summary_file(str)[OPTIONAL]: Filepath for HTML output showing trimmed 
+                alignment columns
+
+        Returns:
+            None
+
+        """
+
+        cmd_args = self.trim_args
+        output_args = "{} {}".format(self._trim_output_args, trimmed_file)
+        cmd = "{} {} {} {}".format(self.trimmer, cmd_args, alignment_file, 
+            output_args)
+
+        if trimming_summary_file:
+            cmd += "{} {}".format(self.trimal_args['html'], trimming_summary_file)
+
+        if ident_matrix_file:
+            # Output to stdout
+            cmd += "{} > {}".format(self.trimal_args['matrix'], ident_matrix_file)
+
+        try:
+            check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+        except CalledProcessError as e:
+            msg = "Alignment trimming failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+            raise Exception(msg)
+
+        None
+
+    
+
+
+
 
 
