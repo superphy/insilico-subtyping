@@ -11,19 +11,12 @@ Examples:
 
 
 from Bio import Entrez, SeqIO
+from collections import Counter
 import logging
 import os
+import re
 import time
 
-
-
-class GeneFilter(object):
-    """
-    test
-    """
-
-    def __init(self):
-        None
 
 class SubtypeParser(object):
     """Extract subtypes assignments from Genbank records
@@ -34,8 +27,8 @@ class SubtypeParser(object):
 
     """
 
-    def __init__(self, valid_subtypes, 
-        record_fields=['definition','keyword'],
+    def __init__(self, valid_subtypes,
+        record_fields=['description'],
         feature_fields=['allele','gene','product','note']):
         """Constructor
         
@@ -44,9 +37,8 @@ class SubtypeParser(object):
         """
 
         self._subtype_regexp = valid_subtypes
-        self._feature_fields = feature_fields
-        self._record_fields = record_fields
-
+        self.feature_fields = feature_fields
+        self.record_fields = record_fields
 
 
     def search_feature(self, feature):
@@ -54,16 +46,62 @@ class SubtypeParser(object):
 
         """
 
-        matches = []
+        matches = set([])
 
-        for f in feature_fields:
+        for f in self.feature_fields:
             if f in feature.qualifiers:
 
-                for re in self._subtype_regexp:
-                    matches.append(re.findall(feature.qualifiers[f]))
+                for regexp in self._subtype_regexp:
+                    for v in feature.qualifiers[f]:
+                        hits = regexp.findall(v)
+                        hits = self.format(hits)
+                        for h in hits:
+                            matches.add(h)
                
+        return matches
 
-        return None
+
+    def search_record(self, record):
+        """Find instances of subtype in genbank record
+
+        Returns set of matches returned by findall
+
+        """
+
+        matches = set([])
+
+        for f in self.record_fields:
+            if f in dir(record):
+
+                for regexp in self._subtype_regexp:
+                    hits = regexp.findall(getattr(record, f))
+                    hits = self.format(hits)
+                    for h in hits:
+                        matches.add(h)
+               
+        return matches
+
+
+    def format(self, stlist):
+        """Apply standard formatting
+
+        Formatting:
+            1. to lowercase
+            2. whitespace to '-'
+            3. trailing digits separated by '-'
+
+        Returns list with formatted strings
+
+        """
+
+        fixed = []
+        for s in stlist:
+            s = s.lower()
+            s = re.sub(r'\s', r'-', s)
+            s = re.sub(r'([a-z])(\d+)$', r'\1-\2', s)
+            fixed.append(s)
+
+        return fixed
 
 
 class DownloadUtils(object):
@@ -71,7 +109,7 @@ class DownloadUtils(object):
 
     """
 
-    def __init__(self, output_dir, organism, gene_names, subtype_parser, email="superphy.info@gmail.com"):
+    def __init__(self, output_dir, organism, gene_names, subtype_parser, dna=True, email="superphy.info@gmail.com"):
         """Constructor
 
             Args:
@@ -93,6 +131,7 @@ class DownloadUtils(object):
         self._gbfile = os.path.join(self._outdir, filename+'.gb')
         self._fastafile = os.path.join(self._outdir, filename+'.fasta')
         self._subtypefile = os.path.join(self._outdir, self._outdir, filename+'.txt')
+        self._dna_sequences = dna
 
         # Search string
         self._search_string = "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + ") AND \""+organism+"\"[Organism]"
@@ -177,37 +216,99 @@ class DownloadUtils(object):
 
         """
 
-        for gb_record in SeqIO.parse(open(self._gbfile,"r"), "genbank"):
+        subtype_counts = Counter()
 
-            # Find the CDS matching the gene
-            for (index, feature) in enumerate(gb_record.features):
+        # Output files
+        with open(self._fastafile, 'w') as ffh, open(self._subtypefile, 'w') as stfh: 
 
-                if feature.type == 'CDS':
+            for gb_record in SeqIO.parse(open(self._gbfile,"r"), "genbank"):
 
-                    # Check if this CDS is what we are looking for
-                    matched = False
-                    if 'gene' in feature.qualifiers and feature.qualifiers['gene'][0] in self._genes:
-                        matched = True
-                    elif 'product' in feature.qualifiers and feature.qualifiers['product'][0] in self._genes:
-                        matched = True
+                untyped_features = []
+                allele = 0
 
-                    # Found
-                    if matched:
+                # Find the CDS matching the gene
+                for (index, feature) in enumerate(gb_record.features):
 
-                        # Get sequence
-                        dnaseq = feature.extract(gb_record.seq)
-                        protseq = None
+                    if feature.type == 'CDS':
 
-                        if feature.qualifiers['translation']:
-                            protseq = feature.qualifiers['translation'][0]
-                        else:
-                            protseq = dnaseq.translate(table=11, to_stop=True)
+                        # Check if this CDS is what we are looking for
+                        matched = False
+                        if 'gene' in feature.qualifiers and feature.qualifiers['gene'][0] in self._genes:
+                            matched = True
+                        elif 'product' in feature.qualifiers and feature.qualifiers['product'][0] in self._genes:
+                            matched = True
 
-                        dlen = len(dnaseq)
-                        plen = len(protseq)
+                        # Found
+                        if matched:
 
-                        # Try to find subtype
-                        subtype = self.subtype_parser.search_feature(feature)
+                            # Unique naming
+                            allele += 1
+                            name = "{}_allele{}".format(gb_record.id, allele)
+
+                            # Get sequence
+                            seq = None
+
+                            if self._dna_sequences:
+
+                                try:
+                                    seq = feature.extract(gb_record.seq)
+                                except Exception:
+                                    self.logger.debug('Error in record: %s, missing sequence in feature %s' % (name, str(feature)))
+                            
+                            else:
+
+                                if feature.qualifiers['translation']:
+                                    seq = feature.qualifiers['translation'][0]
+                                else:
+                                    dnaseq = None
+                                    try:
+                                        dnaseq = feature.extract(gb_record.seq)
+                                    except Exception:
+                                        self.logger.debug('Error in record: %s, missing sequence in feature %s' % (name, str(feature)))
+                            
+                                    seq = dnaseq.translate(table=11, to_stop=True)
+
+                            # Try to find subtype
+                            subtypes = self.subtype_parser.search_feature(feature)
+
+                            # There should only be one unique subtype per feature
+                            if len(subtypes) > 1:
+                                self.logger.debug('Error in record: %s, multiple subtypes %s in feature %s' % (name, subtypes, str(feature)))
+
+                            elif len(subtypes) == 1:
+                                # Found a valid subtype
+                                st = subtypes.pop()
+                                ffh.write(">{}\n{}\n".format(name, seq))
+                                stfh.write("{}\t{}\n".format(name, st))
+                                subtype_counts[st] += 1 
+
+                            else:
+                                # Failed to find subtype info associated with feature
+                                # Keep feature info in case there is information in the top-level record
+                                # but need to know if there are multiple alleles
+                                untyped_features.append((name, seq))
+
+                if len(untyped_features) == 1 and allele < 2:
+                    # Only one allele found in record
+                    # Search record fields for info on subtype
+                    subtypes = self.subtype_parser.search_record(gb_record)
+
+                    # There should only be one unique subtype per record (since only one allele)
+                    if len(subtypes) > 1:
+                        self.logger.debug('Error in record: %s, multiple subtypes %s in record %s' % (name, subtypes, str(gb_record)))
+
+                    elif len(subtypes) == 1:
+                        # Found a valid subtype
+                        tup = untyped_features[0]
+                        st = subtypes.pop()
+                        ffh.write(">{}\n{}\n".format(tup[0], tup[1]))
+                        stfh.write("{}\t{}\n".format(tup[0], st))
+                        subtype_counts[st] += 1
+
+
+        self.logger.debug('Subtypes encountered:\n{}\n'.format(str(subtype_counts)))
+
+        return None
 
 
 

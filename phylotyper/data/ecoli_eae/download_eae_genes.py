@@ -11,6 +11,7 @@ Example:
 
 import argparse
 import logging
+import re
 
 from utils import DownloadUtils, SubtypeParser
 
@@ -55,17 +56,19 @@ if __name__ == "__main__":
     pattern1 = "(?:intimin|eae)[-_\s]%s" % subtype_names
     pattern2 = "%s[-_\s](?:intimin|eae)" % subtype_names
 
-    stparser = SubtypeParser([re.compile(pattern1),re.compile(pattern2)])
+    parser = SubtypeParser([re.compile(pattern1),re.compile(pattern2)])
 
 
     # Initialize Download object
-    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['eae','Intimin'], stparser)
+    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['eae','Intimin'], parser)
 
     # Perform Download
     #dutil.download()
 
     # Parse genbank files for known intimin types
     dutil.parse()
+
+    # Trim output alignment
 
 
 

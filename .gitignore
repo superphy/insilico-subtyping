@@ -1,2 +1,4 @@
 *.pyc
+*.log
 phylotyper/output/*
+phylotyper/data/*.gb
