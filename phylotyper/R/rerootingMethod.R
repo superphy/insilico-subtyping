@@ -26,7 +26,8 @@ rerootingMethod<-function(tree,x,model=c("ER","SYM"),...){
 		} else {
 			reroot(tree,nn,tree$edge.length[which(tree$edge[,2]==nn)])
 		}
-		fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)$lik.anc[1,]
+		res = fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)
+		res$lik.anc[1,]
 	}
 	XX<-t(sapply(nn,ff))
 	if(tips) XX<-rbind(XX[1:n,],YY$lik.anc[1,],XX[(n+1):nrow(XX),])

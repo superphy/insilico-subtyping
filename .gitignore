@@ -1,4 +1,5 @@
 *.pyc
 *.log
+*alignment_trimming_summary.html
 phylotyper/output/*
 phylotyper/data/*.gb

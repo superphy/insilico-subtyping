@@ -51,9 +51,9 @@ class SeqAligner(object):
 
         self._trimal = config.get('external', 'trimal')
         self._trimal_args = {
-            'auto': '-automated1 -in',
-            'html': '-htmlout'
-            'matrix': '-sident'
+            'auto': '-gappyout -in',
+            'html': '-htmlout',
+            'matrix': '-sident',
             'output': '-out'
         }
 
@@ -112,6 +112,8 @@ class SeqAligner(object):
         cmd_args = self.aligner_args
         cmd = "{} {} {} > {}".format(self.aligner, cmd_args, fasta_file, alignment_file)
 
+        #print cmd
+
         try:
             check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
         except CalledProcessError as e:
@@ -146,8 +148,8 @@ class SeqAligner(object):
         None
 
 
-    def trim(self, alignment_file, trimmed_file, ident_matrix_file=None, 
-        trimming_summary_file=None):
+    def trim(self, alignment_file, trimmed_file, ident_matrix_file=False, 
+        trimming_summary_file=False):
         """Trim alignment using external program trimal
 
         Args:
@@ -164,16 +166,18 @@ class SeqAligner(object):
         """
 
         cmd_args = self.trim_args
-        output_args = "{} {}".format(self._trim_output_args, trimmed_file)
+        output_args = "{} {}".format(self.trim_output_args, trimmed_file)
         cmd = "{} {} {} {}".format(self.trimmer, cmd_args, alignment_file, 
             output_args)
 
         if trimming_summary_file:
-            cmd += "{} {}".format(self.trimal_args['html'], trimming_summary_file)
+            cmd += " {} {}".format(self._trimal_args['html'], trimming_summary_file)
 
         if ident_matrix_file:
             # Output to stdout
-            cmd += "{} > {}".format(self.trimal_args['matrix'], ident_matrix_file)
+            cmd += " {} > {}".format(self._trimal_args['matrix'], ident_matrix_file)
+
+        print cmd
 
         try:
             check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         

@@ -17,6 +17,67 @@ import os
 import re
 import time
 
+class GeneFilter(object):
+    """Remove spurious genes based on user-supplied criteria
+
+        User defines boolean test functions that examine
+        sequence or genbank record. This class runs those tests
+
+    """
+
+    def __init__(self, sequence_tests=[], genbank_tests=[]):
+        """Constructor
+        
+            Args:
+        
+        """
+
+        for f in sequence_tests:
+            if not callable(f):
+                raise Exception('Attribute sequence_tests must contain a list of callable functions (failed: {}'.format(f))
+        self._sequence_tests = sequence_tests
+
+        for f in genbank_tests:
+            if not callable(f):
+                raise Exception('Attribute genbank_tests must contain a list of callable functions (failed: {}'.format(f))
+        self._genbank_tests = genbank_tests
+
+
+    def test_sequence(self, sequence):
+        """Run test functions on sequence
+
+            Args:
+                sequence (str) 
+
+        Returns boolean
+
+        """
+
+        for test in self._sequence_tests:
+            if not test(sequence):
+                return False
+
+        return True
+
+    def test_genbank(self, record):
+        """Run test functions on BioPython genbank
+        record object
+
+            Args:
+                record (Bio.Record) 
+
+        Returns boolean
+
+        """
+
+        for test in self._sequence_tests:
+            if not test(record):
+                return False
+
+        return True
+
+
+
 
 class SubtypeParser(object):
     """Extract subtypes assignments from Genbank records
@@ -109,7 +170,7 @@ class DownloadUtils(object):
 
     """
 
-    def __init__(self, output_dir, organism, gene_names, subtype_parser, dna=True, email="superphy.info@gmail.com"):
+    def __init__(self, output_dir, organism, gene_names, subtype_parser, gene_filter, dna=True, email="superphy.info@gmail.com"):
         """Constructor
 
             Args:
@@ -143,6 +204,9 @@ class DownloadUtils(object):
         # SubtypeParser object
         self._subtype_parser = subtype_parser
 
+        # GeneFilter object
+        self._gene_filter = gene_filter
+
 
 
     @property
@@ -156,6 +220,10 @@ class DownloadUtils(object):
     @property
     def subtype_parser(self):
         return self._subtype_parser
+
+    @property
+    def gene_filter(self):
+        return self._gene_filter
 
 
     def download(self):
@@ -254,6 +322,7 @@ class DownloadUtils(object):
                                     seq = feature.extract(gb_record.seq)
                                 except Exception:
                                     self.logger.debug('Error in record: %s, missing sequence in feature %s' % (name, str(feature)))
+                                    continue
                             
                             else:
 
@@ -265,8 +334,18 @@ class DownloadUtils(object):
                                         dnaseq = feature.extract(gb_record.seq)
                                     except Exception:
                                         self.logger.debug('Error in record: %s, missing sequence in feature %s' % (name, str(feature)))
+                                        continue
                             
                                     seq = dnaseq.translate(table=11, to_stop=True)
+
+                            # Check if sequence / feature passes conditions
+                            if not self.gene_filter.test_sequence(seq):
+                                self.logger.debug('Record filtered %s, based on sequence condition' % (name))
+                                continue
+
+                            if not self.gene_filter.test_genbank(feature):
+                                self.logger.debug('Record filtered %s, based on genbank feature condition' % (name))
+                                continue
 
                             # Try to find subtype
                             subtypes = self.subtype_parser.search_feature(feature)

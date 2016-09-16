@@ -126,7 +126,8 @@ class PhylotyperOptions(object):
         required = {
             'external': [
                 ('fasttree', which),
-                ('mafft', which)
+                ('mafft', which),
+                ('trimal', which)
             ],
             'R': [
                 ('lib', is_string),

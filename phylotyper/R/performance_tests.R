@@ -60,21 +60,22 @@ if( file.access(subtypefile) == -1) {
 rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
 
-# Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
-aic = evaluateModels(tree,subtypes)
-file = 'model_aic'
-write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
-	sep="\t",
-	quote=FALSE)
+# # Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
+# aic = evaluateModels(tree,subtypes)
+# file = 'model_aic'
+# write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
+# 	sep="\t",
+# 	quote=FALSE)
 
 # Iterate through esimtation procedures
 estimation.methods = list(rerooting=1, simmap=4)
 for(i in 1:length(estimation.methods)) {
+
 	est.scheme = estimation.methods[[i]]
 	est.name = names(estimation.methods)[i]
-
+	
 	# Overlay posterior probabilities in tree plot
-	print("Running estimation procedure: ", est.name)
+	cat("Running estimation procedure: ", est.name, "\n")
 
 	priorR = phylotyper$makePriors(tree, subtypes)
 	priorM = priorR$prior.matrix
@@ -88,7 +89,7 @@ for(i in 1:length(estimation.methods)) {
 	# Leave-One-Out CV
 	# 5-fold CV
 	for(validation in c('loocv', 'kfcv')) {
-		print("Running validation: ", validation)
+		cat("Running validation: ", validation, "\n")
 
 		pp = do.call(validation, c(tree=tree, subtypes=subtypes, scheme=est.scheme))
 
@@ -116,10 +117,10 @@ for(i in 1:length(estimation.methods)) {
 		plotPPHistogram(results$test.results, subtypes)
 		dev.off()
 
-		print(validation, "complete")
+		cat(validation, "complete", "\n")
 	}
 
-	print(est.name, "complete")
+	cat(est.name, "complete", "\n")
 
 }
 
