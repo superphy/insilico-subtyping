@@ -210,9 +210,10 @@ phylotyper$mypalette = function(subtypes) {
 	# 
 	# 
 
-	colors = brewer.pal(12,"Set3")
+	
 	states = levels(subtypes)
 	n = length(states)
+	colors = rainbow(n, s=0.5,v=0.75)
 
 	if(n > length(colors)) {
 		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")
@@ -242,11 +243,13 @@ phylotyper$plotRR = function(tree, fit, subtypes) {
 	plot(tree, label.offset=.03)
 	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
 		piecol=cols,
-		cex=0.5)
+		cex=0.3)
 	
+	# Top 4 marginal probabilities
+
 	nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
 		piecol=cols,
-		cex=1)
+		cex=0.5)
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
@@ -273,6 +276,35 @@ phylotyper$plotSM = function(tree, fit, subtypes) {
 
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
+}
+
+phylotyper$plotDim = function(tree) {
+	# Compute X, Y dimensions for a plot to fit tree
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#
+	# Returns:
+	#   list with x, y, res names
+	#
+
+	x_scale = 3600
+	y_scale = 16
+	x_max = 1728
+	y_max = 1728
+	res = 72
+
+	# X
+	h = max(nodeHeights(tree))
+	x = h * x_scale
+	x = ifelse(x > x_max, x_max, x)
+
+	# Y
+	l = length(tree$tip.label)
+	y = l * y_scale
+	y = ifelse(y > y_max, y_max, y)
+
+	return(list(x=x,y=y,res=res))
 }
 
 while("phylotyper" %in% search())

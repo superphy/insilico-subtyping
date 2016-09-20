@@ -3,9 +3,8 @@
 """Download Intimin (eae) gene sequences from Genbank
 
 
-
 Example:
-        $ python download_eae_genes.py
+        $ python download_eae_genes.py .
 
 """
 
@@ -38,16 +37,7 @@ if __name__ == "__main__":
     # Parse command-line args
     parser = argparse.ArgumentParser(description='Download and store NCBI genes sequences')
     parser.add_argument('output_directory', action="store")
-    # parser.add_argument('--dbuser', action="store")
-    # parser.add_argument('--dbhost', action="store")
-    # parser.add_argument('--dbport', action="store")
-    # parser.add_argument('--dbpass', action="store")
-    # parser.add_argument('--blastdbcmd', action="store", default='blastdbcmd')
-    # parser.add_argument('--diamondcmd', action="store", default='diamond')
-    # parser.add_argument('--db_dir', action="store")
-    # parser.add_argument('--skip_gi', action="store_true")
-    # parser.add_argument('--skip_ftp', action="store_true")
-    # parser.add_argument('--update', action="store_true")
+    parser.add_argument('pmid_file', action="store")
     
     args = parser.parse_args()
 
@@ -67,13 +57,10 @@ if __name__ == "__main__":
     dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['eae','Intimin'], parser, gfilter)
 
     # Perform Download
-    #dutil.download()
+    dutil.download_pubmed_genes(pmidfile=args.pmid_file)
 
     # Parse genbank files for known intimin types
     dutil.parse()
-
-    # Trim output alignment
-
 
 
    

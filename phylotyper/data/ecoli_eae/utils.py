@@ -195,9 +195,18 @@ class DownloadUtils(object):
         self._dna_sequences = dna
 
         # Search string
-        self._search_string = "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + ") AND \""+organism+"\"[Organism]"
+        self._search_string = "{} AND {}[Organism] NOT WGS[Keyword]".format(
+            "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + ")",
+            "\""+organism+"\""
+        )
         
-        self._db = "nucleotide"
+        if self._dna_sequences:
+            self._db = "nuccore"
+            self._dbfrom = "pubmed"
+            self._linkname = "pubmed_nuccore"
+        else:
+            raise Exception('Protein not tested')
+
 
         self._batch_size = 500
 
@@ -226,13 +235,68 @@ class DownloadUtils(object):
         return self._gene_filter
 
 
-    def download(self):
-        """Perform download of genes
+
+    def download_pubmed_genes(self, pmidfile=None, pmids=None):
+        """Perform download of genes linked to pubmed IDs
+
+        Genes must also match search query. Genbank results are written 
+        to <%genename%>.gb in the output directory defined in the constructor
+
+            Args:
+                pmidfile (str): Filepath containing one PMID ID per line
+                    -or- (pmidfile will override pmids)
+                pmids (list): List of pmids
+
+            Returns True
 
         """
 
-        # Create directory to store genbank files
-        gbout = open(self._gbfile, 'w')
+        if pmidfile:
+            with open(pmidfile, 'r') as f:
+                pmids = f.read().splitlines()
+
+        pmid_string = ','.join(pmids)
+        links = Entrez.elink(db=self._db, dbfrom=self._dbfrom, linkname=self._linkname, id=pmid_string, cmd='neighbor_history')
+
+        link_results = Entrez.read(links)
+        links.close()
+
+        # Only one database, so use first entry
+        db_record = link_results[0]
+        link_set = db_record['LinkSetDbHistory'][0]
+        if not link_set['LinkName'] == self._linkname:
+            raise Exception('Elink result LinkSetDB is not expected target: {}'.format(self._linkname))
+
+        webenv = db_record["WebEnv"]
+        query_key = link_set["QueryKey"]
+
+        # Filter linked genes matching search query
+        search = Entrez.esearch(db=self._db, term=self._search_string, webenv=webenv, query_key=query_key, retmax=1, usehistory='y')
+
+        search_results = Entrez.read(search)
+        search.close()
+
+        count = int(search_results["Count"])
+        webenv = search_results["WebEnv"]
+        query_key = search_results["QueryKey"]
+
+        self.logger.info("%i genes sequences in NCBI matching query %s found in pubmed records: %s" % (count, self._search_string,
+            pmid_string))
+
+        self.fetch(count, webenv, query_key)
+       
+        return True
+
+
+    def download_genes(self):
+        """Perform download of genes using query search only
+
+        Genbank results are written to <%genename%>.gb in the output directory
+        defined in the constructor
+
+        Returns True
+
+        """
 
         search = Entrez.esearch(db=self._db, term=self._search_string,
             retmax=1, usehistory="y")
@@ -244,8 +308,24 @@ class DownloadUtils(object):
         webenv = search_results["WebEnv"]
         query_key = search_results["QueryKey"]
 
-
         self.logger.info("%i genes sequences in NCBI matching query %s" % (count, self._search_string))
+
+        self.fetch(count, webenv, query_key)
+       
+        return True
+
+ 
+
+    def fetch(self, count, webenv, query_key):
+        """Fetch genbank records from ncbi history server
+
+        Results are written to <%genename%>.gb in the output directory
+        defined in the constructor
+
+        """
+
+        # Create directory to store genbank files
+        gbout = open(self._gbfile, 'w')
 
         # Download in batches
         self.logger.info("Starting download...")
@@ -305,6 +385,10 @@ class DownloadUtils(object):
                             matched = True
                         elif 'product' in feature.qualifiers and feature.qualifiers['product'][0] in self._genes:
                             matched = True
+
+                        # Check for tags that indicate this annotation was obtained through non-experimental means
+                        if 'inference' in feature.qualifiers:
+                            matched = False
 
                         # Found
                         if matched:
@@ -388,7 +472,4 @@ class DownloadUtils(object):
         self.logger.debug('Subtypes encountered:\n{}\n'.format(str(subtype_counts)))
 
         return None
-
-
-
 

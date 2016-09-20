@@ -81,7 +81,10 @@ for(i in 1:length(estimation.methods)) {
 	priorM = priorR$prior.matrix
 	result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme)
 	file = 'posterior_probability_tree'
-	png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')))
+	dim = phylotyper$plotDim(tree)
+    png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
+        width=dim[['x']],height=dim[['y']],res=dim[['res']]
+    )
 	do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
 	dev.off()
 

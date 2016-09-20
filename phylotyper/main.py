@@ -14,17 +14,20 @@ Examples:
 
 import argparse
 import csv
+import datetime
 import logging
 import os
 import pprint
 from Bio import SeqIO
 from collections import Counter
+from shutil import copyfile
 
 from config import PhylotyperOptions
 from builtin_subtypes import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
+from tree.seq import SeqDict
 
 
 __author__ = "Matthew Whiteside"
@@ -42,8 +45,8 @@ def align_all_sequences(input, output, summary, config):
 
     Args:
         input (str): Fasta file
-        summary (str): Trimming summary file
         output (str): Output file for MSA
+        summary (str): Trimming summary file
         config (obj): PhylotyperOptions object
 
     """
@@ -73,7 +76,6 @@ def align_new_sequences(input, alignment, summary, output, config):
     aln = SeqAligner(config)
     aln.add(input, alignment, output)
     aln.trim(output, output, trimming_summary_file=summary)
-    
 
 
 def build_tree(input, output, nt, fast, config):
@@ -225,8 +227,15 @@ def build_pipeline(options, config):
     """
 
     alnfile = options['alignment']
-    summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
+    tmpfile = os.path.join(options['output_directory'], 'tmp.fasta')
     treefile = options['tree_file'] = os.path.join(options['output_directory'], 'test.tree')
+    summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
+
+    # Make backup of subtype file
+    # Redundant sequences will be collapsed to a single sequence
+    timestamp = '_{:%Y%m%d-%H%M%S}'.format(datetime.datetime.now())
+    destfile = options['original_subtype'] = options['subtype'] + timestamp + '.orig'
+    copyfile(options['subtype'], destfile)
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
@@ -234,12 +243,20 @@ def build_pipeline(options, config):
     # Check sequence IDs
     check_gene_names(options)
 
+    # Remove identical sequences
+    logger.debug('Collapsing identical sequences')
+    seqdict = SeqDict()
+    seqdict.load(options['input'], options['subtype'])
+    seqdict.write(tmpfile, options['subtype'])
+
     # Align
-    align_all_sequences(options['input'], alnfile, summary, config)
+    align_all_sequences(tmpfile, alnfile, summary, config)
 
     # Compute tree
     nt = options['seq'] == 'nt'
     build_tree(alnfile, treefile, nt, options['fast'], config)
+
+
 
     # Run evaluation
     evaluate_subtypes(options, config)
