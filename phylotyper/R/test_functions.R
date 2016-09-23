@@ -392,8 +392,9 @@ evaluateModels = function(tree, subtypes, models=list(equal="ER",
 	return(aic)
 }
 
-plotConfusionMatrix = function(counts) {
+plotConfusionMatrix = function(counts, fn) {
 
+	graphics.off()
 
 	input.matrix.normalized <- sweep(counts, 1, rowSums(counts), FUN="/")
 
@@ -404,10 +405,13 @@ plotConfusionMatrix = function(counts) {
 
 	plot <- ggplot(confusion)
 	plot + geom_tile(aes(x=Var1, y=Var2, fill=Freq)) + scale_x_discrete(name="Actual Subtype") + scale_y_discrete(name="Predicted Subtype") + scale_fill_gradient(breaks=seq(from=0, to=1, by=.2)) + labs(fill="Normalized\nFrequency")
+	ggsave(file=fn)
 
 }
 
-plotPPHistogram = function(test.results, subtypes) {
+plotPPHistogram = function(test.results, subtypes, fn) {
+
+	graphics.off()
 
 	subtype.states = levels(subtypes)
 	if(!all(subtype.states %in% colnames(test.results)))
@@ -427,6 +431,8 @@ plotPPHistogram = function(test.results, subtypes) {
 	ggplot(dist, aes(x=posterior.probability, colour = result)) +
 		geom_freqpoly(binwidth = .05, aes(y=..density..)) +
 		geom_rug()
+
+	ggsave(file=fn)
 }
 
 

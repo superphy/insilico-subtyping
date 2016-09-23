@@ -27,7 +27,7 @@ logging.basicConfig(
     format='%(asctime)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     filemode='w')
-
+logger = logging.getLogger(__name__)
 
 def relevent_pubs(pmids, outputfile):
     """Find linked pubmed IDs using Entrez's ELink
@@ -76,11 +76,16 @@ if __name__ == "__main__":
     # Parse command-line args
     parser = argparse.ArgumentParser(description='Retrieve related PMIDs')
     parser.add_argument('outputfile', action="store")
-    parser.add_argument('pmids',action="store")
+    parser.add_argument('pmidfile',action="store")
     
     args = parser.parse_args()
 
-    relevent_pubs(args.pmids, args.outputfile)
+    with open(args.pmidfile, 'r') as f:
+        pmids = f.read().splitlines()
+
+    logger.debug("Searching linked pubmed articles to PMIDs: {}".format(','.join(pmids)))
+
+    relevent_pubs(pmids, args.outputfile)
 
 
 

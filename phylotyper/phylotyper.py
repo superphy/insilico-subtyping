@@ -41,9 +41,11 @@ class Phylotyper(object):
         self.rwd = pkg_resources.resource_filename(__name__,  '/'.join(('R')))
         self.rlib = config.get('R', 'lib')
         self.rrepo = config.get('R', 'repo')
+        self.rscript = config.get('R', 'rscript')
         self.rfiles = {
             'phylotyper': os.path.join(self.rwd, 'phylotyper.R'),
-            'tests': os.path.join(self.rwd, 'test_functions.R')
+            'tests': os.path.join(self.rwd, 'test_functions.R'),
+            'performance_tests': os.path.join(self.rwd, 'performance_tests.R')
         }
 
 
@@ -130,10 +132,8 @@ class Phylotyper(object):
 
     def evaluate(self, tree, subtypes, output_dir):
         """Run phylotyper performance tests
-
-        Calls functions in test_functions.R. Produces png showing 
-        posterior probability as pie charts on tree, as well as accuracy
-        metrics.
+        
+        Calls external R script
         
         Args:
             tree (str): Filepath to newick tree containing both typed & untyped genes
@@ -145,96 +145,19 @@ class Phylotyper(object):
             
         """
 
-        # Set work dir
-        robjects.r('setwd("%s")' % self.rwd)
-        
-        # Load libraries and source
-        rcode = 'source("{}")'.format(self.rfiles['phylotyper']) 
-        robjects.r(rcode)
+        cmd = "{} {} {} {} --out {}".format(self.rscript, self.rfiles['performance_tests'],
+            tree, subtypes, output_dir)
+        cwd = os.getcwd()
+        os.chdir(self.rwd)
 
-        rcode = 'suppressMessages(phylotyper$loadInstallLibraries(libloc="%s",repo="%s"))' % (self.rlib, self.rrepo) 
-        robjects.r(rcode)
+        try:
+            check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+        except CalledProcessError as e:
+            os.chdir(cwd)
+            msg = "R script {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
+            raise Exception(msg)
 
-        rcode = 'source("{}")'.format(self.rfiles['tests']) 
-        robjects.r(rcode)
-
-        # Set output directory
-        rcode = 'output_dir = "{}"'.format(output_dir)
-        robjects.r(rcode)
-
-        # Load data files
-        rcode = 'rs = phylotyper$loadSubtype("{}","{}"); tree = rs$tree; subtypes = rs$subtypes; untyped = rs$untyped'.format(tree, subtypes)
-        robjects.r(rcode)
-
-        rcode = '''
-        # Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
-        aic = evaluateModels(tree,subtypes)
-        file = 'model_aic'
-        write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
-            sep="\t",
-            quote=FALSE)
-
-        # Iterate through esimtation procedures
-        estimation.methods = list(rerooting=1)
-        for(i in 1:length(estimation.methods)) {
-            est.scheme = estimation.methods[[i]]
-            est.name = names(estimation.methods)[i]
-
-            # Overlay posterior probabilities in tree plot
-            print("Running estimation procedure: ", est.name)
-
-            priorR = phylotyper$makePriors(tree, subtypes)
-            priorM = priorR$prior.matrix
-            result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme)
-            file = 'posterior_probability_tree'
-            dim = phylotyper$plotDim(tree)
-            png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
-                width=dim[['x']],height=dim[['y']],res=dim[['res']]
-            )
-            do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
-            dev.off()
-
-            # Iterate through validation procedures
-            # Leave-One-Out CV
-            # 5-fold CV
-            for(validation in c('loocv', 'kfcv')) {
-                print("Running validation: ", validation)
-
-                pp = do.call(validation, c(tree=tree, subtypes=subtypes, scheme=est.scheme))
-
-                # Summarize performance
-                results = simulationSummary(subtypes, pp)
-
-                # Write performance metrics to file
-                file = 'performance_metrics'
-                write.table(results$metrics, file=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.csv', sep='')),
-                    sep="\t",
-                    quote=FALSE)
-
-
-                # Plots
-
-                # Plot confusion matrix
-                file = 'confusion_matrix'
-                png(filename=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep='')))
-                plotConfusionMatrix(results$confusion.matrix)
-                dev.off()
-
-                # Plot posterior probability histogram
-                file = 'posterior_probability_histogram'
-                png(filename=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep='')))
-                plotPPHistogram(results$test.results, subtypes)
-                dev.off()
-
-                print(validation, "complete")
-            }
-
-            print(est.name, "complete")
-        }
-        '''
-
-        robjects.r(rcode)
-
+        os.chdir(cwd)
         return None
 
 

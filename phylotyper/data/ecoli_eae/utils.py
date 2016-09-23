@@ -165,6 +165,8 @@ class SubtypeParser(object):
         return fixed
 
 
+
+
 class DownloadUtils(object):
     """Use Biopython's Eutils to retrieve gene sequences from NCBI
 
@@ -186,17 +188,21 @@ class DownloadUtils(object):
         self.logger = logging.getLogger(__name__)
 
         # Output
-        self._genes = gene_names
+        self._genes = [x.lower() for x in gene_names]
         filename = gene_names[0]
         self._outdir = output_dir
         self._gbfile = os.path.join(self._outdir, filename+'.gb')
+        self._tmpfile = os.path.join(self._outdir, 'tmp.gb')
+        self._first_download = True
         self._fastafile = os.path.join(self._outdir, filename+'.fasta')
         self._subtypefile = os.path.join(self._outdir, self._outdir, filename+'.txt')
         self._dna_sequences = dna
-
+    
         # Search string
         self._search_string = "{} AND {}[Organism] NOT WGS[Keyword]".format(
-            "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + ")",
+            "(" + " OR ".join(("\"%s\"[Gene]" %x for x in gene_names)) + " OR " +
+            " OR ".join(("\"%s\"[Product]" %x for x in gene_names)) +
+             ")",
             "\""+organism+"\""
         )
         
@@ -239,8 +245,7 @@ class DownloadUtils(object):
     def download_pubmed_genes(self, pmidfile=None, pmids=None):
         """Perform download of genes linked to pubmed IDs
 
-        Genes must also match search query. Genbank results are written 
-        to <%genename%>.gb in the output directory defined in the constructor
+        Genes must also match search query
 
             Args:
                 pmidfile (str): Filepath containing one PMID ID per line
@@ -250,6 +255,8 @@ class DownloadUtils(object):
             Returns True
 
         """
+
+        self.prep_download()
 
         if pmidfile:
             with open(pmidfile, 'r') as f:
@@ -270,7 +277,7 @@ class DownloadUtils(object):
         webenv = db_record["WebEnv"]
         query_key = link_set["QueryKey"]
 
-        # Filter linked genes matching search query
+        # Limit to genes matching search query
         search = Entrez.esearch(db=self._db, term=self._search_string, webenv=webenv, query_key=query_key, retmax=1, usehistory='y')
 
         search_results = Entrez.read(search)
@@ -291,12 +298,11 @@ class DownloadUtils(object):
     def download_genes(self):
         """Perform download of genes using query search only
 
-        Genbank results are written to <%genename%>.gb in the output directory
-        defined in the constructor
-
         Returns True
 
         """
+
+        self.prep_download()
 
         search = Entrez.esearch(db=self._db, term=self._search_string,
             retmax=1, usehistory="y")
@@ -314,7 +320,37 @@ class DownloadUtils(object):
        
         return True
 
- 
+
+    def download_by_accession(self, idfile):
+        """Perform download of genes by ID.
+
+        Returns True
+
+        """
+
+        self.prep_download()
+
+        with open(idfile, 'r') as f:
+            ids = f.read().splitlines()
+
+        idstring = " OR ".join(("\"%s\"[Accn]" %x for x in ids))
+
+        search = Entrez.esearch(db=self._db, term=idstring,
+            retmax=1, usehistory="y")
+
+        search_results = Entrez.read(search)
+        search.close()
+
+        count = int(search_results["Count"])
+        webenv = search_results["WebEnv"]
+        query_key = search_results["QueryKey"]
+
+        self.logger.info("%i genes sequences in NCBI matching query %s" % (count, idstring))
+
+        self.fetch(count, webenv, query_key)
+       
+        return True
+
 
     def fetch(self, count, webenv, query_key):
         """Fetch genbank records from ncbi history server
@@ -325,7 +361,7 @@ class DownloadUtils(object):
         """
 
         # Create directory to store genbank files
-        gbout = open(self._gbfile, 'w')
+        gbout = open(self._tmpfile, 'a')
 
         # Download in batches
         self.logger.info("Starting download...")
@@ -359,10 +395,66 @@ class DownloadUtils(object):
         return True
 
 
+    def prep_download(self):
+        """Delete existing genbank files
+
+        There are multiple methods to download genes. Each download method appends
+        to the genbank file, so the first time a download is called this file must
+        be emptied
+
+            Args:
+                None
+
+        """
+
+        if self._first_download and os.path.exists(self._tmpfile):
+            os.remove(self._tmpfile)
+
+        self._first_download = False
+
+
+
+    def remove_duplicates(self):
+        """Remove duplicate genbank records
+
+        There are multiple methods to download genes. Each download method appends
+        to the genbank file, so method this is needed to remove duplicates.
+
+            Args:
+                None
+
+        """
+
+        input_seq_iterator = SeqIO.parse(open(self._tmpfile, "rU"), "genbank")
+        unique_seq_iterator = self.unique(input_seq_iterator)
+
+        output_handle = open(self._gbfile, "w")
+        SeqIO.write(unique_seq_iterator, output_handle, "genbank")
+        output_handle.close()
+
+        os.remove(self._tmpfile)
+
+       
+    def unique(self, iterable, key=lambda x: x.id):
+        """Generator returns unique genbank records
+
+        """
+
+        seen = set()
+        for elem, ekey in ((e, key(e)) for e in iterable):
+            if ekey not in seen:
+                yield elem
+                seen.add(ekey)
+
+
     def parse(self):
         """Extract sequence and subtype for valid genes in each genbank record
 
         """
+
+        # Remove possible duplicates in genbank file
+        self.remove_duplicates()
+
 
         subtype_counts = Counter()
 
@@ -380,11 +472,18 @@ class DownloadUtils(object):
                     if feature.type == 'CDS':
 
                         # Check if this CDS is what we are looking for
+                        field = None
                         matched = False
-                        if 'gene' in feature.qualifiers and feature.qualifiers['gene'][0] in self._genes:
-                            matched = True
-                        elif 'product' in feature.qualifiers and feature.qualifiers['product'][0] in self._genes:
-                            matched = True
+                        if 'gene' in feature.qualifiers:
+                            field = feature.qualifiers['gene'][0].lower()
+                            if field and any(x in field for x in self._genes): 
+                                matched = True
+                        if 'product' in feature.qualifiers:
+                            field = feature.qualifiers['product'][0].lower()
+                            if field and any(x in field for x in self._genes): 
+                                matched = True
+
+                        self.logger.debug("Found gene? {} {} {}".format(gb_record.id, matched, field))
 
                         # Check for tags that indicate this annotation was obtained through non-experimental means
                         if 'inference' in feature.qualifiers:

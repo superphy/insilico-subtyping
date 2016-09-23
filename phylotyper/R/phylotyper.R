@@ -47,7 +47,7 @@ phylotyper$runSubtypeProcedure = function(tree, priorM, scheme=1) {
 
 	if(scheme == 1) {
 		# Rerooting method, ER model
-		fit = rerootingMethod(tree, priorM, model='ER', tips=TRUE)
+		capture.output(fit <- rerootingMethod(tree, priorM, model='ER', tips=TRUE))
 		return(list(result=fit, tip.pp=fit$marginal.anc[tree$tip.label,], plot.function='plotRR'))
 
 	} else if(scheme == 2) {
@@ -213,16 +213,30 @@ phylotyper$mypalette = function(subtypes) {
 	
 	states = levels(subtypes)
 	n = length(states)
-	colors = rainbow(n, s=0.5,v=0.75)
+	cols = rainbow(n, s=0.6,v=1)
 
-	if(n > length(colors)) {
+	if(n > length(cols)) {
 		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")
 	}
 
-	pal = colors[1:n]
+	pal = cols[sample(1:n,n)]
 	names(pal) = states
 
+	pal = c(pal,'other'="#D3D3D3")
+
 	return(pal)
+}
+
+phylotyper$piecolors = function(marginals) {
+
+	n = ncol(marginals)
+	cutoff = 1/n
+	reduced = cbind(marginals,other=0)
+
+	reduced[,'other'] = apply(marginals, 1, function(x) { sum(x[which(x <= cutoff)]) })
+	reduced[reduced <= cutoff] = 0
+
+	return(reduced)
 }
 
 phylotyper$plotRR = function(tree, fit, subtypes) {
@@ -240,16 +254,15 @@ phylotyper$plotRR = function(tree, fit, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 
-	plot(tree, label.offset=.03)
+	plot(tree,label.offset=0.01,cex=0.7,type='fan',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]])
+
 	tiplabels(pie=fit$marginal.anc[tree$tip.label,], 
 		piecol=cols,
-		cex=0.3)
-	
-	# Top 4 marginal probabilities
+		cex=0.2)
 
-	nodelabels(pie=fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),],
+	nodelabels(pie=phylotyper$piecolors(fit$marginal.anc[as.character(1:tree$Nnode+Ntip(tree)),]),
 		piecol=cols,
-		cex=0.5)
+		cex=0.4)
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)

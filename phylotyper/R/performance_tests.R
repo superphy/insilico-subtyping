@@ -6,7 +6,7 @@
 ##  Evaluate methods/models for predicting subtype from
 ##  phylogenic trees
 ##
-## 
+##  Needs to be run from phylotyper/R directory
 ## 
 ##
 ##
@@ -20,14 +20,16 @@
 ##
 ##########################################################
 
+## MAIN
+
+# Check work directory
+wd = normalizePath(getwd())
+if(!grepl("phylotyper/R/?$", wd, perl=TRUE)) stop(c("Incorrect work directory: ", wd))
 
 # Load libraries and source
 source('phylotyper.R')
 suppressMessages(phylotyper$loadInstallLibraries())
 source('test_functions.R')
-
-
-## MAIN 
 
 # Process command-line args
 option_list = list(
@@ -44,6 +46,7 @@ treefile = args[1]
 subtypefile = args[2]
 output_dir = opts$out
 
+
 # Check arguments
 if( file.access(treefile) == -1) {
 	stop(sprintf("Specified tree file ( %s ) does not exist", treefile))
@@ -53,22 +56,22 @@ if( file.access(subtypefile) == -1) {
 	stop(sprintf("Specified subtype file ( %s ) does not exist", treefile))
 }
 
-
 # Run tests
 
 # Load tree
 rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
 
-# # Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
-# aic = evaluateModels(tree,subtypes)
-# file = 'model_aic'
-# write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
-# 	sep="\t",
-# 	quote=FALSE)
+# Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
+aic = evaluateModels(tree,subtypes)
+file = 'model_aic'
+write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
+	sep="\t",
+	quote=FALSE)
 
 # Iterate through esimtation procedures
-estimation.methods = list(rerooting=1, simmap=4)
+#estimation.methods = list(rerooting=1, simmap=4)
+estimation.methods = list(rerooting=1)
 for(i in 1:length(estimation.methods)) {
 
 	est.scheme = estimation.methods[[i]]
@@ -82,11 +85,12 @@ for(i in 1:length(estimation.methods)) {
 	result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme)
 	file = 'posterior_probability_tree'
 	dim = phylotyper$plotDim(tree)
+	graphics.off()
     png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
         width=dim[['x']],height=dim[['y']],res=dim[['res']]
     )
 	do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
-	dev.off()
+	graphics.off()
 
 	# Iterate through validation procedures
 	# Leave-One-Out CV
@@ -105,21 +109,19 @@ for(i in 1:length(estimation.methods)) {
 			sep="\t",
 			quote=FALSE)
 
-
 		# Plots
 
 		# Plot confusion matrix
-		file = 'confusion_matrix'
-		png(filename=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep='')))
-		plotConfusionMatrix(results$confusion.matrix)
-		dev.off()
+		file <- 'confusion_matrix'
+		fn = file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep=''))
+		plotConfusionMatrix(results$confusion.matrix, fn)
+		
 
 		# Plot posterior probability histogram
-		file = 'posterior_probability_histogram'
-		png(filename=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep='')))
-		plotPPHistogram(results$test.results, subtypes)
-		dev.off()
-
+		file <- 'posterior_probability_histogram'
+		fn = file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep=''))
+		plotPPHistogram(results$test.results, subtypes, fn)
+		
 		cat(validation, "complete", "\n")
 	}
 

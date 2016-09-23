@@ -131,7 +131,8 @@ class PhylotyperOptions(object):
             ],
             'R': [
                 ('lib', is_string),
-                ('repo', is_string)
+                ('repo', is_string),
+                ('rscript', which)
             ],
             'phylotyper': [
                 ('prediction_threshold', is_number)

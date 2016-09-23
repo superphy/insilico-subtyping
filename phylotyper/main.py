@@ -231,12 +231,6 @@ def build_pipeline(options, config):
     treefile = options['tree_file'] = os.path.join(options['output_directory'], 'test.tree')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
-    # Make backup of subtype file
-    # Redundant sequences will be collapsed to a single sequence
-    timestamp = '_{:%Y%m%d-%H%M%S}'.format(datetime.datetime.now())
-    destfile = options['original_subtype'] = options['subtype'] + timestamp + '.orig'
-    copyfile(options['subtype'], destfile)
-
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
@@ -246,7 +240,7 @@ def build_pipeline(options, config):
     # Remove identical sequences
     logger.debug('Collapsing identical sequences')
     seqdict = SeqDict()
-    seqdict.load(options['input'], options['subtype'])
+    seqdict.load(options['input'], options['subtype_orig'])
     seqdict.write(tmpfile, options['subtype'])
 
     # Align
@@ -256,7 +250,7 @@ def build_pipeline(options, config):
     nt = options['seq'] == 'nt'
     build_tree(alnfile, treefile, nt, options['fast'], config)
 
-
+    exit()
 
     # Run evaluation
     evaluate_subtypes(options, config)
@@ -312,7 +306,7 @@ def check_gene_names(options):
 
   
     # Define files
-    subtype_file = options['subtype']
+    subtype_file = options['subtype_orig']
     input_file = options['input']
 
     # Check fasta file
@@ -394,7 +388,8 @@ if __name__ == "__main__":
     new_parser = subparsers.add_parser('new', help='Build new subtype resource')
     new_parser.add_argument('config', action='store', help='Phylotyper config options file')
     new_parser.add_argument('input', action='store', help='Fasta input')
-    new_parser.add_argument('subtype', action='store', help='Reference gene subtypes')
+    new_parser.add_argument('subtypein', action='store', help='Input reference gene subtypes')
+    new_parser.add_argument('subtypeout', action='store', help='Ouput reference gene subtypes')
     new_parser.add_argument('alignment', action='store', help='Reference gene alignment output')
     new_parser.add_argument('output', action='store', help='Directory for subtype result files')
     new_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
@@ -439,7 +434,7 @@ if __name__ == "__main__":
             raise Exception(msg)
 
         # Check subtype file exists
-        if not os.path.isfile(options.subtype):
+        if not os.path.isfile(options.subtypein):
             msg = 'Invalid/missing subtype file argument.'
             raise Exception(msg)
 
@@ -453,7 +448,8 @@ if __name__ == "__main__":
         subtype_options = {}
         subtype_options['input'] = os.path.abspath(options.input)
         subtype_options['alignment'] = os.path.abspath(options.alignment)
-        subtype_options['subtype'] = os.path.abspath(options.subtype)
+        subtype_options['subtype_orig'] = os.path.abspath(options.subtypein)
+        subtype_options['subtype'] = os.path.abspath(options.subtypeout)
         subtype_options['output_directory'] = outdir
         subtype_options['fast'] = False
         if options.nt:
