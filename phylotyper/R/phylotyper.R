@@ -162,17 +162,20 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 	# Install older version of root, unroot, and is.root functions from APE packages
 	# New version have bug
 	source('root.R')
+	# Reload methods that rely on root.R methods
 	source('rerootingMethod.R')
-	
-	TRUE
+	source('utilities.R')
 }
 
-phylotyper$loadSubtype = function(treefile, stfile) {
+phylotyper$loadSubtype = function(treefile, stfile, do.root=TRUE) {
 	# Load tree and subtype assignments associated with subtype scheme
+	#
+	# Root tree at midpoint.
 	#
 	# Args:
 	#  treefile: Path to tree in newick format
 	#  stfile: Path to subtype assignments in format: tree_tip_label\tsubtype
+	#  do.root: Boolean indicating if midpoint.root should be called on tree
 	#
 	# Returns:
 	#   list:
@@ -185,6 +188,8 @@ phylotyper$loadSubtype = function(treefile, stfile) {
 
 	tree = read.tree(treefile)
 	st = read.table(stfile, sep="\t", row.names=1)
+
+	if(do.root) tree <- midpoint.root(tree)
 
 	# Convert to factor list
 	subtypes = st[,1]
