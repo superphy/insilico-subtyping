@@ -14,13 +14,11 @@ Examples:
 
 import argparse
 import csv
-import datetime
 import logging
 import os
 import pprint
 from Bio import SeqIO
 from collections import Counter
-from shutil import copyfile
 
 from config import PhylotyperOptions
 from builtin_subtypes import SubtypeConfig
@@ -118,7 +116,7 @@ def predict_subtypes(options, config):
 
     pt = Phylotyper(config)
 
-    assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'])
+    assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'], options['noplots'])
 
     # Load mapping
     rev_mapping = {}
@@ -249,8 +247,6 @@ def build_pipeline(options, config):
     # Compute tree
     nt = options['seq'] == 'nt'
     build_tree(alnfile, treefile, nt, options['fast'], config)
-
-    exit()
 
     # Run evaluation
     evaluate_subtypes(options, config)
@@ -412,6 +408,7 @@ if __name__ == "__main__":
     subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
     subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
     subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+    subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     subtype_parser.set_defaults(which='subtype')
 
 
@@ -452,6 +449,7 @@ if __name__ == "__main__":
         subtype_options['subtype'] = os.path.abspath(options.subtypeout)
         subtype_options['output_directory'] = outdir
         subtype_options['fast'] = False
+
         if options.nt:
             subtype_options['seq'] = 'nt'
         else:
@@ -489,6 +487,10 @@ if __name__ == "__main__":
         subtype_options['input'] = os.path.abspath(options.input)
         subtype_options['output_directory'] = os.path.abspath(options.output)
         subtype_options['fast'] = False
+        subtype_options['noplots'] = False
+
+        if options.noplots:
+            subtype_options['noplots'] = True
 
         if options.nt and (subtype_options['seq'] != 'nt'):
             msg = 'Sequence type of input does not match Phylotyper gene sequences for %s' % (scheme)

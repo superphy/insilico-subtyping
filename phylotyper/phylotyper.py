@@ -49,7 +49,7 @@ class Phylotyper(object):
         }
 
 
-    def subtype(self, tree, subtypes, output_dir):
+    def subtype(self, tree, subtypes, output_dir, noplots=True):
     	"""Run phylotyper subtyping method
 
         Wrapper around the phylotyper.R functions. Calls
@@ -60,6 +60,7 @@ class Phylotyper(object):
             tree (str): Filepath to newick tree containing both typed & untyped genes
             subtypes (str): Filepath to tab-delimited subtype assignments for typed genes
             output_dir (str): Filepath to output directory
+            noplots (bool): Generate png images of tree
 
         Returns:
             assignments (dict): Each untyped gene key will contain a tuple with:
@@ -119,12 +120,16 @@ class Phylotyper(object):
             assignments[genome] = (maxst, maxpp)
 
         # Plot pp on the tree
-        rcode = '''
-        png(filename=file.path("%s", "posterior_probability_tree.png"), width=1024, height=1024)
-        do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
-        dev.off()
-        ''' % (output_dir)
-        robjects.r(rcode)
+        if not noplots:
+            rcode = '''
+            dim = phylotyper$plotDim(tree)
+            graphics.off()
+            png(filename=file.path("%s", "posterior_probability_tree.png"),
+                width=dim[['x']],height=dim[['y']],res=dim[['res']])
+            do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
+            graphics.off()
+            ''' % (output_dir)
+            robjects.r(rcode)
 
         # Return assignments
         return assignments
