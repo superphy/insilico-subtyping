@@ -17,25 +17,34 @@
 ##########################################################
 
 # Functions
-subtypeBranchDistances <- function(tree, subtypes, do.plot=TRUE) {
+branchDistances <- function(tree, subtypes=NULL, plot.name=NULL) {
 # Compute patristic distance between tips in same vs different subtype groups
 #
 # Args:
 #  tree: phylo object containing subtype tree
-#  subtypes: factor list of subtype assignments
-#  do.plot: Generate plots
+#  subtypes[OPTIONAL]: factor list of subtype assignments. If provided, row with 
+#      same/different classifcation will be provided
+#  plot.name[OPTIONAL]: Plot output filename
 #
 # Returns:
 #     data.frame of same/different subtype classification and corresponding distance 
 #
 
+	do.subtypes = !is.null(subtypes)
+
 	d = cophenetic(tree)
 	tips = tree$tip.label
 	pairs = combn(tips,2)
-	same = matrix(NA, ncol=ncol(pairs), nrow=nrow(pairs)+1)
-	diff = matrix(NA, ncol=ncol(pairs), nrow=nrow(pairs)+1)
-	si = 1
-	di = 1
+
+	nr = 3
+	rn = c('t1','t2','distance')
+	if(do.subtypes) {
+		nr <- 4
+		rn <- c(rn, 'subtype')
+	}
+	df = matrix(ncol=ncol(pairs),nrow=nr)
+	rownames(df) = rn
+	
 
 	for(c in 1:ncol(pairs)) {
 		pair = pairs[,c]
@@ -43,39 +52,44 @@ subtypeBranchDistances <- function(tree, subtypes, do.plot=TRUE) {
 		a = pair[1]
 		b = pair[2]
 
-		if(subtypes[a] == subtypes[b]) {
-			same[,si] = c(a,b,d[a,b])
-			si = si + 1
-		}
-		else {
-			diff[,di] = c(a,b,d[a,b])
-			di = di + 1
+		df[1:3,c] = c(a,b,d[a,b])
+
+		if(do.subtypes) {
+			if(subtypes[a] == subtypes[b]) {
+				df[4,c] = 'same'
+			}
+			else {
+				df[4,c] = 'diff'
+			}
 		}
 	}
 
-	same = same[,apply(same,2,function(x) all(!is.na(x)))]
-	diff = diff[,apply(diff,2,function(x) all(!is.na(x)))]
-
-	df = data.frame("subtype"=c(rep('same',ncol(same)), rep('different',ncol(diff))),
-			"distance"=as.numeric(c(same[3,], diff[3,])),
-			"t1"=as.character(c(same[1,], diff[1,])), "t2"=as.character(c(same[2,], diff[2,])))
-
 	# Plot with density and rug
-	if(do.plot) {
-		ggplot(df, aes(x = distance, colour = subtype)) +
-			geom_freqpoly(binwidth = .01)
+	df = data.frame(t(df), stringsAsFactors=FALSE)
+	df$distance = as.numeric(df$distance)
+	if(!is.null(plot.name)) {
+		if(do.subtypes) {
+			ggplot(df, aes(x = distance, colour = subtype)) +
+				geom_freqpoly(binwidth = .01)
+		} else {
+			ggplot(df, aes(x = distance)) +
+				geom_histogram(binwidth = .01)
+		}
+		
+		ggsave(file=plot.name)
 	}
 
 	return(df)
 }
 
 
-fitSubtypeDistribution <- function(sdist, do.plot=FALSE) {
+fitSubtypeDistribution <- function(sdist, plot.name=NULL) {
 # Identify the branch length distribution that correspond to 
 # tips in the same subtype
 #
 # Args:
 #  sdist: data.frame with branch distance (named $distance)
+#  plot.name[OPTIONAL]: Plot output filename
 #
 # Returns:
 #   list:
@@ -85,12 +99,17 @@ fitSubtypeDistribution <- function(sdist, do.plot=FALSE) {
 
 	fit = Mclust(sdist$distance)
 
-	if(do.plot) {
+	if(!is.null(plot.name)) {
+		graphics.off()
+		png(filename=plot.name,
+	        width=12*72,height=12*72
+	    )
 		layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
 		plot(fit, what="density")
 		plot(fit, what="BIC")
 		plot(fit, what="uncertainty")
 		plot(fit, what="classification")
+		graphics.off()
 	}
 
 	# Find the smallest distribution
@@ -105,13 +124,14 @@ fitSubtypeDistribution <- function(sdist, do.plot=FALSE) {
 }
 
 
-assignSubtypes <- function(sdist, tree, do.plot=FALSE, verbose=FALSE) {
+assignSubtypes <- function(sdist, tree, plot.name=NULL, verbose=FALSE) {
 # Using tips that fall into subtype branch length distribution, assign 
 # tree tips to subtypes
 #
 # Args:
 #  sdist: data.frame with tip.labels pairs in same subtype (named $t1 and $t2)
 #  tree: phylo object containing subtype tree
+#  plot.name[OPTIONAL]: Plot output filename
 #
 # Returns:
 #   factor of tip.label names assigned to subtype
@@ -123,7 +143,7 @@ assignSubtypes <- function(sdist, tree, do.plot=FALSE, verbose=FALSE) {
 	names(subtypes) = tips
 
 	sdist = sdist[order(sdist$distance),]
-	grouped = as.character(apply(sdist[,c(3,4)], 1, mykeyFunc))
+	grouped = as.character(apply(sdist[,c('t1','t2')], 1, mykeyFunc))
 
 	for(r in 1:nrow(sdist)) {
 		t1 = as.character(sdist$t1[r])
@@ -213,6 +233,16 @@ assignSubtypes <- function(sdist, tree, do.plot=FALSE, verbose=FALSE) {
 	st = levels(factor(subtypes))
 	for(i in 1:length(st)) {
 		subtypes[subtypes == st[i]] = i
+	}
+
+	subtypes = factor(subtypes)
+	if(!is.null(plot.name)) {
+		graphics.off()
+		png(filename=plot.name,
+	        width=12*72,height=12*72
+	    )
+		phylotyper$plot.subtype(tree, subtypes)
+		graphics.off()
 	}
 
 	return(factor(subtypes))

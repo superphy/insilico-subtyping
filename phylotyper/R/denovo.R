@@ -35,10 +35,34 @@ option_list = list(
 ); 
  
 argparser = OptionParser(usage="%prog [options] tree_file", option_list=option_list);
-arguments = parse_args(argparser, positional_arguments=2);
+arguments = parse_args(argparser, positional_arguments=1);
 
 args = arguments$args
 opts = arguments$options
 treefile = args[1]
 output_dir = opts$out
+
+# Load inputs
+tree = loadSubtype(treefile)$tree
+
+# Make new subtype
+
+# Find distribution of branch lengths for genomes in same
+# subtype
+file <- 'tree_patristic_length_histogram'
+fn = file.path(output_dir, paste(file, '.png', sep=''))
+bldist = branchDistances(tree, plot.name=fn)
+file <- 'tree_patristic_distribution_fit'
+fn = file.path(output_dir, paste(file, '.png', sep=''))
+fit = fitSubtypeDistribution(bldist, plot.name=fn)
+
+# Assign tips based on subtype branch distribution
+file <- 'denovo_subtype'
+fn = file.path(output_dir, paste(file, '.png', sep=''))
+subt = assignSubtypes(fit$same, tree, plot.name=fn)
+
+file <- 'denovo_subtype'
+fn = file.path(output_dir, paste(file, '.txt', sep=''))
+write.table(data.frame(names(subt), as.character(subt)), file=fn, quote=FALSE, sep="\t", 
+	row.names=FALSE, col.names=FALSE)
 

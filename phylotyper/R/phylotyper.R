@@ -167,7 +167,7 @@ phylotyper$loadInstallLibraries = function(libloc="~/R/", repo="http://cran.stat
 	source('utilities.R')
 }
 
-phylotyper$loadSubtype = function(treefile, stfile, do.root=TRUE) {
+phylotyper$loadSubtype = function(treefile, stfile=NULL, do.root=TRUE) {
 	# Load tree and subtype assignments associated with subtype scheme
 	#
 	# Root tree at midpoint.
@@ -187,18 +187,25 @@ phylotyper$loadSubtype = function(treefile, stfile, do.root=TRUE) {
 	# 
 
 	tree = read.tree(treefile)
-	st = read.table(stfile, sep="\t", row.names=1)
-
 	if(do.root) tree <- midpoint.root(tree)
 
-	# Convert to factor list
-	subtypes = st[,1]
-	names(subtypes) = rownames(st)
+	res=list(tree=tree)
 
-	# Make note of labels to find subtypes for
-	undefined = setdiff(tree$tip.label, names(subtypes))
+	if(!is.null(stfile)) {
+		# Load subtypes
+		st = read.table(stfile, sep="\t", row.names=1)
 
-	return(list(tree=tree, untyped=undefined, subtypes=subtypes))
+		# Convert to factor list
+		subtypes = st[,1]
+		names(subtypes) = rownames(st)
+		res[['subtypes']] = subtypes
+
+		# Make note of labels to find subtypes for
+		undefined = setdiff(tree$tip.label, names(subtypes))
+		res[['untyped']] = undefined
+	}
+	
+	return(res)
 }
 
 phylotyper$mypalette = function(subtypes) {
