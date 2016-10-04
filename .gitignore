@@ -2,5 +2,7 @@
 *.log
 *alignment_trimming_summary.html
 *.gb
+test.tree
+tmp.fasta
 phylotyper/output/*
 phylotyper/data/*.gb

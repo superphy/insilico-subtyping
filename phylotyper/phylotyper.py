@@ -88,11 +88,11 @@ class Phylotyper(object):
         self.logger.debug('phylotyper.R detected the following genes have no subtype: %s' % (','.join(untyped)))
 
         # Make prior matrix
-        rcode = 'priorR = phylotyper$makePriors(tree, subtypes); priorM = priorM = priorR$prior.matrix'
+        rcode = 'priorR = phylotyper$makePriors(tree, subtypes); priorM = priorR$prior.matrix'
         robjects.r(rcode)
        
         # Run subtype procedure
-        rcode = 'est.scheme = 1; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme)'
+        rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped)'
         robjects.r(rcode)
 
         # Write subtype predictions

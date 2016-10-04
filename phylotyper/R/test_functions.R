@@ -33,7 +33,7 @@ testTree = function() {
 }
 
 
-loocv = function(tree, subtypes, scheme=1) {
+loocv = function(tree, subtypes, scheme=5) {
 	# Estimate prediction accuracy by predicting subtypes 
 	# for each tip using leave-one-out validation. 
 	# Method sets tip prior to flat/unassigned and runs
@@ -71,7 +71,7 @@ loocv = function(tree, subtypes, scheme=1) {
 		testprior = priorM
 		testprior[i,] = flat
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme)
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip)
 
 		pp[i,3:nc] = testfit$tip.pp[tip, ]
 
@@ -82,7 +82,7 @@ loocv = function(tree, subtypes, scheme=1) {
 }
 
 
-kfcv = function(tree, subtypes, scheme=1) {
+kfcv = function(tree, subtypes, scheme=5) {
 	# Estimate prediction accuracy by predicting subtypes 
 	# for each tip using k-fold cross validation. 
 	# Method sets tip priors to flat/unassigned and runs
@@ -138,7 +138,7 @@ kfcv = function(tree, subtypes, scheme=1) {
 		testprior = priorM
 		testprior[testset,] = flat
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme)
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tips)
 
 		pp[row:lastrow, 1] = i
 		pp[row:lastrow, 2] = tips

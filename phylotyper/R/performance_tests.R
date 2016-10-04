@@ -63,71 +63,68 @@ rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
 
 # Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
-aic = evaluateModels(tree,subtypes)
-file = 'model_aic'
-write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
-	sep="\t",
-	quote=FALSE)
+# For large datasets, ARD and SYM computation takes a long time
+# aic = evaluateModels(tree,subtypes)
+# file = 'model_aic'
+# write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
+# 	sep="\t",
+# 	quote=FALSE)
 
-# Iterate through esimtation procedures
-#estimation.methods = list(rerooting=1, simmap=4)
-estimation.methods = list(rerooting=1)
-for(i in 1:length(estimation.methods)) {
 
-	est.scheme = estimation.methods[[i]]
-	est.name = names(estimation.methods)[i]
 	
-	# Overlay posterior probabilities in tree plot
-	cat("Running estimation procedure: ", est.name, "\n")
+# Overlay posterior probabilities in tree plot
+cat("Computing posterior probabilites for all internal nodes: ", est.name, "\n")
 
-	priorR = phylotyper$makePriors(tree, subtypes)
-	priorM = priorR$prior.matrix
-	result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme)
-	file = 'posterior_probability_tree'
-	dim = phylotyper$plotDim(tree)
-	graphics.off()
-    png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
-        width=dim[['x']],height=dim[['y']],res=dim[['res']]
-    )
-	do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
-	graphics.off()
+priorR = phylotyper$makePriors(tree, subtypes)
+priorM = priorR$prior.matrix
+fit <- rerootingMethod(tree, priorM, model='ER', tips=FALSE)
 
-	# Iterate through validation procedures
-	# Leave-One-Out CV
-	# 5-fold CV
-	for(validation in c('loocv', 'kfcv')) {
-		cat("Running validation: ", validation, "\n")
+file = 'posterior_probability_tree'
+dim = phylotyper$plotDim(tree)
+graphics.off()
+png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
+    width=dim[['x']],height=dim[['y']],res=dim[['res']]
+)
+do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
+graphics.off()
 
-		pp = do.call(validation, c(tree=tree, subtypes=subtypes, scheme=est.scheme))
+# Iterate through validation procedures
+# Leave-One-Out CV
+# 5-fold CV
+est.scheme = 5 # only computes pp for tips
+for(validation in c('loocv', 'kfcv')) {
+	cat("Running validation: ", validation, "\n")
 
-		# Summarize performance
-		results = simulationSummary(subtypes, pp)
+	pp = do.call(validation, c(tree=tree, subtypes=subtypes, scheme=est.scheme))
 
-		# Write performance metrics to file
-		file = 'performance_metrics'
-		write.table(results$metrics, file=file.path(output_dir, paste(est.name, '_', validation, '_', file, '.csv', sep='')),
-			sep="\t",
-			quote=FALSE)
+	# Summarize performance
+	results = simulationSummary(subtypes, pp)
 
-		# Plots
+	# Write performance metrics to file
+	file = 'performance_metrics'
+	write.table(results$metrics, file=file.path(output_dir, paste(validation, '_', file, '.csv', sep='')),
+		sep="\t",
+		quote=FALSE)
 
-		# Plot confusion matrix
-		file <- 'confusion_matrix'
-		fn = file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep=''))
-		plotConfusionMatrix(results$confusion.matrix, fn)
-		
+	# Plots
 
-		# Plot posterior probability histogram
-		file <- 'posterior_probability_histogram'
-		fn = file.path(output_dir, paste(est.name, '_', validation, '_', file, '.png', sep=''))
-		plotPPHistogram(results$test.results, subtypes, fn)
-		
-		cat(validation, "complete", "\n")
-	}
+	# Plot confusion matrix
+	file <- 'confusion_matrix'
+	fn = file.path(output_dir, paste(validation, '_', file, '.png', sep=''))
+	plotConfusionMatrix(results$confusion.matrix, fn)
+	
 
-	cat(est.name, "complete", "\n")
-
+	# Plot posterior probability histogram
+	file <- 'posterior_probability_histogram'
+	fn = file.path(output_dir, paste(validation, '_', file, '.png', sep=''))
+	plotPPHistogram(results$test.results, subtypes, fn)
+	
+	cat(validation, "complete", "\n")
 }
+
+	
+
+
 
 
 
