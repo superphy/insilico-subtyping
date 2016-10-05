@@ -175,7 +175,7 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	source('utilities.R')
 }
 
-phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE) {
+phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.polytomies=TRUE) {
 	# Load tree and subtype assignments associated with subtype scheme
 	#
 	# Root tree at midpoint.
@@ -196,6 +196,11 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE) {
 
 	tree = read.tree(treefile)
 	if(do.root) tree <- midpoint.root(tree)
+	if(resolve.polytomies) {
+		tree <- multi2di(tree,random=TRUE)
+	}
+
+
 
 	res=list(tree=tree)
 
@@ -496,8 +501,13 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 		print(paste('tip node:',nn))
 		res$lik.anc[1,]
 	}
-	XX<-t(sapply(nn,ff))
-	XX<-rbind(YY$lik.anc[1,],XX)
+	if(length(nn) > 0) {
+		XX<-t(sapply(nn,ff))
+		XX<-rbind(YY$lik.anc[1,],XX)
+	}
+	else {
+		XX <- YY$lik.anc[1,,drop=FALSE]
+	}
 	rownames(XX)<-uncertain
 	liks <- YY$lik.anc
 	rownames(liks) <- 1:tt$Nnode+n

@@ -73,7 +73,7 @@ tree = rs$tree; subtypes = rs$subtypes
 
 	
 # Overlay posterior probabilities in tree plot
-cat("Computing posterior probabilites for all internal nodes: ", est.name, "\n")
+cat("Computing posterior probabilites for all internal nodes\n")
 
 priorR = phylotyper$makePriors(tree, subtypes)
 priorM = priorR$prior.matrix
@@ -82,10 +82,10 @@ fit <- rerootingMethod(tree, priorM, model='ER', tips=FALSE)
 file = 'posterior_probability_tree'
 dim = phylotyper$plotDim(tree)
 graphics.off()
-png(filename=file.path(output_dir, paste(est.name, '_', file, '.png', sep='')),
+png(filename=file.path(output_dir, paste(file, '.png', sep='')),
     width=dim[['x']],height=dim[['y']],res=dim[['res']]
 )
-do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
+phylotyper$plot.anc(tree,fit,subtypes)
 graphics.off()
 
 # Iterate through validation procedures
