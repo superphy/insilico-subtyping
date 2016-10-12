@@ -412,7 +412,7 @@ class DownloadUtils(object):
 
         self.prep_download()
 
-        with open(file, 'rU') as f:
+        with open(input_file, 'r') as f:
 
             accessions = []
             if fasta_format:
@@ -421,13 +421,14 @@ class DownloadUtils(object):
             else:
                 accessions = f.read().splitlines()
 
-            batchsize = 300
+            batchsize = 100
             b = 1
             accession_batches = batch(accessions, batchsize)
             for acc_batch in accession_batches:
                 count = process_batch(acc_batch)
                 n = len(acc_batch)
                 self.logger.info("Batch %i: %i submitted, %i retrieved." % (b, n, count))
+                b += 1
            
        
         return True
@@ -663,7 +664,7 @@ class DownloadUtils(object):
 
                     else:
                         self.logger.debug('Note: no subtype found in record %s' % (str(gb_record)))
-                        print(gb_record.source)
+                        print(gb_record)
 
                 else:
                     self.logger.debug('Note: %i alleles found in record %s' % (len(untyped_features), str(gb_record)))
@@ -672,6 +673,7 @@ class DownloadUtils(object):
         self.logger.debug('Subtypes encountered:\n{}\n'.format(str(subtype_counts)))
 
         return None
+
 
     def parse_subtype(self):
         """Extract subtype in each genbank record

@@ -6,11 +6,15 @@ Phylotyper functions
 
 """
 
+import csv
+import hashlib
+import json
 import logging
 import os
 import pkg_resources
 import rpy2.robjects as robjects
 from subprocess import check_output, CalledProcessError, STDOUT
+from Bio import SeqIO
 
 
 __author__ = "Matthew Whiteside"
@@ -164,6 +168,150 @@ class Phylotyper(object):
 
         os.chdir(cwd)
         return None
+
+
+
+class Idtyper(object):
+    """Identify subtype by looking for identical sequences in reference set
+
+    Assumption is that identical sequences have identical subtypes. 
+    Shortcircuits phylotyper approach. 
+
+
+    """
+
+    def __init__(self, reffile, fastafile=None, subtypefile=None):
+        """Constructor
+
+        Initializes lookup object by loading it from JSON file or by building it
+        from input fasta and subtype files. Side-effect of building is that the 
+        JSON output will be written to reffile.
+        
+        Args:
+            reffile (str): Filepath for JSON lookup object
+            fastafile (str)[OPTIONAL]: Filepath to fasta-formatted sequences
+            subtypefile (str)[OPTIONAL]: Filepath to tab-delimited subtype assignments for typed genes
+            
+        """
+
+        self.logger = logging.getLogger('phylotyper.phylotyper.Idtyper')
+
+        self._hash_algorithm = 'md5'
+        self._lookup = None
+
+        if fastafile and subtypefile:
+            self.build(fastafile, subtypefile, reffile)
+        elif fastafile:
+            raise Exception('Missing subtypefile parameter')
+        elif subtypefile:
+            raise Exception('Missing fastafile parameter')
+        else:
+            self.load(reffile)
+
+
+    @property
+    def lookup(self):
+        return self._lookup
+
+
+    def build(self, fastafile, subtypefile, reffile):
+        """Create JSON object for future find operations
+        
+        Args:
+            fastafile (str): Filepath to fasta-formatted sequences
+            subtypefile (str): Filepath to tab-delimited subtype assignments for typed genes
+            reffile (str): JSON output
+
+        Returns:
+            None
+            
+        """
+
+        # Load subtypes
+        subtypes = {}
+        for row in csv.reader(open(subtypefile,'r'),delimiter='\t'):
+            name = row[0]
+            subt = row[1]
+            subtypes[name] = subt
+
+        # Load sequences
+        self._lookup = {}
+        seqs = SeqIO.parse(open(fastafile),'fasta')
+        for s in seqs:
+            digest = self.digest(s.seq)
+
+            entry = {'seq': s.seq, 'name': s.description, 'subtype': subtypes[name]}
+
+            if digest in self._lookup:
+                self._lookup[digest].append(entry)
+            else:
+                self._lookup[digest] = [entry]
+
+        self.store(reffile)
+
+        return None
+
+
+    def store(self, reffile):
+        """Save lookup object as json to reffile"""
+        with open(reffile, 'w') as rfh:
+            json.dump(self._lookup,rfh)
+
+        return None
+
+
+    def load(self, reffile):
+        """Load lookup object from json file"""
+        with open(reffile, 'r') as rfh:
+            self._lookup = json.load(rfh)
+
+        # Quickly check one reference sequence
+        testentry = self._lookup.itervalues().next()[0]
+        for k in ['seq','name','subtype']:
+            if not k in testentry:
+                raise Exception('Improperly formated lookup object')
+
+        return None
+
+
+    def digest(self, seq):
+        """Compute quick lookup hash value from sequence"""
+
+        h = hashlib.new(self._hash_algorithm)
+        h.update(seq)
+        dig = h.hexdigest()
+
+        return dig
+
+
+    def find(self, seq):
+        """Search for identical sequence in reference set
+        
+        
+        Args:
+            seq (str): sequence to search for
+
+        Returns:
+            None if no identical sequence found -or- tuple with sutype & name of identical sequence
+            
+        """
+
+        searchstr = self.digest(seq)
+
+        if searchstr in self._lookup:
+            hits = self._lookup[searchstr]
+
+            for h in hits:
+                if h['seq'] == seq:
+                    return (h['subtype'],h['name'])
+        else:
+            return None
+
+
+
+
+
+        
 
 
        

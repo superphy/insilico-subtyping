@@ -22,7 +22,7 @@ from collections import Counter
 
 from config import PhylotyperOptions
 from builtin_subtypes import SubtypeConfig
-from phylotyper import Phylotyper
+from phylotyper import Phylotyper, Idtyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
 from tree.seq import SeqDict
@@ -74,6 +74,30 @@ def align_new_sequences(input, alignment, summary, output, config):
     aln = SeqAligner(config)
     aln.add(input, alignment, output)
     aln.trim(output, output, trimming_summary_file=summary)
+
+
+def identical_sequences(options, config):
+    """Search for identical sequences in the reference set
+    to transfer subtype assignment
+
+    Args:
+        options (dict): user defined settings from __main__
+        config (obj): PhylotyperOptions object
+
+    """
+
+    logger.debug('Searching for identical sequences with known subtype')
+
+    fastafile = options['input']
+    seqs = SeqIO.parse(open(fastafile),'fasta')
+    lookup = Idtyper(options['lookup_file'])
+    for s in seqs:
+        found = lookup.find(s)
+
+        if found:
+            
+
+    
 
 
 def build_tree(input, output, nt, fast, config):
@@ -168,6 +192,9 @@ def subtype_pipeline(options, config):
     options['tree_file'] = treefile
     options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.txt')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
+
+    # Check for identical sequences in reference set
+  
 
     # Rename sequences with unique ids, change input files
     uniquify_sequences(options)

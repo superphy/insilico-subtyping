@@ -34,13 +34,12 @@ logging.basicConfig(
     format='%(asctime)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     filemode='w')
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     """Run
 
     """
-
-    logger = logging.getLogger('phylotyper.data.download.blast_flic_genes')
 
     # Parse command-line args
     parser = argparse.ArgumentParser(description='Download and store NCBI blast results')
@@ -50,8 +49,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     tmp_fasta_file = os.path.join(args.output_directory, 'tmp.fasta')
 
-    blast = Blast("Escherichia coli")
-    blast.run(args.fasta_file, args.output_file)
+    # blast = Blast("Escherichia coli")
+    # blast.run(args.fasta_file, tmp_fasta_file)
 
     # Initialize serotype parser
     hpattern = r"[o0](?:\d+|nt|r|untypeable|\?|\-)[a-z]?\:(h\d+[a-z]?)(?:\:|\b)"
@@ -59,14 +58,16 @@ if __name__ == "__main__":
         annotation_fields=['source','serotype','organism'])
 
     # Initialize Download object
-    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['fliC'], parser, None, 
+    dutil = DownloadUtils(args.output_directory, 'Escherichia coli', ['flic_blast'], parser, None, 
         gene_regex=[re.compile(r'\bfliC\b', flags=re.IGNORECASE), re.compile(r'^flagellin$',flags=re.IGNORECASE)])
 
     # Perform Downloads
-    dutil.download_by_accession(tmp_fasta_file, fasta_format=True)
+    #dutil.download_by_accession(tmp_fasta_file, fasta_format=True)
+
 
     # Parse genbank files for H-types
-    dutil.parse_subtype()
+    #dutil.parse_subtype()
+
 
     # Generate final output
     invalid = set([])
@@ -81,14 +82,12 @@ if __name__ == "__main__":
 
         elif subtypes[name] == subt:
             # Non-conflicting duplicates
-            logger.info(''.format("Duplicate instances of {}, subtype:{} in subtype file: {}".format(name,subt,
-                dutil.subtypefile)))
+            logger.info("Duplicate instances of {}, subtype:{} in subtype file: {}".format(name,subt,dutil.subtypefile))
 
         else:
             # Conflict
-            logger.warning(''.format(
-                "Duplicate instances of {} with conflicting subtypes: {} vs {} in subtype file: {}. Removing entry.".format(name,subt,
-                    subtypes[name],dutil.subtypefile)))
+            logger.warning("Duplicate instances of {} with conflicting subtypes: {} vs {} in subtype file: {}. Removing entry.".format(name,subt,
+                    subtypes[name],dutil.subtypefile))
             invalid.add(name)
 
 
@@ -109,9 +108,9 @@ if __name__ == "__main__":
                     if name in seqs:
                         # Duplicate in fasta file
                         if seqs[name] == seq:
-                             logger.info(''.format("Duplicate instances of {} in fasta file: {}".format(name, dutil.fastafile)))
+                             logger.info("Duplicate instances of {} in fasta file: {}".format(name, dutil.fastafile))
                         else:
-                            logger.warning(''.format("Duplicate instances of {} with conflicting sequences in fasta file: {}".format(name, dutil.fastafile)))
+                            logger.warning("Duplicate instances of {} with conflicting sequences in fasta file: {}".format(name, dutil.fastafile))
                             invalid2.add(name)
 
                     else:
@@ -121,7 +120,7 @@ if __name__ == "__main__":
 
                 else:
                     # No matching subtype
-                    logger.info(''.format("No subtype for sequence {} in fasta file: {}".format(name, dutil.fastafile)))
+                    logger.info("No subtype for sequence {} in fasta file: {}".format(name, dutil.fastafile))
 
             
 

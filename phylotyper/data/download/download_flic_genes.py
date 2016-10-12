@@ -54,10 +54,10 @@ if __name__ == "__main__":
         gene_regex=[re.compile(r'\bfliC\b', flags=re.IGNORECASE), re.compile(r'^flagellin$',flags=re.IGNORECASE)])
 
     # Perform Downloads
-    #dutil.download_genes()
+    dutil.download_genes()
 
     # Parse genbank files for H-types
-    dutil.parse_subtype()
+    dutil.parse()
 
 
 
