@@ -92,7 +92,7 @@ class SubtypeConfig(object):
         """
         root_dir = self._root_dir
 
-        for filepath_parameter in ['alignment', 'subtype']:
+        for filepath_parameter in ['alignment', 'subtype', 'lookup']:
 
             if config[filepath_parameter]:
                 config[filepath_parameter] = os.path.join(root_dir, config[filepath_parameter])
@@ -126,5 +126,9 @@ class SubtypeConfig(object):
             raise Exception("Unknown subtype: %s" % (subtype_name))
 
         return self._config[subtype_name]
+
+
+    def add_subtype(self, scheme, options):
+        pass
 
    

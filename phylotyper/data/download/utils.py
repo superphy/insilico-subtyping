@@ -103,6 +103,7 @@ class SubtypeParser(object):
         self.record_fields = record_fields
         self.source_fields = source_fields
         self.annotation_fields = annotation_fields
+        self._gotchas = [re.compile(r'ortholog')] # Indicate annotation transfer rather than direct evidence
 
 
     def search_feature(self, feature):
@@ -118,9 +119,18 @@ class SubtypeParser(object):
                 for regexp in self._subtype_regexp:
                     for v in feature.qualifiers[f]:
                         hits = regexp.findall(v)
-                        hits = self.format(hits)
-                        for h in hits:
-                            matches.add(h)
+
+                        if len(hits) > 0:
+                            ok = True
+                            for gotcha in self._gotchas:
+                                if gotcha.search(v):
+                                    ok = False
+                                    break
+
+                            if ok:
+                                hits = self.format(hits)
+                                for h in hits:
+                                    matches.add(h)
                
         return matches
 

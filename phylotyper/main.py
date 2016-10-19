@@ -22,7 +22,7 @@ from collections import Counter
 
 from config import PhylotyperOptions
 from builtin_subtypes import SubtypeConfig
-from phylotyper import Phylotyper, Idtyper
+from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
 from tree.seq import SeqDict
@@ -76,30 +76,6 @@ def align_new_sequences(input, alignment, summary, output, config):
     aln.trim(output, output, trimming_summary_file=summary)
 
 
-def identical_sequences(options, config):
-    """Search for identical sequences in the reference set
-    to transfer subtype assignment
-
-    Args:
-        options (dict): user defined settings from __main__
-        config (obj): PhylotyperOptions object
-
-    """
-
-    logger.debug('Searching for identical sequences with known subtype')
-
-    fastafile = options['input']
-    seqs = SeqIO.parse(open(fastafile),'fasta')
-    lookup = Idtyper(options['lookup_file'])
-    for s in seqs:
-        found = lookup.find(s)
-
-        if found:
-            
-
-    
-
-
 def build_tree(input, output, nt, fast, config):
     """Build phylogenetic tree
 
@@ -136,7 +112,6 @@ def predict_subtypes(options, config):
     # Define files
     subtfile = options['subtype']
     treefile = options['tree_file']
-    assfile = options['result_file']
 
     pt = Phylotyper(config)
 
@@ -147,28 +122,47 @@ def predict_subtypes(options, config):
     for x in csv.reader(open(options['mapping_file'],'r'), delimiter='\t'):
         rev_mapping[x[1]] = x[0]
 
-    # Write assignments
+    # Compute assignments
     cutoff = float(config.get('phylotyper','prediction_threshold'))
     logger.debug('Using posterior probability cutoff: %f' % (cutoff))
 
+    assignments = []
+    for genome_id,subtup in assignment_dict.items():
+
+        pp = subtup[1]
+        subt = ','.join(subtup[0])
+
+        pred = 'undetermined'
+        print pp
+        if pp > cutoff:
+            pred = subt
+        
+        assignments.append([
+            rev_mapping[genome_id],
+            ','.join(subt),
+            str(pp),
+            pred
+        ])
+
+    
+    return(assignments)
+
+
+def print_results(options, assignments):
+    """Writes results to file.
+
+    Args:
+        options (dict): user defined settings from __main__
+
+    """
+
+    logger.debug('Writing results')
+
+    assfile = options['result_file']
     with open(assfile, 'w') as outf:
         outf.write('#genome\tsubtype\tprobability\tphylotyper_assignment\n')
-        for genome_id,subtup in assignment_dict.items():
-
-            pp = subtup[1]
-            subt = ','.join(subtup[0])
-
-            pred = 'undetermined'
-            print pp
-            if pp > cutoff:
-                pred = subt
-            
-            outf.write('\t'.join((
-                rev_mapping[genome_id],
-                ','.join(subt),
-                str(pp),
-                pred +'\n'
-            )))
+        for row in assignments:
+            outf.write('\t'.join(row+'\n'))
 
     None
 
@@ -193,24 +187,30 @@ def subtype_pipeline(options, config):
     options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.txt')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
-    # Check for identical sequences in reference set
-  
-
-    # Rename sequences with unique ids, change input files
-    uniquify_sequences(options)
-
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
-    # Align
-    align_new_sequences(options['input'], oldalnfile, summary, alnfile, config)
+    assignments = [] # Phylotyper subtype assignments
 
-    # Compute tree
-    nt = options['seq'] == 'nt'
-    build_tree(alnfile, treefile, nt, options['fast'], config)
+    # Check if sequences match known subtyped sequences
+    # Otherwise. rename sequences with unique ids, change input files
+    num_remaining = prep_sequences(options, assignments)
 
-    # Predict subtypes & write to file
-    predict_subtypes(options, config)
+    # Run phylotyper on remaining untyped input sequences
+    if num_remaining > 0:    
+
+        # Align
+        align_new_sequences(options['input'], oldalnfile, summary, alnfile, config)
+
+        # Compute tree
+        nt = options['seq'] == 'nt'
+        build_tree(alnfile, treefile, nt, options['fast'], config)
+
+        # Predict subtypes & write to file
+        predict_subtypes(options, config, assignments)
+
+
+    print_results(options, assignments)
 
 
 def evaluate_subtypes(options, config):
@@ -245,9 +245,9 @@ def build_pipeline(options, config):
     User provides new reference set for subtyping. Build and
     refine alignment. Evaluate predictive ability of tree.
 
-        Args:
-            options (dict): user defined settings from __main__
-            config (obj): PhylotyperConfig with .ini file settings
+    Args:
+        options (dict): user defined settings from __main__
+        config (obj): PhylotyperConfig with .ini file settings
 
     """
 
@@ -265,8 +265,11 @@ def build_pipeline(options, config):
     # Remove identical sequences
     logger.debug('Collapsing identical sequences')
     seqdict = SeqDict()
-    seqdict.load(options['input'], options['subtype_orig'])
+    seqdict.build(options['input'], options['subtype_orig'])
+    # Output unique set
     seqdict.write(tmpfile, options['subtype'])
+    # Save lookup object
+    seqdict.store(options['lookup'])
 
     # Align
     align_all_sequences(tmpfile, alnfile, summary, config)
@@ -276,24 +279,33 @@ def build_pipeline(options, config):
     build_tree(alnfile, treefile, nt, options['fast'], config)
 
     # Run evaluation
-    evaluate_subtypes(options, config)
+    #evaluate_subtypes(options, config)
 
 
 
-def uniquify_sequences(options):
+
+def prep_sequences(options, identified):
     """Create temporary sequence names that are unique
 
     Autogenerate temporary name placeholders and rewrite
-    inputs with these names.
+    inputs with these names.  Also flags sequences that are identical
+    to subtyped sequences in the reference set.  These do not need
+    to be run with phylotyper. Subtype assignment will be transfered
+    from identical sequences.
 
     Sets filename key-values in options dict for new temp input file
     and mapping file.
         
-        Args:
-            options (dict): user defined settings from __main__
+    Args:
+        options (dict): user defined settings from __main__
+        identified (list): Inputs that match reference sequences will be appended to this list
+
+    Returns:
+        Integer indicated number of remaining unsubtyped sequences
 
     """
 
+    logger.debug('Searching for identical sequences with known subtype')
     logger.debug('Renaming sequences')
 
     # Define files
@@ -301,20 +313,39 @@ def uniquify_sequences(options):
     mapping_file = os.path.join(options['output_directory'], 'mapping.txt')
     input_file = options['input']
 
-    i = 1
+    # Load lookup object
+    lookup = SeqDict()
+    lookup = SeqDict.load(options['lookup'])
+
+    i = 0
     pre = 'pt_'
-    fasta_sequences = SeqIO.parse(open(input_file),'fasta')
+    fasta_sequences = SeqIO.parse(open(input_file, 'r'),'fasta')
     with open(output_file, 'w') as outf, open(mapping_file, 'w') as mapf:
         for fasta in fasta_sequences:
             name, sequence = fasta.description, str(fasta.seq)
-            newname = '%s%i' % (pre, i)
-            i += 1
-            mapf.write('%s\t%s\n' % (name, newname))
-            outf.write('>%s\n%s\n' % (newname, sequence))
+            found = lookup.find(sequence)
+
+            if found:
+                subt = found['subtype']
+                hit = found['name']
+                identified.append([
+                    name,
+                    subt,
+                    'identical to {}'.format(hit),
+                    subt
+                    ])
+
+            else:
+                i += 1
+                newname = '%s%i' % (pre, i)
+                mapf.write('%s\t%s\n' % (name, newname))
+                outf.write('>%s\n%s\n' % (newname, sequence))
 
     options['input'] = output_file
     options['user_input'] = input_file
     options['mapping_file'] = mapping_file
+
+    return(i)
 
 
 def check_gene_names(options):
@@ -414,8 +445,9 @@ if __name__ == "__main__":
     new_parser.add_argument('subtypein', action='store', help='Input reference gene subtypes')
     new_parser.add_argument('subtypeout', action='store', help='Ouput reference gene subtypes')
     new_parser.add_argument('alignment', action='store', help='Reference gene alignment output')
-    new_parser.add_argument('output', action='store', help='Directory for subtype result files')
-    new_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+    new_parser.add_argument('lookup', action='store', help='Reference gene sequence storage')
+    new_parser.add_argument('output', action='store', help='Directory for evaluation result files')
+    new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     new_parser.set_defaults(which='new')
 
     # User-supplied subtype command
@@ -434,7 +466,7 @@ if __name__ == "__main__":
     subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
     subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
     subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
-    subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+    subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     subtype_parser.set_defaults(which='subtype')
 
@@ -474,13 +506,14 @@ if __name__ == "__main__":
         subtype_options['alignment'] = os.path.abspath(options.alignment)
         subtype_options['subtype_orig'] = os.path.abspath(options.subtypein)
         subtype_options['subtype'] = os.path.abspath(options.subtypeout)
+        subtype_options['lookup'] = os.path.abspath(options.lookup)
         subtype_options['output_directory'] = outdir
         subtype_options['fast'] = False
 
-        if options.nt:
-            subtype_options['seq'] = 'nt'
-        else:
+        if options.aa:
             subtype_options['seq'] = 'aa'
+        else:
+            subtype_options['seq'] = 'nt'
 
         # Run pipeline
         build_pipeline(subtype_options, config)
@@ -519,7 +552,7 @@ if __name__ == "__main__":
         if options.noplots:
             subtype_options['noplots'] = True
 
-        if options.nt and (subtype_options['seq'] != 'nt'):
+        if options.aa and (subtype_options['seq'] != 'aa'):
             msg = 'Sequence type of input does not match Phylotyper gene sequences for %s' % (scheme)
             raise Exception(msg)
 

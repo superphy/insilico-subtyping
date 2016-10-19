@@ -28,6 +28,7 @@ logging.basicConfig(
     format='%(asctime)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
     filemode='w')
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     """Run pipeline downloading sequences

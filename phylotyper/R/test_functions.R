@@ -101,12 +101,12 @@ kfcv = function(tree, subtypes, scheme=5) {
 	# Compute k-fold size
 	n = length(subtypes)
 	iter = 100
-	k = 5
-	ksize = floor(n/5)
+	k = 10
+	ksize = floor(n/k)
 	cat("Cross-validation test set size: ",ksize,"\n")
 
 	if(ksize < 2)
-		stop("Test set too small for 5-fold cross validation. Test set size is less than 2.")
+		stop("Test set too small for 10-fold cross validation. Test set size is less than 2.")
 
 	# Make prior matrix
 	priorR = phylotyper$makePriors(tree, subtypes)
@@ -420,9 +420,16 @@ plotPPHistogram = function(test.results, subtypes, fn) {
 	# posterior probability
 	pp = test.results[,subtype.states]
 
+	# The subset that can actually be predicted correct (i.e. has > 2 copies, in loocv)
+	# kfcv is more complicated
+	counts = table(test.results$true_value)
+	states.subset = names(counts)[which(counts > 1)]
+
 	# Create correct/incorrect distributions
-	correct = unlist(sapply(1:length(subtype.states), function(i) pp[test.results$true_value == subtype.states[i],i]))
-	wrong = unlist(sapply(1:length(subtype.states), function(i) pp[test.results$true_value != subtype.states[i],i]))
+	correct = unlist(sapply(1:length(subtype.states), function(i) { ss = subtype.states[i]; if(ss %in% states.subset) as.numeric(pp[test.results$true_value == ss,i]) } ))
+	wrong = unlist(sapply(1:length(subtype.states), function(i) as.numeric(pp[test.results$true_value != subtype.states[i],i])))
+
+	correct = unlist(sapply(1:length(states.subset), function(i) min(as.numeric(pp[test.results$true_value == subtype.states[i],i]))))
 
 	dist = data.frame("result"=c(rep('positive',length(correct)), rep('negative',length(wrong))), 
 		"posterior probability"=c(correct, wrong))

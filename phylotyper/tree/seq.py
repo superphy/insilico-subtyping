@@ -19,6 +19,9 @@ are also implicitly created anytime a new section starts.
 """
 
 import csv
+import hashlib
+import json
+import re
 from Bio import SeqIO
 from collections import Counter
 
@@ -30,8 +33,9 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "mwhiteside@canada.ca"
 
 
+
 class SeqDict(object):
-    """Generate non-redundant set of sequences
+    """Library of non-redundant set of sequences for quick lookup
 
 
 
@@ -46,7 +50,8 @@ class SeqDict(object):
         """
 
         self._seqdict = {}
-        self._namedict = {}
+        self._genenum = 0
+        self._hash_algorithm = 'md5'
 
 
     @property
@@ -56,15 +61,14 @@ class SeqDict(object):
         return self._seqdict
 
     @property
-    def names(self):
-        """dict: ."""
+    def num(self):
+        """Number sequences"""
 
-        return self._namedict
+        return self._genenum
 
    
-    def load(self, fasta_file, subtype_file):
-        """Populate SeqDict
-
+    def build(self, fasta_file, subtype_file):
+        """Populate SeqDict with entries in fasta and subtype files
 
         Args:
             fasta_file (str): Filepath to input sequence file
@@ -76,91 +80,175 @@ class SeqDict(object):
         """
 
         # Check subtype file
-        alleles = Counter()
         subtypes = {}
-        assigned = {}
 
         for row in csv.reader(open(subtype_file,'r'),delimiter='\t'):
-            name = row[0]
-            subt = row[1]
+            name = row[0].upper()
+            subt = row[1].lower()
 
             subtypes[name] = subt
             
         
         fasta = SeqIO.parse(fasta_file, 'fasta')
         for record in fasta:
-            name = record.id
-            seq = str(record.seq)
-
+            name = record.id.upper()
+            seq = str(record.seq).upper()
             this_subt = subtypes[name]
 
-            if seq in self.seqs:
-                if not self.seqs[seq] == this_subt:
+            matched = self.find(seq)
+            if matched:
+                # Existing identical sequence
+                if not matched['subtype'] == this_subt:
                     raise Exception('Identical sequence {} has different subtype assignment than {} (expected: {}, assigned: {})'.format(
-                        name, ','.join(assigned[seq]), self.seqs[seq], this_subt))
+                        name, ','.join(matched['accessions']), matched['subtype'], this_subt))
 
-                # Have multiple copies of sequence, generate new meta-name based on subtype
-                alleles[this_subt] += 1
-                self.names[seq] = '{}_allele{}'.format(this_subt, alleles[this_subt])
+                # Record gene/genome
+                matched['accessions'].append(name)
 
             else:
-                self.seqs[seq] = this_subt
-                self.names[seq] = name
-
-            # track ids with this sequence
-            if seq in assigned:
-                assigned[seq].append(name)
-            else:
-                assigned[seq] = [name]
+                self.add(seq, name, this_subt)
 
         fasta.close()
 
 
-    def find(self, sequence):
-        """Find matching sequence in SeqDict
-
+    def find(self, seq):
+        """Search for identical sequence in dictionary
+        
         Args:
-            sequence (str): Bio sequence
-            
+            seq (str): sequence
 
         Returns:
-            name (str) or None
-
+            None if no identical sequence found -or- SeqDict entry
+            
         """
 
-        if sequence in self.seqs:
-            return self.seqs[sequence]
+        
+        searchstr = self.digest(seq)
+
+        if searchstr in self.seqs:
+            hits = self.seqs[searchstr]
+
+            if seq in hits:
+                return hits[seq]
+            else:
+                return None
+            
         else:
             return None
+
+   
+    def add(self, seq, name, subt):
+        """Add new entry to SecDict
+        
+        Args:
+            seq (str): sequence
+            name (str): accession
+            subt (str): subtype
+
+        Returns:
+            None
+            
+        """
+
+        searchstr = self.digest(seq)
+
+        if not searchstr in self.seqs:
+            self.seqs[searchstr] = {}
+
+        self._genenum += 1
+
+        self.seqs[searchstr][seq] = {
+            'subtype': subt,
+            'name': self.format_name(name, subt),
+            'accessions': [name]
+        }
+
+
+    def format_name(self, name, subtype):
+        """Standard gene naming"""
+
+        # Try to isolate NCBI accession
+        nm = re.sub(r'^(?:\d+\-)?([A-Z0-9\.]+)_.+$', r'\1', name.upper())
+        genename = '{}-{}__{}'.format(self._genenum, nm, subtype.lower())
+
+        return genename
+
+
+
+    def store(self, reffile):
+        """Save SeqDict to file"""
+        with open(reffile, 'w') as rfh:
+            json.dump(self.seqs,rfh)
+
+        return None
+
+
+    def load(self, reffile):
+        """Load SeqDict from file"""
+        with open(reffile, 'r') as rfh:
+            self._seqdict = json.load(rfh)
+
+        # Check format    
+        for seqkey, seqs in self._seqdict.itervalues():
+            for seq,seqentry in seqs.iteritems():
+                self._genenum += 1
+
+                for k in ['name','subtype','accessions']:
+                    if not k in seqentry:
+                        raise Exception('Improperly formated SeqDict object')
+
+        return None
+
+
+    def digest(self, seq):
+        """Compute quick lookup hash value from sequence"""
+
+        h = hashlib.new(self._hash_algorithm)
+        h.update(seq)
+        dig = h.hexdigest()
+
+        return dig
 
 
     def write(self, fasta_filepath, subtype_filepath):
         """Write unique sequences in fasta format
-
         Args:
             fasta_filepath (str): Filepath to output fasta file
             subtype_filepath (str): Filepath to output subtype file
             
-
         Returns:
             None
-
         """
 
         with open(fasta_filepath, 'w') as f, open(subtype_filepath, 'w') as s:
-            for seq,subt in self.seqs.iteritems():
-                name = self.names[seq]
+            for seqkey,seqs in self.seqs.iteritems():
+                for seq,seqentry in seqs.iteritems():
 
-                f.write(">{}\n{}\n".format(name, seq))
-                s.write("{}\t{}\n".format(name, subt))
-
-
+                    f.write(">{}\n{}\n".format(seqentry['name'], seq))
+                    s.write("{}\t{}\n".format(seqentry['name'], seqentry['subtype']))
 
 
+        return None
+
+
+    def subtype_occurences(self):
+        """Count occurences of each subtype in SeqDict
+
+        Returns:
+            Counter object
+
+        """
+
+        subtype_counts = Counter()
+
+        for seqkey,seqs in self.seqs.iteritems():
+            for seq,seqentry in seqs.iteritems():
+
+                subtype_counts[seqentry['subtype']] += 1
 
 
     
-
+        return subtype_counts
 
 
 

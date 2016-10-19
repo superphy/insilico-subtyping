@@ -147,7 +147,8 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	}
 	
 	# Install libraries from CRAN
-	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust")
+	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust",
+		"fitdistrplus","robustbase")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
@@ -264,7 +265,7 @@ phylotyper$piecolors <- function(marginals) {
 	return(reduced)
 }
 
-phylotyper$plot.subtype <- function(tree, subtypes) {
+phylotyper$plot.subtype <- function(tree, subtypes, tip.subtypes=NULL) {
 	# plot tree with subtype assignments overlayed
 	#
 	# Args:
@@ -275,7 +276,14 @@ phylotyper$plot.subtype <- function(tree, subtypes) {
 	#   nothing
 	#
 
-	cols = phylotyper$mypalette(subtypes)
+	cols = cols2 = phylotyper$mypalette(subtypes)
+	subtypes2 = subtypes
+	diff.tips = FALSE
+	if(!is.null(tip.subtypes)){
+		subtypes2 = tip.subtypes
+		cols2 = phylotyper$mypalette(subtypes2)
+		diff.tips = TRUE
+	}
 	pies = matrix(0, ncol=length(cols),nrow=length(subtypes))
 	colnames(pies) = names(cols)
 	rownames(pies) = tree$tip.label
@@ -284,7 +292,7 @@ phylotyper$plot.subtype <- function(tree, subtypes) {
 		pies[i,st] = 1
 	}
 
-	plot(tree,label.offset=0.001,cex=0.7,type='fan',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]])
+	plot(tree,label.offset=0.001,cex=0.7,type='fan',align.tip.label=TRUE,tip.col=cols2[subtypes2[tree$tip.label]])
 
 	tiplabels(pie=pies, 
 		piecol=cols,
@@ -292,6 +300,11 @@ phylotyper$plot.subtype <- function(tree, subtypes) {
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
+
+	# if(diff.tips) {
+	# 	add.simmap.legend(colors=cols2,x=0.7*par()$usr[2],
+	# 	y=0.9*par()$usr[4],prompt=FALSE)
+	# }
 }
 
 phylotyper$plot.anc <- function(tree, fit, subtypes) {

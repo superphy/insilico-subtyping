@@ -49,8 +49,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     tmp_fasta_file = os.path.join(args.output_directory, 'tmp.fasta')
 
-    # blast = Blast("Escherichia coli")
-    # blast.run(args.fasta_file, tmp_fasta_file)
+    blast = Blast("Escherichia coli")
+    blast.run(args.fasta_file, tmp_fasta_file)
 
     # Initialize serotype parser
     hpattern = r"[o0](?:\d+|nt|r|untypeable|\?|\-)[a-z]?\:(h\d+[a-z]?)(?:\:|\b)"
@@ -62,12 +62,10 @@ if __name__ == "__main__":
         gene_regex=[re.compile(r'\bfliC\b', flags=re.IGNORECASE), re.compile(r'^flagellin$',flags=re.IGNORECASE)])
 
     # Perform Downloads
-    #dutil.download_by_accession(tmp_fasta_file, fasta_format=True)
-
+    dutil.download_by_accession(tmp_fasta_file, fasta_format=True)
 
     # Parse genbank files for H-types
-    #dutil.parse_subtype()
-
+    dutil.parse_subtype()
 
     # Generate final output
     invalid = set([])
@@ -117,7 +115,6 @@ if __name__ == "__main__":
                         # novel sequence with subtype
                         seqs[name] = seq
                         
-
                 else:
                     # No matching subtype
                     logger.info("No subtype for sequence {} in fasta file: {}".format(name, dutil.fastafile))

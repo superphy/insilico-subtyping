@@ -3,10 +3,8 @@
 ##########################################################
 ## File: denovo.R
 ##
-##  Generate subtype assignment based on tree
+##  Generate denovo subtype assignment based on tree alone
 ## 
-##
-##
 ##
 ## author: Matt Whiteside
 ## copyright: Copyright Government of Canada 2012-2015. Funded by the Government of Canada Genomics Research and Development Initiative
@@ -45,7 +43,7 @@ output_dir = opts$out
 # Load inputs
 tree = loadSubtype(treefile)$tree
 
-# Make new subtype
+# Make new subtyping system
 
 # Find distribution of branch lengths for genomes in same
 # subtype
