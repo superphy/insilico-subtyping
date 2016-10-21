@@ -66,10 +66,17 @@ phylotyper$runSubtypeProcedure <- function(tree, priorM, scheme=1, ...) {
 		return(list(result=fit, tip.pp=fit$tips, plot.function='plotSM'))
 
 	} else if(scheme == 5) {
-		# tip.posterior.probability method, ER model
+		# tip.posterior.probability method, ER model or specified using model= parameter
 		if(hasArg(tips)) tips<-list(...)$tips
 		else stop('Missing argument: tips')
-		fit = tip.posterior.probability(tree, priorM, tips, model='ER')
+
+		model='ER'
+		if(hasArg(model)) model<-list(...)$model
+
+		fixedQ=NULL
+		if(hasArg(fixedQ)) fixedQ<-list(...)$fixedQ
+		
+		fit = tip.posterior.probability(tree, priorM, tips, model=model, fixedQ=fixedQ)
 		return(list(result=fit, tip.pp=fit$marginal.anc, plot.function='plotTPP'))
 
 	}
@@ -148,7 +155,7 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	
 	# Install libraries from CRAN
 	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust",
-		"fitdistrplus","robustbase")
+		"robustbase", "fitdistrplus", "igraph")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
@@ -185,6 +192,7 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 	#  treefile: Path to tree in newick format
 	#  stfile: Path to subtype assignments in format: tree_tip_label\tsubtype
 	#  do.root: Boolean indicating if midpoint.root should be called on tree
+	#  resolve.polytomies: Boolean indicating if multifurcating nodes should be expanded to bifurcating
 	#
 	# Returns:
 	#   list:
@@ -195,15 +203,14 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 	# 
 	# 
 
-	tree = read.tree(treefile)
+	otree = read.tree(treefile)
+	tree = otree
 	if(do.root) tree <- midpoint.root(tree)
 	if(resolve.polytomies) {
 		tree <- multi2di(tree,random=TRUE)
 	}
 
-
-
-	res=list(tree=tree)
+	res=list(tree=tree, multif=otree)
 
 	if(!is.null(stfile)) {
 		# Load subtypes
@@ -297,6 +304,50 @@ phylotyper$plot.subtype <- function(tree, subtypes, tip.subtypes=NULL) {
 	tiplabels(pie=pies, 
 		piecol=cols,
 		cex=0.2)
+	
+	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
+		y=0.9*par()$usr[4],prompt=FALSE)
+
+	# if(diff.tips) {
+	# 	add.simmap.legend(colors=cols2,x=0.7*par()$usr[2],
+	# 	y=0.9*par()$usr[4],prompt=FALSE)
+	# }
+}
+
+phylotyper$plot.subtype2 <- function(tree, subtypes, tip.subtypes=NULL) {
+	# plot tree with subtype assignments overlayed
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  subtypes: factor list of subtype assignments
+	#
+	# Returns:
+	#   nothing
+	#
+
+	cols = cols2 = phylotyper$mypalette(subtypes)
+	subtypes2 = subtypes
+	diff.tips = FALSE
+	if(!is.null(tip.subtypes)){
+		subtypes2 = tip.subtypes
+		cols2 = phylotyper$mypalette(subtypes2)
+		diff.tips = TRUE
+	}
+	pies = matrix(0, ncol=length(cols),nrow=length(subtypes))
+	colnames(pies) = names(cols)
+	rownames(pies) = tree$tip.label
+	for(i in 1:nrow(pies)) {
+		st = subtypes[rownames(pies)[i]]
+		pies[i,st] = 1
+	}
+
+	plot(tree,label.offset=0.001,cex=0.7,type='phylogram',align.tip.label=TRUE,tip.col=cols2[subtypes2[tree$tip.label]])
+
+	tiplabels(pie=pies, 
+		piecol=cols,
+		cex=0.2)
+
+	nodelabels(cex=0.2)
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
@@ -447,7 +498,7 @@ phylotyper$plotDim <- function(tree) {
 	return(list(x=x,y=y,res=res))
 }
 
-phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("ER","SYM")) {
+phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("ER","SYM"),fixedQ=NULL) {
 	# Adapted from phytools rerootingMethod
 	#
 	# It computes the marginal posterior probabiliyt of a tip in tree by rooting at lowest point
@@ -466,6 +517,9 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	# Returns:
 	#   list with x, y, res names
 	#
+
+	print(fixedQ)
+	print(model)
 
 
 	if(!inherits(tree,"phylo")) 
@@ -501,11 +555,19 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 
 	# Root tree at lowest point on edge to tip
 	tt <- reroot(tree,nn1,tree$edge.length[which(tree$edge[,2]==nn1)])
-	
-	YY<-fitMk(tt,yy,model=model,output.liks=TRUE)
-	Q<-matrix(c(0,YY$rates)[YY$index.matrix+1],length(YY$states),
-		length(YY$states),dimnames=list(YY$states,YY$states))
-	diag(Q)<--colSums(Q,na.rm=TRUE)
+
+	if(is.null(fixedQ)) {
+		YY<-fitMk(tt,yy,model=model,output.liks=TRUE)
+		Q<-matrix(c(0,YY$rates)[YY$index.matrix+1],length(YY$states),
+			length(YY$states),dimnames=list(YY$states,YY$states))
+		diag(Q)<--colSums(Q,na.rm=TRUE)
+	} else {
+		if(!is.matrix(fixedQ)){ 
+			stop("fixedQ should be a matrix")
+		}
+		Q <- fixedQ
+		YY<-fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)
+	}
 	
 	# Repeat for remaining tips
 	ff<-function(nn){

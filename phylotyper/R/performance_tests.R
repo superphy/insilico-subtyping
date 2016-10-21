@@ -95,7 +95,7 @@ est.scheme = 5 # only computes pp for tips
 for(validation in c('loocv', 'kfcv')) {
 	cat("Running validation: ", validation, "\n")
 
-	pp = do.call(validation, c(tree=tree, subtypes=subtypes, scheme=est.scheme))
+	pp = do.call(validation, list(tree=tree, subtypes=subtypes, scheme=est.scheme))
 
 	# Summarize performance
 	results = simulationSummary(subtypes, pp)

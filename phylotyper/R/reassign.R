@@ -78,18 +78,21 @@ plot(fit)
 graphics.off()
 
 # Observations that belong to this distribution
-# Uses conservative cutoff - prefer to merge over splitting subtypes
+# Uses that favors splitting subtypes over merging
 pcutoff = 0.01
 qmethod = paste('q',distr,sep='')
 param = c(p=pcutoff, as.list(fit$estimate), lower.tail=FALSE)
 dcutoff = do.call(qmethod, param)
 
 # Find subtype groups that fall under this distance threshold
-revised_same = bdist[bdist$distance < dcutoff,]
-subt = assignSubtypes(revised_same, tree, plot.name=NULL)
+subt = assignSubtrees(bdist, tree, dcutoff, plot.name=NULL)
 
 # Make naming scheme
 subsubtypes <- list()
+subsubtype_names <- as.character(1:26)
+if(grepl('\\d$', levels(subtypes)[1], perl=TRUE)) {
+	subsubtype_names <- letters
+}
 for(s in levels(subt)) {
 	grp <- names(subt)[subt == s]
 	old_subtypes = unique(as.character(subtypes[grp]))
@@ -109,7 +112,7 @@ for(s in levels(subt)) {
 				stop("Run out of sub-subtype designations a-z")
 			}
 
-			grp_subtypes[os] = paste(os, letters[st], sep='')
+			grp_subtypes[os] = paste(os, subsubtype_names[st], sep='')
 			subsubtypes[[os]] = st + 1
 
 		} else {
@@ -150,6 +153,69 @@ s2 <- reassigned[,2]
 names(s2) <- rownames(reassigned)
 phylotyper$plot.subtype(tree, s1, s2)
 graphics.off()
+
+# Build parameter matrix for Q transition matrix
+
+# Get the inter-subtype median patristic distances
+states <- sort(levels(subt))
+n <- length(states)
+state.groups <- split(names(subt), subt)
+state.pairs <- combn(states,2)
+keyfunc <- function(t1,t2) {
+	paste( sort(c(t1,t2)), collapse='__')
+} 
+bdist$key <- apply(bdist, 1, function(r) { keyfunc(r['t1'],r['t2']) })
+qparams = mppd = matrix(NA, nrow=n, ncol=n)
+rownames(qparams) = colnames(qparams) = states
+rownames(mppd) = colnames(mppd) = states
+
+# Compute median pairwise patristic distance between state subtrees
+for(i in 1:ncol(state.pairs)) {
+	st <- sort(state.pairs[,i])
+
+	grp1 <- state.groups[[st[1]]]
+	grp2 <- state.groups[[st[2]]]
+
+	patdist <- array(NA, dim=length(grp1)*length(grp2))
+	j <- 1
+
+	for(g1 in grp1) {
+		for(g2 in grp2) {
+			k <- keyfunc(g1,g2)
+			if(k %in% bdist$key) {
+				patdist[j] <- bdist$distance[bdist$key == k]
+				j <- j + 1
+			} else {
+				stop(paste('patristic distance not found for leaf pair: ',g1,', ',g2,sep=''))
+			}
+
+		}
+	}
+
+	med <- median(patdist)
+	mppd[st[1],st[2]] <- med
+}
+
+mc.fit<- Mclust(mppd[upper.tri(mppd)],G=2:12,modelNames=c('V'))
+file <- 'inter-subtype_median_patristic_distribution_fit'
+fn = file.path(output_dir, paste(file, '.png', sep=''))
+plotMclustFit(mc.fit, fn)
+
+# Assign transition matrix model fitting parameters based on MPPD
+# group classification
+qparams[upper.tri(qparams)] <- mc.fit$classification
+qparams[lower.tri(qparams)] <- t(qparams)[lower.tri(qparams)]
+diag(qparams) <- 0
+
+
+
+
+
+
+
+
+
+
 
 
 

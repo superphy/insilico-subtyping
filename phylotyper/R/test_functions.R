@@ -33,7 +33,7 @@ testTree = function() {
 }
 
 
-loocv = function(tree, subtypes, scheme=5) {
+loocv = function(tree, subtypes, scheme=5, model='ER') {
 	# Estimate prediction accuracy by predicting subtypes 
 	# for each tip using leave-one-out validation. 
 	# Method sets tip prior to flat/unassigned and runs
@@ -64,6 +64,7 @@ loocv = function(tree, subtypes, scheme=5) {
 
 	# Flat prior
 	flat = matrix(1/nstates,1,nstates)
+	Q <- NULL
 
 	for(i in 1:n) {
 
@@ -71,7 +72,12 @@ loocv = function(tree, subtypes, scheme=5) {
 		testprior = priorM
 		testprior[i,] = flat
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip)
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip, model=model, fixedQ=Q)
+		print(testfit$result$Q)
+
+		if(is.null(Q)) {
+			Q<-testfit$result$Q
+		}
 
 		pp[i,3:nc] = testfit$tip.pp[tip, ]
 
@@ -429,7 +435,8 @@ plotPPHistogram = function(test.results, subtypes, fn) {
 	correct = unlist(sapply(1:length(subtype.states), function(i) { ss = subtype.states[i]; if(ss %in% states.subset) as.numeric(pp[test.results$true_value == ss,i]) } ))
 	wrong = unlist(sapply(1:length(subtype.states), function(i) as.numeric(pp[test.results$true_value != subtype.states[i],i])))
 
-	correct = unlist(sapply(1:length(states.subset), function(i) min(as.numeric(pp[test.results$true_value == subtype.states[i],i]))))
+	worst = unlist(sapply(1:length(subtype.states), function(i) max(as.numeric(pp[test.results$true_value != subtype.states[i],i]))))
+	names(worst) = subtype.states
 
 	dist = data.frame("result"=c(rep('positive',length(correct)), rep('negative',length(wrong))), 
 		"posterior probability"=c(correct, wrong))
