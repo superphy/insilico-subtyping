@@ -94,7 +94,7 @@ class SubtypeConfig(object):
 
         for filepath_parameter in ['alignment', 'subtype', 'lookup']:
 
-            if config[filepath_parameter]:
+            if filepath_parameter in config:
                 config[filepath_parameter] = os.path.join(root_dir, config[filepath_parameter])
 
                 if not os.path.isfile(config[filepath_parameter]):

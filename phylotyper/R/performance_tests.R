@@ -109,9 +109,9 @@ for(validation in c('loocv', 'kfcv')) {
 	# Plots
 
 	# Plot confusion matrix
-	file <- 'confusion_matrix'
-	fn = file.path(output_dir, paste(validation, '_', file, '.png', sep=''))
-	plotConfusionMatrix(results$confusion.matrix, fn)
+	# file <- 'confusion_matrix'
+	# fn = file.path(output_dir, paste(validation, '_', file, '.png', sep=''))
+	# plotConfusionMatrix(results$confusion.matrix, fn)
 	
 
 	# Plot posterior probability histogram

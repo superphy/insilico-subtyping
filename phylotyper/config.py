@@ -127,7 +127,10 @@ class PhylotyperOptions(object):
             'external': [
                 ('fasttree', which),
                 ('mafft', which),
-                ('trimal', which)
+                ('trimal', which),
+                ('blastn', which),
+                ('makeblastdb', which),
+                ('blastdbcmd', which)
             ],
             'R': [
                 ('lib', is_string),

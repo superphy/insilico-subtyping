@@ -73,7 +73,7 @@ loocv = function(tree, subtypes, scheme=5, model='ER') {
 		testprior[i,] = flat
 
 		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip, model=model, fixedQ=Q)
-		print(testfit$result$Q)
+		#print(testfit$result$Q)
 
 		if(is.null(Q)) {
 			Q<-testfit$result$Q

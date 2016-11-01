@@ -49,7 +49,7 @@ class Phylotyper(object):
         }
 
 
-    def subtype(self, tree, subtypes, output_dir, noplots=True):
+    def subtype(self, tree, subtypes, output_dir, plot_name='posterior_probability_tree.png'):
     	"""Run phylotyper subtyping method
 
         Wrapper around the phylotyper.R functions. Calls
@@ -96,14 +96,18 @@ class Phylotyper(object):
         robjects.r(rcode)
 
         # Write subtype predictions
-        predictions = robjects.r('round(result$tip.pp[untyped,], digits=7)')
+        rcode = '''
+        cn = colnames(result$tip.pp);
+        matrix(round(result$tip.pp[untyped,], digits=7),ncol=length(cn),nrow=length(untyped),dimnames=list(untyped,cn), byrow=TRUE)
+        '''
+        predictions = robjects.r(rcode)
         subtype_states = predictions.colnames
         assignments = {}
 
-        # Find largest pp over thresold
+        # Find largest pp
         for genome in untyped:
             pprow = predictions.rx(genome, True)
-
+            
             maxpp = -1
             maxst = []
             i = 0
@@ -116,19 +120,17 @@ class Phylotyper(object):
 
                 i += 1
 
-            
             assignments[genome] = (maxst, maxpp)
 
         # Plot pp on the tree
-        if not noplots:
+        if plot_name:
             rcode = '''
             dim = phylotyper$plotDim(tree)
             graphics.off()
-            png(filename=file.path("%s", "posterior_probability_tree.png"),
-                width=dim[['x']],height=dim[['y']],res=dim[['res']])
+            png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']])
             do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
             graphics.off()
-            ''' % (output_dir)
+            ''' % (plot_name)
             robjects.r(rcode)
 
         # Return assignments

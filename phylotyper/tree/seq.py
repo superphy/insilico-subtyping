@@ -93,6 +93,7 @@ class SeqDict(object):
         for record in fasta:
             name = record.id.upper()
             seq = str(record.seq).upper()
+            seq.replace('-','')
             this_subt = subtypes[name]
 
             matched = self.find(seq)
@@ -189,7 +190,7 @@ class SeqDict(object):
             self._seqdict = json.load(rfh)
 
         # Check format    
-        for seqkey, seqs in self._seqdict.itervalues():
+        for seqkey,seqs in self._seqdict.iteritems():
             for seq,seqentry in seqs.iteritems():
                 self._genenum += 1
 

@@ -79,7 +79,7 @@ graphics.off()
 
 # Observations that belong to this distribution
 # Uses that favors splitting subtypes over merging
-pcutoff = 0.01
+pcutoff = 0.001
 qmethod = paste('q',distr,sep='')
 param = c(p=pcutoff, as.list(fit$estimate), lower.tail=FALSE)
 dcutoff = do.call(qmethod, param)

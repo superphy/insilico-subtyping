@@ -94,7 +94,7 @@ def build_tree(input, output, nt, fast, config):
     tree.build(input, output, nt, fast)
     
 
-def predict_subtypes(options, config):
+def predict_subtypes(options, config, assignments):
     """Calls subtype method
 
     Wrapper around the Phylotyper.subtype method. Identifies
@@ -115,7 +115,7 @@ def predict_subtypes(options, config):
 
     pt = Phylotyper(config)
 
-    assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'], options['noplots'])
+    assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'], options['posterior_probability_plot'])
 
     # Load mapping
     rev_mapping = {}
@@ -126,7 +126,6 @@ def predict_subtypes(options, config):
     cutoff = float(config.get('phylotyper','prediction_threshold'))
     logger.debug('Using posterior probability cutoff: %f' % (cutoff))
 
-    assignments = []
     for genome_id,subtup in assignment_dict.items():
 
         pp = subtup[1]
@@ -139,7 +138,7 @@ def predict_subtypes(options, config):
         
         assignments.append([
             rev_mapping[genome_id],
-            ','.join(subt),
+            subt,
             str(pp),
             pred
         ])
@@ -147,27 +146,33 @@ def predict_subtypes(options, config):
     
     return(assignments)
 
+def results_header():
+    # Returns header string
+    return '#genome\tsubtype\tprobability\tphylotyper_assignment\n'
 
 def print_results(options, assignments):
     """Writes results to file.
 
     Args:
         options (dict): user defined settings from __main__
+        assignments (list): list of lists with individual results
 
     """
 
     logger.debug('Writing results')
 
     assfile = options['result_file']
-    with open(assfile, 'w') as outf:
-        outf.write('#genome\tsubtype\tprobability\tphylotyper_assignment\n')
+    mode = 'w'
+    with open(assfile, mode) as outf:
+        
+        outf.write(results_header())
         for row in assignments:
-            outf.write('\t'.join(row+'\n'))
+            outf.write('\t'.join(row)+'\n')
 
     None
 
 
-def subtype_pipeline(options, config):
+def subtype_pipeline(options, config, write_results=True):
     """Run phylotyper pipeline 
 
     Runs individual steps in phylotyper pipeline
@@ -176,15 +181,20 @@ def subtype_pipeline(options, config):
         Args:
             options (dict): user defined settings from __main__
             config (obj): PhylotyperConfig with .ini file settings
+            write_results (bool): A switch so that in dispatch/multi mode, 
+                individual results returned not printed to file.
 
     """
 
     # Define files
     alnfile = os.path.join(options['output_directory'], 'combined.aln')
+    options['profile_alignment'] = alnfile
     oldalnfile = options['alignment']
     treefile = os.path.join(options['output_directory'], 'combined.tree')
     options['tree_file'] = treefile
-    options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.txt')
+    options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
+    if not options['noplots']:
+        options['posterior_probability_plot'] = os.path.join(options['output_directory'], 'posterior_probability_tree.png')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
@@ -209,8 +219,10 @@ def subtype_pipeline(options, config):
         # Predict subtypes & write to file
         predict_subtypes(options, config, assignments)
 
+    if write_results:
+        print_results(options, assignments)
 
-    print_results(options, assignments)
+    return assignments
 
 
 def evaluate_subtypes(options, config):
@@ -276,12 +288,10 @@ def build_pipeline(options, config):
 
     # Compute tree
     nt = options['seq'] == 'nt'
-    build_tree(alnfile, treefile, nt, options['fast'], config)
+    #build_tree(alnfile, treefile, nt, options['fast'], config)
 
     # Run evaluation
     #evaluate_subtypes(options, config)
-
-
 
 
 def prep_sequences(options, identified):
@@ -315,7 +325,7 @@ def prep_sequences(options, identified):
 
     # Load lookup object
     lookup = SeqDict()
-    lookup = SeqDict.load(options['lookup'])
+    lookup.load(options['lookup'])
 
     i = 0
     pre = 'pt_'
@@ -413,12 +423,6 @@ def check_gene_names(options):
     return True
 
 
-
-        
-
-    
-
-
 if __name__ == "__main__":
     """Run phylotyper functions
 
@@ -450,15 +454,15 @@ if __name__ == "__main__":
     new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     new_parser.set_defaults(which='new')
 
-    # User-supplied subtype command
-    subtype_parser = subparsers.add_parser('custom', help='Predict subtype for user-defined subtype scheme')
-    subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
-    subtype_parser.add_argument('sequences', action='store', help='Fasta sequences of aligned reference genes for tree')
-    subtype_parser.add_argument('subtype', action='store', help='Reference gene subtypes')
-    subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
-    subtype_parser.add_argument('output', action='store', help='Directory for Subtype predictions')
-    subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
-    subtype_parser.set_defaults(which='predict')
+    # # User-supplied subtype command
+    # subtype_parser = subparsers.add_parser('custom', help='Predict subtype for user-defined subtype scheme')
+    # subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
+    # subtype_parser.add_argument('sequences', action='store', help='Fasta sequences of aligned reference genes for tree')
+    # subtype_parser.add_argument('subtype', action='store', help='Reference gene subtypes')
+    # subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
+    # subtype_parser.add_argument('output', action='store', help='Directory for Subtype predictions')
+    # subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
+    # subtype_parser.set_defaults(which='predict')
 
     # Builtin subtype command
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
@@ -469,7 +473,6 @@ if __name__ == "__main__":
     subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     subtype_parser.set_defaults(which='subtype')
-
 
     options = parser.parse_args()
 
@@ -523,9 +526,6 @@ if __name__ == "__main__":
         # Compute subtype for builtin scheme
 
         # Check arguments
-
-        # Nucleotide sequences
-        nt = options.nt
 
         # Fast mode of tree calculation
         fast = False

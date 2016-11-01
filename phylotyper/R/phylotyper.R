@@ -113,6 +113,8 @@ phylotyper$makePriors <- function(tree, subtypes) {
 		priors <- rbind(priors, matrix(1/numstates,
 			length(undefined), numstates, dimnames=list(undefined)))
 
+	# Reorder based on tip order
+	priors <- priors[tree$tip.label,]
 
 	return(list(prior.matrix=priors, untyped=undefined))
 }
@@ -447,7 +449,14 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	#   nothing
 	#
 
-	tree = fit$tree
+	tree = fit$rerootedTree
+
+	# Save original node assignments in the node.label field
+	tree$node.label = as.character(1:tree$Nnode+Ntip(tree))
+
+	# Reroot for better viewing
+	tree = midpoint.root(tree)
+
 	cols = phylotyper$mypalette(subtypes)
 	probs = phylotyper$makePriors(tree, subtypes)$prior.matrix
 	probs[names(fit$marginal.anc),] = fit$marginal.anc
@@ -455,11 +464,15 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	plot(tree,label.offset=0.001,cex=0.7,type='fan',align.tip.label=TRUE,
 		tip.col=cols[subtypes[tree$tip.label]], main=paste('Posterior probability and associated subtree conditional likelihoods for tip',fit$tip))
 
-	tiplabels(pie=probs, 
+	tiplabels(pie=probs[tree$tip.label,],
 		piecol=cols,
 		cex=0.2)
 
-	nodelabels(pie=phylotyper$piecolors(fit$conditional.likelihoods),
+	original.nodes = tree$node.label[tree$node.label != "Root"]
+	nstates = ncol(fit$conditional.likelihoods)
+	root.prior = rep(1/nstates, nstates)
+	probs = rbind(root.prior, fit$conditional.likelihoods[original.nodes,])
+	nodelabels(pie=phylotyper$piecolors(probs),
 		piecol=cols,
 		cex=0.4)
 	
@@ -469,7 +482,7 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 }
 
 
-phylotyper$plotDim <- function(tree) {
+phylotyper$plotDim <- function(tree, type='fan') {
 	# Compute X, Y dimensions for a plot to fit tree
 	#
 	# Args:
@@ -490,10 +503,14 @@ phylotyper$plotDim <- function(tree) {
 	x = h * x_scale
 	x = ifelse(x > x_max, x_max, x)
 
-	# Y
-	l = length(tree$tip.label)
-	y = l * y_scale
-	y = ifelse(y > y_max, y_max, y)
+	if(type != 'fan') {
+		# Y
+		l = length(tree$tip.label)
+		y = l * y_scale
+		y = ifelse(y > y_max, y_max, y)
+	} else {
+		y <- x
+	}
 
 	return(list(x=x,y=y,res=res))
 }
@@ -517,10 +534,6 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	# Returns:
 	#   list with x, y, res names
 	#
-
-	print(fixedQ)
-	print(model)
-
 
 	if(!inherits(tree,"phylo")) 
 		stop("tree should be an object of class \"phylo\".")
@@ -573,7 +586,7 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	ff<-function(nn){
 		tt <- reroot(tree,nn,tree$edge.length[which(tree$edge[,2]==nn)])
 		res = fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)
-		print(paste('tip node:',nn))
+		#print(paste('tip node:',nn))
 		res$lik.anc[1,]
 	}
 	if(length(nn) > 0) {

@@ -4,6 +4,7 @@
 *.gb
 test.tree
 tmp.fasta
+dump/*
 phylotyper/output/*
 phylotyper/data/**/*.gb
 phylotyper/data/**/*.png

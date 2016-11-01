@@ -7,8 +7,10 @@ subtypes:
   ecoli_stx1:
     alignment: ecoli_stx/stx1_subtypes.affn
     subtype: ecoli_stx/stx1_subtypes.txt
+    lookup: ecoli_stx/stx1_dictionary.json
     seq: nt
   ecoli_stx2:
     alignment: ecoli_stx/stx2_subtypes.affn
     subtype: ecoli_stx/stx2_subtypes.txt
+    lookup: ecoli_stx/stx2_dictionary.json
     seq: nt
