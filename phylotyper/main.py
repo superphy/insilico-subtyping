@@ -288,7 +288,7 @@ def build_pipeline(options, config):
 
     # Compute tree
     nt = options['seq'] == 'nt'
-    #build_tree(alnfile, treefile, nt, options['fast'], config)
+    build_tree(alnfile, treefile, nt, options['fast'], config)
 
     # Run evaluation
     #evaluate_subtypes(options, config)
@@ -453,16 +453,6 @@ if __name__ == "__main__":
     new_parser.add_argument('output', action='store', help='Directory for evaluation result files')
     new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     new_parser.set_defaults(which='new')
-
-    # # User-supplied subtype command
-    # subtype_parser = subparsers.add_parser('custom', help='Predict subtype for user-defined subtype scheme')
-    # subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
-    # subtype_parser.add_argument('sequences', action='store', help='Fasta sequences of aligned reference genes for tree')
-    # subtype_parser.add_argument('subtype', action='store', help='Reference gene subtypes')
-    # subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
-    # subtype_parser.add_argument('output', action='store', help='Directory for Subtype predictions')
-    # subtype_parser.add_argument('--nt', action='store_true', help='Nucleotide sequences')
-    # subtype_parser.set_defaults(which='predict')
 
     # Builtin subtype command
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')

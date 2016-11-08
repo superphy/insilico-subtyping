@@ -7,7 +7,7 @@ Script for finding gene loci in input genomes
 Examples:
     To run loci detection:
 
-        $ python search.py genome.fasta --db existing_phylotyper_db [--fasta loci1.fasta [loci2.fasta ...]] 
+        $ python search.py genome.fasta --db phylotyper_blast_db [--fasta loci1.fasta [loci2.fasta ...]] 
 
 """
 

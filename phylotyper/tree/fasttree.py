@@ -48,7 +48,8 @@ class FastTreeWrapper(object):
         self._fasttree = config.get('external', 'fasttree')
         self._fasttree_args = {
             'nt': '-gtr -nt',
-            'nt_fast': '-gtr -nt -nosupport -fastest -mlnni 4'
+            'nt_fast': '-gtr -nt -nosupport -fastest -mlnni 4',
+            'aa': '-gtr'
         }
 
 
@@ -80,6 +81,8 @@ class FastTreeWrapper(object):
             cmd_args = self._fasttree_args['nt']
         elif nt and fast:
             cmd_args = self._fasttree_args['nt_fast']
+        elif not nt and not fast:
+            cmd_args = self._fasttree_args['aa']
 
 
         if not cmd_args:
