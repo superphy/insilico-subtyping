@@ -1,5 +1,4 @@
-# YAML
-# Phylotyper config arguments for built-in subtyping schemes
+# Phylotyper filepaths and options for pre-built subtyping schemes
 
 root_dir: data/
 

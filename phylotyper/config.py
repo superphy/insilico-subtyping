@@ -129,6 +129,7 @@ class PhylotyperOptions(object):
                 ('mafft', which),
                 ('trimal', which),
                 ('blastn', which),
+                ('blastx', which),
                 ('makeblastdb', which),
                 ('blastdbcmd', which)
             ],

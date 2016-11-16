@@ -18,9 +18,12 @@ are also implicitly created anytime a new section starts.
    http://google.github.io/styleguide/pyguide.html
 """
 
+from __future__ import division
+
 import logging
 import re
 import tempfile
+from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
@@ -35,7 +38,7 @@ class LociSearch(object):
 
     """
     
-    def __init__(self, config, database, inputs):
+    def __init__(self, config, database, inputs, sequence_type):
         """Constructor
 
         Either a pre-existing blast database or one or more loci fasta files are required as arguments.
@@ -46,6 +49,7 @@ class LociSearch(object):
             config (PhylotyperConfig): Instance of PhylotyperConfig object
             database (str): Blast database location
             inputs (tuple): Filepaths to fasta sequences.
+            sequence_type (str): nucl or prot
 
         Returns:
             None
@@ -54,21 +58,35 @@ class LociSearch(object):
 
         self.logger = logging.getLogger('phylotyper.genome.loci.LociSearch')
 
+        if sequence_type == 'nucl' or sequence_type == 'prot':
+            self.seqtype = sequence_type
+        else:
+            raise Exception('Invalid sequence_type argument {}'.format(sequence_type))
+
         self._db_title = 'Phylotyper Blast Database v1'
         self._db_prefix = 'ptloci'
         self._alignment_coverage = 0.95
+        self._percent_identity = 0.90
+
+        if self.seqtype == 'prot':
+            self._percent_identity = 0.80
 
         # Default options
         self._blast_options = {
-            'perc_identity': 90,
             'evalue': 0.00001,
+            #'evalue': 1,
             'db': database,
             'outfmt': 5
         }
 
+        filt = 'dust' if self.seqtype == 'nucl' else 'seg'
+        self._blast_specific_options = {
+            filt: 'no'
+        }
+
         self._makeblastdb_options = {
             'input_type': 'fasta',
-            'dbtype': 'nucl',
+            'dbtype': self.seqtype,
             'out': database,
             'title': self._db_title
         }
@@ -84,7 +102,8 @@ class LociSearch(object):
         }
 
         self._makeblastdb_exe = config.get('external', 'makeblastdb')
-        self._blastn_exe = config.get('external', 'blastn')
+        blastexe = 'blastn' if self.seqtype == 'nucl' else 'blastx'
+        self._blast_exe = config.get('external', blastexe)
         self._blastdbcmd_exe = config.get('external', 'blastdbcmd')
 
 
@@ -207,12 +226,8 @@ class LociSearch(object):
 
         """
 
-        def locad(contig, start, stop):
-            # Loci address
-            s = sorted([start, stop])
-            return '{}:{}-{}'.format(contig, *s)
-
         loci = {}
+        locations = defaultdict(list)
 
         if not fasta_prefix:
             # If an output fasta header ID prefix is not provided
@@ -236,8 +251,10 @@ class LociSearch(object):
             opts['query'] = genome
             opts['out'] = tmpfh.name
 
-            cmd = "{blastcmd} -perc_identity {perc_identity} -evalue {evalue} -outfmt {outfmt} -db {db} -query {query} -out {out}".format(
-                blastcmd=self._blastn_exe, **opts)
+            cmd = "{blastcmd} -evalue {evalue} -outfmt {outfmt} -db {db} -query {query} -out {out}".format(
+                blastcmd=self._blast_exe, **opts)
+            if self._blast_specific_options:
+                cmd += ' '+' '.join(['-'+k+' '+v for k,v in self._blast_specific_options.items()])
 
             self.logger.debug('Running Blast')
             self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
@@ -263,32 +280,62 @@ class LociSearch(object):
                             loci[loci_set] = {}
 
                         for hsp in alignment.hsps:
+
+                            alen = hsp.align_length
+
+                            # Is the precent identity above thresold
+                            # Note: I want identically functional proteins, not the broader ortholog/homolog families
+                            pident = hsp.identities / alen
                             
                             # Is majority of subject aligned?
-                            alen = hsp.align_length
                             slen = self._sequence_lengths[subject]
                             coverage = alen / slen
 
-                            if coverage > self._alignment_coverage:
+                            addr = self.locad(blast_record.query, hsp.query_start, hsp.query_end)
+                            self.logger.debug('Hit {} location: {}, length: {}, subject length:{}, coverage: {}, identities:{}, percent identity:{}'.format(
+                                subject, addr, alen, slen, int(coverage*100), hsp.identities, int(pident*100)))
+
+                            if coverage > self._alignment_coverage and pident > self._percent_identity:
                                 # Found one, save it if its a new loci
 
-                                addr = locad(blast_record.query, hsp.query_start, hsp.query_end)
-                                # self.logger.debug('Hit {} location: {}, length: {}, coverage: {}, identities:{}'.format(
-                                #     subject, addr, alen, int(coverage*100), hsp.identities))
+                                self.logger.debug('Found loci {}'.format(addr))
 
-                                if not addr in loci[loci_set]: 
+                                if not addr in loci[loci_set]:
+
                                     # New
-                                    seq = Seq(hsp.query, IUPAC.unambiguous_dna)
-                                    if hsp.sbjct_start > hsp.sbjct_end:
-                                        # For some reason strandedness is missing
-                                        seq = seq.reverse_complement()
+                                    seq = hsp.query
+                                    if self.seqtype == 'nucl':
+                                        seq = Seq(hsp.query, IUPAC.unambiguous_dna)
+                                        if hsp.sbjct_start > hsp.sbjct_end:
+                                            # For some reason strandedness is missing
+                                            seq = seq.reverse_complement()
+                                    else:
+                                        nstops = seq.count('*')
+                                        if nstops > 1:
+                                            self.logger.warning('Query hit {} has multiple stop codons: {}'.format(blast_record.query, nstops))
+                                        seq = str(seq).replace('*','')
+
                                     loci[loci_set][addr] = seq
+                                    locations[blast_record.query].append(sorted((hsp.query_start, hsp.query_end)))
                 
                 for ls in loci:
-                    self.logger.debug("{} hits found for loci {}".format(len(loci[ls]), ls))
+                    loci_hits = ','.join(loci[ls].keys())
+                    self.logger.debug("{} hits found for loci {}\n\t({})".format(len(loci[ls]), ls, loci_hits))
+
+                # Find non-overlapping hits
+                nonoverlapping = self.non_overlapping(locations)
+
+                # Remove overlapping hits
+                new_loci = {}
+                for ls in loci.keys():
+                    new_loci[ls] =  { addr: loci[ls][addr] for addr in loci[ls].keys() if addr in nonoverlapping }
+
+                for ls in new_loci:
+                    loci_hits = ','.join(new_loci[ls].keys())
+                    self.logger.info("{} hits found for loci {} after filtering overlapping hits\n\t({})".format(len(new_loci[ls]), ls, loci_hits))
 
                 # Concatenate loci sets
-                loci_sequences = self.concatenate(loci.keys(), loci)
+                loci_sequences = self.concatenate(new_loci.keys(), new_loci)
 
                 # Output
                 mode = 'w'
@@ -298,7 +345,8 @@ class LociSearch(object):
                 nloci = 1
                 with open(output, mode) as outfh:
                     for s in loci_sequences:
-                        outfh.write("\n>{}loci{}\n{}".format(fasta_prefix, nloci, s))
+                        outfh.write("\n>{}loci{} {}\n{}".format(fasta_prefix, nloci, s[0], s[1]))
+                        nloci += 1
 
 
     def concatenate(self, loci_sets, loci):
@@ -307,19 +355,93 @@ class LociSearch(object):
         ls = loci_sets.pop()
 
         if not loci_sets:
-            return loci[ls].values()
+            return loci[ls].iteritems()
 
         else:
             seqs = self.concatenate(loci_sets, loci)
             newseqs = []
-            for v in loci[ls].values():
+            for k,v in loci[ls].iteritems():
                 for s in seqs:
-                    newseqs.append(v+s)
+                    newseqs.append((k+','+s[0],v+s[1]))
 
             return newseqs
 
 
+    def locad(self, contig, start, stop):
+            # Loci address
+            s = sorted([start, stop])
+            return '{}:{}-{}'.format(contig, *s)
 
+
+    def non_overlapping(self, locations):
+        # Remove hits that are contained within other hits
+
+        def position_sort(x, y):
+            if x[0] == y[0]:
+                return y[1] - x[1]
+            else:
+                return x[0] - y[0]
+
+        final = []
+
+        for q in locations.keys():
+        
+            starts = sorted(locations[q], cmp=position_sort)
+
+            # Save the first one - can't be overlapping
+            s = 0
+            addr = self.locad(q, starts[s][0], starts[s][1])
+            final.append(addr)
+
+            mx = len(starts)
+            while s < (mx-1):
+                # Find the next non-overlapping in the list 
+                l = [i for i in range(s+1,mx) if starts[i][1] > starts[s][1]]
+                if l:
+                    s = l[0]
+                    addr = self.locad(q, starts[s][0], starts[s][1])
+                    final.append(addr)
+                else:
+                    # Exit loop, no more non-overlapping
+                    s = mx
+                
+        return final
+
+
+    def translate(self, loci):
+        # Translate genome hits to amino acid sequences
+        # Discards failed translations 
+
+        for ls in loci.keys():
+            for l in loci[ls].keys():
+                sobj = loci[ls][l]
+                try:
+                    pobj = sobj.translate(table=11, stop_symbol='*')
+                except Exception as e:
+                    self.logger.warning('Translation failed for {}: {}'.format(l,e))
+
+                nstops = pobj.count('*')
+
+                if nstops > 1:
+                    try:
+                        sobj1 = sobj.reverse_complement()
+                        pobj1 = sobj1.translate(table=11, stop_symbol='*')
+
+                        nstops1 = pobj1.count('*')
+                        if nstops1 > 1:
+                            self.logger.warning('Frameshift error for {} ({} & {} stop codons in forward and reverse)'.format(l, nstops, nstops1))
+                            if nstops1 < nstops:
+                                sobj = sobj1
+                                pobj = pobj1
+                        else:
+                            sobj = sobj1
+                            pobj = pobj1
+
+                    except Exception as e:
+                        self.logger.warning('Translation failed for {}: {}'.format(l,e))
+
+
+                loci[ls][l] = pobj
 
 
 

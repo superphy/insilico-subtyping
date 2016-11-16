@@ -358,6 +358,10 @@ def prep_sequences(options, identified):
     return(i)
 
 
+def filepaths():
+    pass
+
+
 def check_gene_names(options):
     """Make sure gene names Fasttree and Mafft safe
         
@@ -431,8 +435,6 @@ if __name__ == "__main__":
 
     """
 
-    subtype_config_file = 'builtin_subtypes.yaml'
-   
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger('phylotyper.main')
 
@@ -443,15 +445,25 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(help='commands')
 
     # New subtype command
+    # new_parser = subparsers.add_parser('new', help='Build new subtype resource')
+    # new_parser.add_argument('config', action='store', help='Phylotyper config options file')
+    # new_parser.add_argument('input', action='store', help='Fasta input')
+    # new_parser.add_argument('subtypein', action='store', help='Input reference gene subtypes')
+    # new_parser.add_argument('subtypeout', action='store', help='Ouput reference gene subtypes')
+    # new_parser.add_argument('alignment', action='store', help='Reference gene alignment output')
+    # new_parser.add_argument('lookup', action='store', help='Reference gene sequence storage')
+    # new_parser.add_argument('output', action='store', help='Directory for evaluation result files')
+    # new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
+    # new_parser.set_defaults(which='new')
+
     new_parser = subparsers.add_parser('new', help='Build new subtype resource')
     new_parser.add_argument('config', action='store', help='Phylotyper config options file')
-    new_parser.add_argument('input', action='store', help='Fasta input')
-    new_parser.add_argument('subtypein', action='store', help='Input reference gene subtypes')
-    new_parser.add_argument('subtypeout', action='store', help='Ouput reference gene subtypes')
-    new_parser.add_argument('alignment', action='store', help='Reference gene alignment output')
-    new_parser.add_argument('lookup', action='store', help='Reference gene sequence storage')
-    new_parser.add_argument('output', action='store', help='Directory for evaluation result files')
+    new_parser.add_argument('ref', action='store', help='Fasta input for reference gene sequences')
+    new_parser.add_argument('subtype', action='store', help='Input reference gene subtypes')
+    new_parser.add_argument('gene', action='store', help='Subtype gene name, becomes subtype scheme name')
+    new_parser.add_argument('results', action='store', help='Directory for evaluation result files')
     new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
+    new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     new_parser.set_defaults(which='new')
 
     # Builtin subtype command
@@ -460,6 +472,7 @@ if __name__ == "__main__":
     subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
     subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
     subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
+    subtype_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     subtype_parser.set_defaults(which='subtype')
@@ -468,6 +481,18 @@ if __name__ == "__main__":
 
     # Parse .ini config file
     config = PhylotyperOptions(options.config)
+
+    # Default index location
+    subtype_config_file = os.path.join(os.path.dirname(__file__), 'subtypes_index.yaml')
+    # Non-default location
+    if options.index:
+        if not os.path.isfile(options.index):
+            msg = 'Invalid/missing index file option.'
+            raise Exception(msg)
+        subtype_config_file = options.index
+
+    stConfig = SubtypeConfig(subtype_config_file)
+    
 
     if options.which == 'new':
         # Build & evaluate new subtype alignment
@@ -483,33 +508,29 @@ if __name__ == "__main__":
             raise Exception(msg)
 
         # Check subtype file exists
-        if not os.path.isfile(options.subtypein):
+        if not os.path.isfile(options.subtype):
             msg = 'Invalid/missing subtype file argument.'
             raise Exception(msg)
 
         # Check output directory exists, if not create it if possible
         if not os.path.exists(options.output):
             os.makedirs(options.output)
-
         outdir = os.path.abspath(options.output)
 
-        # Save options
-        subtype_options = {}
+        # Create subtype directory & file names
+        subtype_options = stConfig.create_subtype(options.gene, options.aa)
+
+        # Save additional build options
         subtype_options['input'] = os.path.abspath(options.input)
-        subtype_options['alignment'] = os.path.abspath(options.alignment)
-        subtype_options['subtype_orig'] = os.path.abspath(options.subtypein)
-        subtype_options['subtype'] = os.path.abspath(options.subtypeout)
-        subtype_options['lookup'] = os.path.abspath(options.lookup)
+        subtype_options['subtype_orig'] = os.path.abspath(options.subtype)
         subtype_options['output_directory'] = outdir
         subtype_options['fast'] = False
 
-        if options.aa:
-            subtype_options['seq'] = 'aa'
-        else:
-            subtype_options['seq'] = 'nt'
-
         # Run pipeline
         build_pipeline(subtype_options, config)
+
+        # Update subtype YAML file
+        stConfig.save()
     
 
     elif options.which == 'subtype':
@@ -530,10 +551,10 @@ if __name__ == "__main__":
             os.makedirs(options.output)
 
         # Load requested subtype data files
-        stConfig = SubtypeConfig(subtype_config_file)
         scheme = options.gene
-
         subtype_options = stConfig.get_subtype_config(scheme)
+
+        # Add pipeline options
         subtype_options['input'] = os.path.abspath(options.input)
         subtype_options['output_directory'] = os.path.abspath(options.output)
         subtype_options['fast'] = False

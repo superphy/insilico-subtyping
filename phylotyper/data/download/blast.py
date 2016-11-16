@@ -22,11 +22,7 @@ __email__ = "mdwhitesi@gmail.com"
 
 
 class Blast(object):
-    """Retrieve sequences using BLAST 
-
-        Needs apriori list of valid subtype regular expressions and searches for
-        instances of these in definition, keyword fields of the top-level record, 
-        and in CDS feature fields allele, gene, product, note
+    """Retrieve sequences using BLAST
 
     """
 

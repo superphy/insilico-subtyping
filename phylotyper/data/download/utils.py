@@ -153,6 +153,7 @@ class SubtypeParser(object):
                             matches.add(h)
                
         return matches
+        
 
     def search_annotations(self, record):
         """Find instances of subtype in genbank annotations
@@ -504,7 +505,6 @@ class DownloadUtils(object):
             os.remove(self._tmpfile)
 
         self._first_download = False
-
 
 
     def remove_duplicates(self):

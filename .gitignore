@@ -9,3 +9,4 @@ phylotyper/output/*
 phylotyper/data/**/*.gb
 phylotyper/data/**/*.png
 phylotyper/data/**/*.csv
+phylotyper/test/sandbox/*

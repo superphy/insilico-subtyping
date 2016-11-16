@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     """
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('phylotyper.genome.main')
 
     # Parse command-line args
@@ -44,8 +44,10 @@ if __name__ == "__main__":
     parser.add_argument('config', help='Phylotyper config options file')
     parser.add_argument('output', help='Output loci sequences')
     parser.add_argument('db', help='Blast database')
-    parser.add_argument('genome', nargs='*', help='Input genome sequences')
-    parser.add_argument('--fasta', nargs='*', help='Input reference gene sequences', )
+    parser.add_argument('genome', nargs='*', help='Input genome DNA sequence')
+    parser.add_argument('--fasta', nargs='*', help='Input reference protein/gene sequences', )
+    parser.add_argument('--aa', action='store_true', help='Amino acid sequence database')
+    parser.add_argument('--list', help='Optionally specify file listing file paths to input genomes')
    
     options = parser.parse_args()
 
@@ -53,10 +55,17 @@ if __name__ == "__main__":
     config = PhylotyperOptions(options.config)
 
     # Initialization
-    detector = LociSearch(config, options.db, options.fasta)
+    seqtype = 'prot' if options.aa else 'nucl'
+    detector = LociSearch(config, options.db, options.fasta, seqtype)
 
     # Search for instances of loci in genomes
-    for genome in options.genome:
+    genomes = options.genome
+
+    if options.list:
+        with open(options.list) as f:
+            genomes = [x.strip('\n') for x in f.readlines()]
+
+    for genome in genomes:
         detector.search(genome, options.output, append=True)
         
 
