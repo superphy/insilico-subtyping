@@ -132,7 +132,6 @@ def predict_subtypes(options, config, assignments):
         subt = ','.join(subtup[0])
 
         pred = 'undetermined'
-        print pp
         if pp > cutoff:
             pred = subt
         
@@ -186,6 +185,10 @@ def subtype_pipeline(options, config, write_results=True):
 
     """
 
+    global logger
+    logger = logging.getLogger('phylotyper.main')
+
+
     # Define files
     alnfile = os.path.join(options['output_directory'], 'combined.aln')
     options['profile_alignment'] = alnfile
@@ -195,6 +198,8 @@ def subtype_pipeline(options, config, write_results=True):
     options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
     if not options['noplots']:
         options['posterior_probability_plot'] = os.path.join(options['output_directory'], 'posterior_probability_tree.png')
+    else:
+        options['posterior_probability_plot'] = False
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
@@ -262,6 +267,9 @@ def build_pipeline(options, config):
         config (obj): PhylotyperConfig with .ini file settings
 
     """
+
+    global logger
+    logger = logging.getLogger('phylotyper.main')
 
     alnfile = options['alignment']
     tmpfile = os.path.join(options['output_directory'], 'tmp.fasta')
@@ -358,10 +366,6 @@ def prep_sequences(options, identified):
     return(i)
 
 
-def filepaths():
-    pass
-
-
 def check_gene_names(options):
     """Make sure gene names Fasttree and Mafft safe
         
@@ -384,7 +388,6 @@ def check_gene_names(options):
 
     uniq = Counter()
     reserved = set(':(), ') # Newick reserve characters
-
 
     for fasta in fasta_sequences:
         name = fasta.id
@@ -436,8 +439,7 @@ if __name__ == "__main__":
     """
 
     logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger('phylotyper.main')
-
+   
     # Parse command-line args
     # Phylotyper functions are broken up into commands
     # Each command has its own options and subparser
@@ -457,30 +459,39 @@ if __name__ == "__main__":
     # new_parser.set_defaults(which='new')
 
     new_parser = subparsers.add_parser('new', help='Build new subtype resource')
-    new_parser.add_argument('config', action='store', help='Phylotyper config options file')
     new_parser.add_argument('ref', action='store', help='Fasta input for reference gene sequences')
     new_parser.add_argument('subtype', action='store', help='Input reference gene subtypes')
     new_parser.add_argument('gene', action='store', help='Subtype gene name, becomes subtype scheme name')
     new_parser.add_argument('results', action='store', help='Directory for evaluation result files')
     new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
+    new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     new_parser.set_defaults(which='new')
 
     # Builtin subtype command
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
-    subtype_parser.add_argument('config', action='store', help='Phylotyper config options file')
     subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
     subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
     subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
     subtype_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
+    subtype_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     subtype_parser.set_defaults(which='subtype')
 
     options = parser.parse_args()
 
     # Parse .ini config file
-    config = PhylotyperOptions(options.config)
+    # Location of config file is defined by ENV variable PHYLOTYPER_CONFIG or by --config (overrides previous)
+    if options.config:
+        config_file = options.config
+    elif os.environ.get('PHYLOTYPER_CONFIG'):
+        config_file = os.environ.get('PHYLOTYPER_CONFIG')
+    else:
+        msg = 'Missing config file argument.\nMust provide Phylotyper config file using' \
+            ' enviroment variable PHYLOTYPER_CONFIG or command-line argument --config.'
+        raise Exception(msg)
+    config = PhylotyperOptions(config_file)
 
     # Default index location
     subtype_config_file = os.path.join(os.path.dirname(__file__), 'subtypes_index.yaml')

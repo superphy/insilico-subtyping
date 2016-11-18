@@ -247,8 +247,6 @@ class SeqDict(object):
 
                 subtype_counts[seqentry['subtype']] += 1
 
-
-    
         return subtype_counts
 
 

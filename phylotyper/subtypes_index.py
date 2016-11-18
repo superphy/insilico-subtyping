@@ -30,7 +30,6 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 
-
 class SubtypeConfig(object):
     """Store paths for builtin subtype schemes.
 

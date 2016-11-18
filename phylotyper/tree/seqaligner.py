@@ -177,7 +177,7 @@ class SeqAligner(object):
             # Output to stdout
             cmd += " {} > {}".format(self._trimal_args['matrix'], ident_matrix_file)
 
-        print cmd
+        #print cmd
 
         try:
             check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
