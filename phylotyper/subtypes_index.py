@@ -98,7 +98,7 @@ class SubtypeConfig(object):
         """
         root_dir = self._root_dir
 
-        for filepath_parameter in ['alignment', 'subtype', 'lookup']:
+        for filepath_parameter in ['subtype', 'lookup']:
 
             if filepath_parameter in config:
                 config[filepath_parameter] = os.path.join(root_dir, config[filepath_parameter])
@@ -109,8 +109,37 @@ class SubtypeConfig(object):
             else:
                 return "no <%s> parameter" % (filepath_parameter)
 
+        for filepaths_parameter in ['alignment']:
+
+            if filepaths_parameter in config:
+                fp_list = []
+                for fp in config[filepaths_parameter]:
+
+                    fp_list.append(os.path.join(root_dir, fp))
+
+                    if not os.path.isfile(fp):
+                        return "%s file %s not found" % (filepaths_parameter, fp)
+
+                config[filepaths_parameter] = fp_list
+
+            else:
+                return "no <%s> parameter" % (filepaths_parameter)
+
         if not config['seq'] and (config['seq'] != 'nt' or config['seq'] != 'aa'):
             return "missing/invalid <seq> parameter"
+
+        for blastdb_parameter in ['search_database']:
+
+            if blastdb_parameter in config:
+                config[blastdb_parameter] = os.path.join(root_dir, config[blastdb_parameter])
+
+                blast_file = config[filepath_parameter] = '.psq'
+                if not os.path.isfile(blast_file):
+                    return "%s blast database %s not found" % (blastdb_parameter, config[blastdb_parameter])
+
+            else:
+                return "no <%s> parameter" % (blastdb_parameter)
+
 
 
     def get_subtype_config(self, subtype_name):
@@ -121,9 +150,10 @@ class SubtypeConfig(object):
 
         Returns:
             dictionary with keys:
-                alignment: Filepath
+                alignment: list of filepath
                 subtype: Filepath
                 lookup: Filepath
+                search_database:
                 seq: str (aa|nt)
 
         """
@@ -134,7 +164,7 @@ class SubtypeConfig(object):
         return self._config[subtype_name]
 
 
-    def create_subtype(self, scheme, is_aa=False):
+    def create_subtype(self, scheme, num_loci, is_aa=False):
         """Create subtype index file list
 
         Creates directory under root_dir named by <scheme>
@@ -145,38 +175,41 @@ class SubtypeConfig(object):
 
         Args:
             scheme (str): YAML subtype key
+            num_loci (int): Number if loci/alignments in this scheme
             is_aa (bool): True = amino acid sequences
 
         Returns:
             dictionary with keys:
-                alignment: Filepath
+                alignment: list of filepaths
                 subtype: Filepath
                 lookup: Filepath
+                search_database: Filepath
                 seq: str (aa|nt)
-
-        Raises:
-            Exception if <scheme> directory already exists
 
         """
 
         # Create directory
         newdir = os.path.join(self._root_dir, scheme)
-        if os.path.exists(newdir):
-            raise Exception('Directory {} exists. Cannot create new phylotyper subtype scheme {}.'.format(newdir, scheme))
-        else:
+        if not os.path.exists(newdir):
             os.makedirs(newdir)
 
         # Create index options
+        alignment_file_list = []
+        for i in xrange(num_loci):
+            alignment_file_list.append(os.path.join(scheme, '{}_reference{}.affn'.format(scheme, i)))
+
         rel_paths = {
-            'alignment': os.path.join(scheme, '{}_reference.affn'.format(scheme)),
+            'alignment': alignment_file_list,
             'subtype': os.path.join(scheme, '{}_subtypes.csv'.format(scheme)),
             'lookup': os.path.join(scheme, '{}_dictionary.json'.format(scheme)),
+            'search_database': os.path.join(scheme, '{}_search_database'.format(scheme)),
         }
 
         subtype_options = {
-            'alignment': os.path.join(self._root_dir, rel_paths['alignment']),
+            'alignment': [ os.path.join(self._root_dir, f) for f in rel_paths['alignment'] ],
             'subtype': os.path.join(self._root_dir, rel_paths['subtype']),
             'lookup': os.path.join(self._root_dir, rel_paths['lookup']),
+            'search_database': os.path.join(self._root_dir, '{}_search_database'.format(scheme)),
         }
 
         # Sequence type

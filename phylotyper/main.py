@@ -21,7 +21,8 @@ from Bio import SeqIO
 from collections import Counter
 
 from config import PhylotyperOptions
-from builtin_subtypes import SubtypeConfig
+from genome.loci import LociSearch, LociConcat
+from subtypes_index import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
@@ -271,7 +272,7 @@ def build_pipeline(options, config):
     global logger
     logger = logging.getLogger('phylotyper.main')
 
-    alnfile = options['alignment']
+    alnfiles = options['alignment']
     tmpfile = os.path.join(options['output_directory'], 'tmp.fasta')
     treefile = options['tree_file'] = os.path.join(options['output_directory'], 'test.tree')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
@@ -282,7 +283,11 @@ def build_pipeline(options, config):
     # Check sequence IDs
     check_gene_names(options)
 
-    # Remove identical sequences
+    # Create blast database for searching genomes
+    seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
+    LociSearch(config, options['search_database'], options['input'], seqtype)
+
+    # Remove identical sequences, 
     logger.debug('Collapsing identical sequences')
     seqdict = SeqDict()
     seqdict.build(options['input'], options['subtype_orig'])
@@ -292,7 +297,7 @@ def build_pipeline(options, config):
     seqdict.store(options['lookup'])
 
     # Align
-    align_all_sequences(tmpfile, alnfile, summary, config)
+    align_all_sequences(tmpfile, alnfiles, summary, config)
 
     # Compute tree
     nt = options['seq'] == 'nt'
@@ -379,9 +384,10 @@ def check_gene_names(options):
   
     # Define files
     subtype_file = options['subtype_orig']
-    input_file = options['input']
+    input_files = iter(options['input'])
 
-    # Check fasta file
+    # Check first fasta file
+    input_file = next(input_files)
     fasta_sequences = SeqIO.parse(open(input_file),'fasta')
     msg1 = 'Invalid fasta file: '
     msg2 = 'Invalid subtype file: '
@@ -413,7 +419,7 @@ def check_gene_names(options):
         if any((c in reserved) for c in subt):
             raise Exception(msg+"invalid character in subtype {}".format(subt))
 
-        if len(subt) > 120:
+        if len(subt) > 20:
             raise Exception(msg2+"{} subtype name is too long".format(subt))
 
         if uniq[name] != 1:
@@ -425,6 +431,24 @@ def check_gene_names(options):
     for name in uniq:
         if uniq[name] != 2:
             raise Exception(msg2+"missing gene {}".format(name))
+
+    # Check remaining input files
+    i = 2
+    for input_file in input_files:
+        fasta_sequences = SeqIO.parse(open(input_file),'fasta')
+
+        for fasta in fasta_sequences:
+            name = fasta.id
+
+            if uniq[name] != 1:
+                raise Exception(msg1+"unknown gene {} in file {}".format(name, input_file))
+
+            uniq[name] += 1
+
+        i += 1
+        for name in uniq:
+            if uniq[name] != i:
+                raise Exception(msg2+"missing gene {} in file {}".format(name, input_file))
 
 
     return True
@@ -447,22 +471,11 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(help='commands')
 
     # New subtype command
-    # new_parser = subparsers.add_parser('new', help='Build new subtype resource')
-    # new_parser.add_argument('config', action='store', help='Phylotyper config options file')
-    # new_parser.add_argument('input', action='store', help='Fasta input')
-    # new_parser.add_argument('subtypein', action='store', help='Input reference gene subtypes')
-    # new_parser.add_argument('subtypeout', action='store', help='Ouput reference gene subtypes')
-    # new_parser.add_argument('alignment', action='store', help='Reference gene alignment output')
-    # new_parser.add_argument('lookup', action='store', help='Reference gene sequence storage')
-    # new_parser.add_argument('output', action='store', help='Directory for evaluation result files')
-    # new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
-    # new_parser.set_defaults(which='new')
-
-    new_parser = subparsers.add_parser('new', help='Build new subtype resource')
-    new_parser.add_argument('ref', action='store', help='Fasta input for reference gene sequences')
-    new_parser.add_argument('subtype', action='store', help='Input reference gene subtypes')
+    new_parser = subparsers.add_parser('new', help='Build new subtype scheme')
     new_parser.add_argument('gene', action='store', help='Subtype gene name, becomes subtype scheme name')
+    new_parser.add_argument('subtype', action='store', help='Input reference gene subtypes')
     new_parser.add_argument('results', action='store', help='Directory for evaluation result files')
+    new_parser.add_argument('ref', nargs='+', metavar='reference', help='Fasta input(s) for reference gene sequences')
     new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
@@ -501,10 +514,8 @@ if __name__ == "__main__":
             msg = 'Invalid/missing index file option.'
             raise Exception(msg)
         subtype_config_file = options.index
-
     stConfig = SubtypeConfig(subtype_config_file)
     
-
     if options.which == 'new':
         # Build & evaluate new subtype alignment
 
@@ -513,10 +524,13 @@ if __name__ == "__main__":
         # Fast mode of tree calculation
         fast = False
 
-        # Check input file exists
-        if not os.path.isfile(options.input):
-            msg = 'Invalid/missing input file argument.'
-            raise Exception(msg)
+        # Check input files exists
+        n_loci = 0
+        for f in options.ref:
+            if not os.path.isfile(f):
+                msg = 'Invalid/missing input file argument.'
+                raise Exception(msg)
+            n_loci += 1
 
         # Check subtype file exists
         if not os.path.isfile(options.subtype):
@@ -524,15 +538,15 @@ if __name__ == "__main__":
             raise Exception(msg)
 
         # Check output directory exists, if not create it if possible
-        if not os.path.exists(options.output):
-            os.makedirs(options.output)
-        outdir = os.path.abspath(options.output)
+        if not os.path.exists(options.results):
+            os.makedirs(options.results)
+        outdir = os.path.abspath(options.results)
 
         # Create subtype directory & file names
-        subtype_options = stConfig.create_subtype(options.gene, options.aa)
+        subtype_options = stConfig.create_subtype(options.gene, n_loci, options.aa)
 
-        # Save additional build options
-        subtype_options['input'] = os.path.abspath(options.input)
+        # Save additional build options inputted by user
+        subtype_options['input'] = [os.path.abspath(f) for f in options.ref]
         subtype_options['subtype_orig'] = os.path.abspath(options.subtype)
         subtype_options['output_directory'] = outdir
         subtype_options['fast'] = False

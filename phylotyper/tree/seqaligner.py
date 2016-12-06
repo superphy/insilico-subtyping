@@ -19,6 +19,9 @@ are also implicitly created anytime a new section starts.
 """
 
 from subprocess import check_output, CalledProcessError, STDOUT
+import tempfile
+
+from seq import LociConcat
 
 __author__ = "Matthew Whiteside"
 __copyright__ = "Copyright 2015, Public Health Agency of Canada"
@@ -188,8 +191,60 @@ class SeqAligner(object):
         None
 
     
+    def madd(self, fasta_files, existing_alignment_files, output_alignment_file):
+        """Add new sequences to multiple existing alignments
+
+        Individual alignments are concatenated and output in single file.
+
+        Args:
+            fasta_files (list): Filepath to input fasta file
+            existing_alignment_files (list): Filepath to aligned fasta file
+            output_alignment_file (str): Filepath for superalignment
+
+        Returns:
+            None
+
+        """
+
+        # Tmp outputs
+        individual_outputs = []
+        for i in xrange(len(fasta_files)):
+            individual_outputs.append('{}.tmp{}'.format(output_alignment_file, i))
+
+        for ff, af, of in zip(fasta_files, existing_alignment_files, individual_outputs):
+            self.add(ff, af, of)
+
+        concat = LociConcat()
+        concat.collapse(individual_outputs, fasta_filepath=output_alignment_file)
+
+        None
 
 
+    def malign(self, fasta_files, alignment_files, output_alignment_file=None):
+        """Run aligner program for each input in multiple fasta inputs
+
+        Args:
+            fasta_files (list): Filepaths to input fasta file
+            alignment_files (list): Filepaths for output from alignment
+            output_alignment_file: Filepath for single superalignment output
+
+        Returns:
+            None
+
+        """
+
+        for ff, af in zip(fasta_files, alignment_files):
+            self.align(ff, af)
+
+        if output_alignment_file:
+            concat = LociConcat()
+            concat.collapse(alignment_files, fasta_filepath=output_alignment_file)
+
+        None
+
+            
+
+       
 
 
 

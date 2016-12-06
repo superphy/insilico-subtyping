@@ -61,16 +61,6 @@ if( file.access(subtypefile) == -1) {
 # Load tree
 rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
-
-# Run Mk model evaluation (this markov model is used in simmap and rerootingMethod)
-# For large datasets, ARD and SYM computation takes a long time
-# aic = evaluateModels(tree,subtypes)
-# file = 'model_aic'
-# write.table(aic, file=file.path(output_dir, paste(file, '.csv', sep='')),
-# 	sep="\t",
-# 	quote=FALSE)
-
-
 	
 # Overlay posterior probabilities in tree plot
 cat("Computing posterior probabilites for all internal nodes\n")

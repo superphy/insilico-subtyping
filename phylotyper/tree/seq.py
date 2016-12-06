@@ -67,11 +67,11 @@ class SeqDict(object):
         return self._genenum
 
    
-    def build(self, fasta_file, subtype_file):
+    def build(self, fasta_files, subtype_file):
         """Populate SeqDict with entries in fasta and subtype files
 
         Args:
-            fasta_file (str): Filepath to input sequence file
+            fasta_file (str|list): Filepath to input sequence file or list of such files
             subtype_file (str): Filepath to input subtype
 
         Returns:
@@ -89,10 +89,16 @@ class SeqDict(object):
             subtypes[name] = subt
             
         
-        fasta = SeqIO.parse(fasta_file, 'fasta')
-        for record in fasta:
-            name = record.id.upper()
-            seq = str(record.seq).upper()
+        if isinstance(fasta_files, str):
+            # Create list
+            fasta_files = [fasta_files]
+
+        concat = LociConcat()
+        sequences = concat.collapse(fasta_files)
+
+        for name,seq in sequences.iteritems():
+            name = name.upper()
+            seq = seq.upper()
             seq.replace('-','')
             this_subt = subtypes[name]
 
@@ -109,20 +115,21 @@ class SeqDict(object):
             else:
                 self.add(seq, name, this_subt)
 
-        fasta.close()
-
 
     def find(self, seq):
         """Search for identical sequence in dictionary
         
         Args:
-            seq (str): sequence
+            seq (str|list): sequence or list of sequences
 
         Returns:
             None if no identical sequence found -or- SeqDict entry
             
         """
 
+        if not isinstance(seq, str):
+            # Concatenate list
+            seq = ''.join(seq)
         
         searchstr = self.digest(seq)
 
@@ -142,7 +149,7 @@ class SeqDict(object):
         """Add new entry to SecDict
         
         Args:
-            seq (str): sequence
+            seq (str|list): sequence or list of sequences
             name (str): accession
             subt (str): subtype
 
@@ -150,6 +157,10 @@ class SeqDict(object):
             None
             
         """
+
+        if not isinstance(seq, str):
+            # Concatenate list
+            seq = ''.join(seq)
 
         searchstr = self.digest(seq)
 
@@ -251,6 +262,66 @@ class SeqDict(object):
 
 
 
+
+class LociConcat(object):
+    """Concatenate loci from multiple fasta input files into supersequences.
+
+    Occaisonly multiple loci are used to predict traits.  These can be concatenated
+    to form supersequences.
+
+    """
+    
+    def __init__(self):
+        """Constructor
+
+        """
+
+        self.logger = logging.getLogger('phylotyper.genome.loci.Concat')
+
+    
+    def collapse(self, inputs, fasta_filepath=None):
+        """Concatenate loci from mulitple fasta files
+
+        Returns dict indexed by fasta ID containg supersequences.
+        Optionally, writes to fasta file.
+
+        Args:
+            inputs (list): Filepaths to fasta sequences.
+            fasta_filepath (str)[Optional]: If provided, write supersequences to this file
         
+        Returns:
+            dict
+
+        Raise:
+            Exception when missing loci in a file
+
+        """
+
+        i = 0
+        uniq = Counter()
+        sequences = defaultdict(str)
+
+        for ff in inputs:
+            fasta = SeqIO.parse(ff, 'fasta')
+            for record in fasta:
+                name = record.id
+
+                uniq[name] += 1
+                sequences[name] += str(record.seq)
+
+
+            i += 1
+            for name in uniq:
+                if uniq[name] != i:
+                    raise Exception('Missing gene {} in file {}'.format(name, ff))
+
+
+        if fasta_filepath:
+            with open(fasta_filepath, 'w') as f:
+                for name,seq in sequences.iteritems():
+                    f.write(">{}\n{}\n".format(name, seq))
+                
+        return sequences
+
 
 

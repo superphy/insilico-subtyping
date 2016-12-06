@@ -23,7 +23,7 @@ from __future__ import division
 import logging
 import re
 import tempfile
-from collections import defaultdict
+from collections import defaultdict, Counter
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
@@ -48,7 +48,7 @@ class LociSearch(object):
         Args:
             config (PhylotyperConfig): Instance of PhylotyperConfig object
             database (str): Blast database location
-            inputs (tuple): Filepaths to fasta sequences.
+            inputs (list): Filepaths to fasta sequences.
             sequence_type (str): nucl or prot
 
         Returns:
@@ -70,6 +70,8 @@ class LociSearch(object):
 
         if self.seqtype == 'prot':
             self._percent_identity = 0.80
+
+        self._database = database
 
         # Default options
         self._blast_options = {
@@ -118,7 +120,6 @@ class LociSearch(object):
         """Make blast database
 
         Args:
-            database (str): Blast database location
             inputs (tuple): Filepaths to fasta sequences.
 
         Returns:
@@ -129,13 +130,12 @@ class LociSearch(object):
         # Create naming system that identifies loci sets in the database
         with tempfile.NamedTemporaryFile() as tmpfh:
 
-            # Concatenate all the fasta sequences
             # Assign a loci set identifier
             loci_id = 1
             for ff in inputs:
                 fasta = SeqIO.parse(ff, 'fasta')
                 for record in fasta:
-                    newheader = '{}{}|{}'.format(self._db_prefix, loci_id,record.description)
+                    newheader = '{}{}|{}'.format(self._db_prefix, loci_id, record.description)
                     tmpfh.write(">{}\n{}\n".format(newheader, record.seq))
 
                 loci_id += 1
@@ -222,7 +222,7 @@ class LociSearch(object):
             append (bool): False = overwrite output file
             fasta_prefix (str): All fasta headers in output will start with this
 
-        Raises Exception
+        Raises Exception if blast search fails
 
         """
 

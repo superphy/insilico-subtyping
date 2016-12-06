@@ -41,9 +41,6 @@ if __name__ == "__main__":
     file names are based on the fasta header
 
 
-
-
-
     """
 
     # Parse command-line args

@@ -373,12 +373,12 @@ phylotyper$plot.anc <- function(tree, fit, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 
-	plot(tree,label.offset=0.001,cex=0.7,type='fan',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
+	plot(tree,label.offset=0.001,cex=0.7,type='phylo',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
 		no.margin=TRUE)
 
 	nodelabels(pie=phylotyper$piecolors(fit$marginal.anc),
 		piecol=cols,
-		cex=0.4)
+		cex=0.25)
 	
 	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE,cex=0.8)
