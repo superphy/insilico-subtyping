@@ -23,7 +23,7 @@ import hashlib
 import json
 import re
 from Bio import SeqIO
-from collections import Counter
+from collections import Counter, defaultdict
 
 __author__ = "Matthew Whiteside"
 __copyright__ = "Copyright 2015, Public Health Agency of Canada"
@@ -41,7 +41,7 @@ class SeqDict(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, n_loci=1):
         """Constructor
 
         Args:
@@ -52,6 +52,7 @@ class SeqDict(object):
         self._seqdict = {}
         self._genenum = 0
         self._hash_algorithm = 'md5'
+        self._nloci = n_loci
 
 
     @property
@@ -93,12 +94,15 @@ class SeqDict(object):
             # Create list
             fasta_files = [fasta_files]
 
-        concat = LociConcat()
-        sequences = concat.collapse(fasta_files)
+        if len(fasta_files) != self._nloci:
+            raise Exception("Missing fasta file. {} fasta files provided for {} number of loci.".format(len(fasta_files), self._nloci))
 
-        for name,seq in sequences.iteritems():
+        concat = LociConcat()
+        sequences = concat.collect(fasta_files)
+       
+        for name,seqs in sequences.iteritems():
             name = name.upper()
-            seq = seq.upper()
+            seq = ''.join(seqs).upper()
             seq.replace('-','')
             this_subt = subtypes[name]
 
@@ -113,7 +117,7 @@ class SeqDict(object):
                 matched['accessions'].append(name)
 
             else:
-                self.add(seq, name, this_subt)
+                self.add(seqs, name, this_subt)
 
 
     def find(self, seq):
@@ -149,7 +153,7 @@ class SeqDict(object):
         """Add new entry to SecDict
         
         Args:
-            seq (str|list): sequence or list of sequences
+            seq (list|str): list of sequences or single sequence if one loci
             name (str): accession
             subt (str): subtype
 
@@ -157,23 +161,31 @@ class SeqDict(object):
             None
             
         """
+        keystr = seq
+        if self._nloci > 1:
+            if isinstance(seq, str):
+                raise Exception('Invalid seq parameter. Multiple loci need to be passed as list')
+            keystr = ''.join(seq)
 
-        if not isinstance(seq, str):
-            # Concatenate list
-            seq = ''.join(seq)
+        else:
+            if not isinstance(seq, str):
+                keystr = seq[0]
 
-        searchstr = self.digest(seq)
+        searchstr = self.digest(keystr)
 
         if not searchstr in self.seqs:
             self.seqs[searchstr] = {}
 
         self._genenum += 1
 
-        self.seqs[searchstr][seq] = {
+        self.seqs[searchstr][keystr] = {
             'subtype': subt,
             'name': self.format_name(name, subt),
             'accessions': [name]
         }
+
+        if self._nloci > 1:
+            self.seqs[searchstr][keystr]['loci'] = seq
 
 
     def format_name(self, name, subtype):
@@ -184,7 +196,6 @@ class SeqDict(object):
         genename = '{}-{}__{}'.format(self._genenum, nm, subtype.lower())
 
         return genename
-
 
 
     def store(self, reffile):
@@ -200,13 +211,20 @@ class SeqDict(object):
         with open(reffile, 'r') as rfh:
             self._seqdict = json.load(rfh)
 
-        # Check format    
+        # Check format
+        keys =  ['name','subtype','accessions']
+        if self._nloci > 1:
+            keys.append('loci')
         for seqkey,seqs in self._seqdict.iteritems():
             for seq,seqentry in seqs.iteritems():
                 self._genenum += 1
 
-                for k in ['name','subtype','accessions']:
+                for k in keys:
                     if not k in seqentry:
+                        raise Exception('Improperly formated SeqDict object')
+
+                if self._nloci > 1:
+                    if len(seqentry['loci']) != self._nloci:
                         raise Exception('Improperly formated SeqDict object')
 
         return None
@@ -222,22 +240,47 @@ class SeqDict(object):
         return dig
 
 
-    def write(self, fasta_filepath, subtype_filepath):
+    def write(self, fasta_filepaths, subtype_filepath):
         """Write unique sequences in fasta format
         Args:
-            fasta_filepath (str): Filepath to output fasta file
+            fasta_filepaths (list): List of filepaths to output fasta files
             subtype_filepath (str): Filepath to output subtype file
             
         Returns:
             None
         """
 
-        with open(fasta_filepath, 'w') as f, open(subtype_filepath, 'w') as s:
-            for seqkey,seqs in self.seqs.iteritems():
-                for seq,seqentry in seqs.iteritems():
+        if self._nloci == 1 and isinstance(fasta_filepaths, str):
+            fasta_filepaths = [fasta_filepaths]
 
-                    f.write(">{}\n{}\n".format(seqentry['name'], seq))
+        if len(fasta_filepaths) != self._nloci:
+            raise Exception("Missing fasta file. {} fasta files provided for {} loci.".format(len(fasta_filepaths), self._nloci))
+
+
+        # Open all needed files
+        try:
+            fhs = [ open(filename, 'w') for filename in fasta_filepaths ]
+
+            with open(subtype_filepath, 'w') as s:
+                for seqkey,seqs in self.seqs.iteritems():
+                    for seq,seqentry in seqs.iteritems():
+
+                        if self._nloci == 1:
+                            f = fhs[0]
+                            f.write(">{}\n{}\n".format(seqentry['name'], seq))
+                            
+                        else:
+                            for f,loci_seq in zip(fhs, seqentry['loci']):
+                                f.write(">{}\n{}\n".format(seqentry['name'], loci_seq))
+                               
                     s.write("{}\t{}\n".format(seqentry['name'], seqentry['subtype']))
+
+
+        except IOError as e:
+            for f in fhs:
+                f.close()
+
+            raise e
 
 
         return None
@@ -262,7 +305,6 @@ class SeqDict(object):
 
 
 
-
 class LociConcat(object):
     """Concatenate loci from multiple fasta input files into supersequences.
 
@@ -270,14 +312,6 @@ class LociConcat(object):
     to form supersequences.
 
     """
-    
-    def __init__(self):
-        """Constructor
-
-        """
-
-        self.logger = logging.getLogger('phylotyper.genome.loci.Concat')
-
     
     def collapse(self, inputs, fasta_filepath=None):
         """Concatenate loci from mulitple fasta files
@@ -322,6 +356,44 @@ class LociConcat(object):
                     f.write(">{}\n{}\n".format(name, seq))
                 
         return sequences
+
+
+    def collect(self, inputs):
+        """Concatenate loci from mulitple fasta files
+
+        Returns dict indexed by fasta ID containg list of loci sequences
+       
+        Args:
+            inputs (list): Filepaths to fasta sequences.
+        
+        Returns:
+            dict
+
+        Raise:
+            Exception when missing loci in a file
+
+        """
+
+        i = 0
+        uniq = Counter()
+        sequences = defaultdict(list)
+
+        for ff in inputs:
+            fasta = SeqIO.parse(ff, 'fasta')
+            for record in fasta:
+                name = record.id
+
+                uniq[name] += 1
+                sequences[name].append(str(record.seq))
+
+
+            i += 1
+            for name in uniq:
+                if uniq[name] != i:
+                    raise Exception('Missing gene {} in file {}'.format(name, ff))
+ 
+        return sequences
+
 
 
 

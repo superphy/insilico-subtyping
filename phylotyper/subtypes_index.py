@@ -50,6 +50,8 @@ class SubtypeConfig(object):
             
         """
 
+        print yamlfile
+
         if not yamlfile:
             raise Exception("Missing config file")
 
@@ -115,10 +117,11 @@ class SubtypeConfig(object):
                 fp_list = []
                 for fp in config[filepaths_parameter]:
 
-                    fp_list.append(os.path.join(root_dir, fp))
+                    full_fp = os.path.join(root_dir, fp)
+                    fp_list.append(full_fp)
 
-                    if not os.path.isfile(fp):
-                        return "%s file %s not found" % (filepaths_parameter, fp)
+                    if not os.path.isfile(full_fp):
+                        return "%s file %s not found" % (filepaths_parameter, full_fp)
 
                 config[filepaths_parameter] = fp_list
 
@@ -133,7 +136,7 @@ class SubtypeConfig(object):
             if blastdb_parameter in config:
                 config[blastdb_parameter] = os.path.join(root_dir, config[blastdb_parameter])
 
-                blast_file = config[filepath_parameter] = '.psq'
+                blast_file = config[blastdb_parameter]+'.psq'
                 if not os.path.isfile(blast_file):
                     return "%s blast database %s not found" % (blastdb_parameter, config[blastdb_parameter])
 
@@ -209,7 +212,7 @@ class SubtypeConfig(object):
             'alignment': [ os.path.join(self._root_dir, f) for f in rel_paths['alignment'] ],
             'subtype': os.path.join(self._root_dir, rel_paths['subtype']),
             'lookup': os.path.join(self._root_dir, rel_paths['lookup']),
-            'search_database': os.path.join(self._root_dir, '{}_search_database'.format(scheme)),
+            'search_database': os.path.join(self._root_dir, rel_paths['search_database']),
         }
 
         # Sequence type

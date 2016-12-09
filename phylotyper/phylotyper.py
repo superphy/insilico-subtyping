@@ -39,13 +39,15 @@ class Phylotyper(object):
 
         self.logger = logging.getLogger('phylotyper.phylotyper.Phylotyper')
         self.rwd = pkg_resources.resource_filename(__name__,  '/'.join(('R')))
+        self.cwd = os.getcwd()
         self.rlib = config.get('R', 'lib')
         self.rrepo = config.get('R', 'repo')
         self.rscript = config.get('R', 'rscript')
         self.rfiles = {
             'phylotyper': os.path.join(self.rwd, 'phylotyper.R'),
             'tests': os.path.join(self.rwd, 'test_functions.R'),
-            'performance_tests': os.path.join(self.rwd, 'performance_tests.R')
+            'performance_tests': os.path.join(self.rwd, 'performance_tests.R'),
+            'subtype_properties': os.path.join(self.rwd, 'subtype_properties.R')
         }
 
 
@@ -134,11 +136,12 @@ class Phylotyper(object):
             robjects.r(rcode)
 
         # Return assignments
+        robjects.r('setwd("%s")' % self.cwd)
         return assignments
   		
 
-    def evaluate(self, tree, subtypes, output_dir):
-        """Run phylotyper performance tests
+    def run(self, tree, subtypes, output_dir):
+        """Run phylotyper R script
         
         Calls external R script
         
@@ -167,6 +170,123 @@ class Phylotyper(object):
         os.chdir(cwd)
         return None
 
+
+    def evaluate(self, tree, subtypes, output_dir):
+        """Evaluate new subtype scheme
+        
+        Runs performance tests and reports accuracy. Identifies anomylous subtypes.
+        Builds transition matrix to use in subtyping.
+        
+        Args:
+            tree (str): Filepath to newick tree containing both typed & untyped genes
+            subtypes (str): Filepath to tab-delimited subtype assignments for typed genes
+            output_dir (str): Filepath to output directory
+
+        Returns:
+            results are output to output_dir
+            
+        """
+
+        # Set work dir
+        robjects.r('setwd("{}")'.format(self.rwd))
+
+        # Load Phylotyper R functions
+        rcode = 'source("{}")'.format(self.rfiles['phylotyper']) 
+        robjects.r(rcode)
+
+        # Load libraries
+        rcode = 'suppressMessages(phylotyper$loadInstallLibraries(libloc="{}",repo="{}"))'.format(self.rlib, self.rrepo) 
+        robjects.r(rcode)
+
+        # Load test functions
+        rcode = 'source("{}"); source("{}");'.format(self.rfiles['tests'], self.rfiles['subtype_properties']) 
+        robjects.r(rcode)
+
+        # Load data files
+        rcode = 'rs = phylotyper$loadSubtype("{}","{}"); tree = rs$tree; subtypes = rs$subtypes'.format(tree, subtypes)
+        robjects.r(rcode)
+
+        # Check for weird subtypes
+        rcode = '''
+        fixes = reassign.subtypes(tree, subtypes);
+        fixes[fixes$new != fixes$prev,]
+        '''
+        fixed = robjects.r(rcode)
+
+        print robjects.r('fixes')
+        
+        if fixed.nrow > 0:
+
+            for r in fixed.iter_row():
+                print r
+
+        # if len(fixed):
+
+        #     for 
+
+        #     self.logger.warn(
+        #         '''Suspicious Subtypes! Detected anomylous subtype assignments for the following sequences
+        #         that do not follow phylogenetic groupings:{}
+        #         A proposed subtype assignment has been generated and is available in {}. Review the subtypes, 
+        #         and if you want to use this subtype assignment, replace your subtype file with the one provided 
+        #         in {} and re-run the build script.
+        #         '''.format())
+
+
+
+        # untyped = robjects.r('untyped')
+        # self.logger.debug('phylotyper.R detected the following genes have no subtype: %s' % (','.join(untyped)))
+
+        # # Make prior matrix
+        # rcode = 'priorR = phylotyper$makePriors(tree, subtypes); priorM = priorR$prior.matrix'
+        # robjects.r(rcode)
+       
+        # # Run subtype procedure
+        # rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped)'
+        # robjects.r(rcode)
+
+        # # Write subtype predictions
+        # rcode = '''
+        # cn = colnames(result$tip.pp);
+        # matrix(round(result$tip.pp[untyped,], digits=7),ncol=length(cn),nrow=length(untyped),dimnames=list(untyped,cn), byrow=TRUE)
+        # '''
+        # predictions = robjects.r(rcode)
+        # subtype_states = predictions.colnames
+        # assignments = {}
+
+        # # Find largest pp
+        # for genome in untyped:
+        #     pprow = predictions.rx(genome, True)
+            
+        #     maxpp = -1
+        #     maxst = []
+        #     i = 0
+        #     for pp in pprow:
+        #         if pp > maxpp:
+        #             maxst = [subtype_states[i]]
+        #             maxpp = pp
+        #         elif pp == maxpp:
+        #             maxst.append(subtype_states[i])
+
+        #         i += 1
+
+        #     assignments[genome] = (maxst, maxpp)
+
+        # # Plot pp on the tree
+        # if plot_name:
+        #     rcode = '''
+        #     dim = phylotyper$plotDim(tree)
+        #     graphics.off()
+        #     png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']])
+        #     do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
+        #     graphics.off()
+        #     ''' % (plot_name)
+        #     robjects.r(rcode)
+
+        # # Return assignments
+        # return assignments
+
+        robjects.r('setwd("%s")' % self.cwd)
 
 
 

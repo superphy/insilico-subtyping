@@ -19,7 +19,6 @@ are also implicitly created anytime a new section starts.
 """
 
 from subprocess import check_output, CalledProcessError, STDOUT
-import tempfile
 
 from seq import LociConcat
 

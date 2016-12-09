@@ -67,9 +67,9 @@ subtype.treatments <- list('original'=subtypes)
 rs = reassign.subtypes(tree, subtypes)
 subtype.treatments[['reassign']] = rs$new
 names(subtype.treatments[['reassign']]) <- rownames(rs)
-rs = monophyletic.subtypes(tree, subtypes)
-subtype.treatments[['monophyletic']] = rs$new
-names(subtype.treatments[['monophyletic']]) <- rownames(rs)
+# rs = monophyletic.subtypes(tree, subtypes)
+# subtype.treatments[['monophyletic']] = rs$new
+# names(subtype.treatments[['monophyletic']]) <- rownames(rs)
 
 
 showdown <- list()

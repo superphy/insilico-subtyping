@@ -21,7 +21,7 @@ from Bio import SeqIO
 from collections import Counter
 
 from config import PhylotyperOptions
-from genome.loci import LociSearch, LociConcat
+from genome.loci import LociSearch
 from subtypes_index import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
@@ -39,12 +39,13 @@ __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 logger = None
 
-def align_all_sequences(input, output, summary, config):
+def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     """Build MSA
 
     Args:
-        input (str): Fasta file
-        output (str): Output file for MSA
+        input (list): List of Fasta files
+        outputs (list): Output files for MSA
+        superaln_output (str): Output file for concatenated alignment
         summary (str): Trimming summary file
         config (obj): PhylotyperOptions object
 
@@ -53,8 +54,8 @@ def align_all_sequences(input, output, summary, config):
     logger.debug('Performing full alignment')
 
     aln = SeqAligner(config)
-    aln.align(input, output)
-    aln.trim(output, output, trimming_summary_file=summary)
+    aln.malign(inputs, outputs, superaln_output)
+    aln.trim(superaln_output, superaln_output, trimming_summary_file=summary)
 
 
 def align_new_sequences(input, alignment, summary, output, config):
@@ -244,7 +245,7 @@ def evaluate_subtypes(options, config):
 
     """
 
-    logger.debug('Running phylotyper performance tests')
+    logger.debug('Running phylotyper new scheme evaluation')
 
     # Define files
     subtfile = options['subtype']
@@ -273,7 +274,12 @@ def build_pipeline(options, config):
     logger = logging.getLogger('phylotyper.main')
 
     alnfiles = options['alignment']
-    tmpfile = os.path.join(options['output_directory'], 'tmp.fasta')
+    tmpfiles = []
+    for i in xrange(len(options['alignment'])):
+        alnfile = os.path.basename(options['alignment'][i])
+        tmpfiles.append(os.path.join(options['output_directory'], '{}.tmp{}'.format(alnfile, i)))
+
+    tmpfile = os.path.join(options['output_directory'], 'tmpsuperaln.fasta')
     treefile = options['tree_file'] = os.path.join(options['output_directory'], 'test.tree')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
@@ -289,22 +295,22 @@ def build_pipeline(options, config):
 
     # Remove identical sequences, 
     logger.debug('Collapsing identical sequences')
-    seqdict = SeqDict()
+    seqdict = SeqDict(options['nloci'])
     seqdict.build(options['input'], options['subtype_orig'])
     # Output unique set
-    seqdict.write(tmpfile, options['subtype'])
+    seqdict.write(tmpfiles, options['subtype'])
     # Save lookup object
     seqdict.store(options['lookup'])
 
     # Align
-    align_all_sequences(tmpfile, alnfiles, summary, config)
+    align_all_sequences(tmpfiles, alnfiles, tmpfile, summary, config)
 
     # Compute tree
     nt = options['seq'] == 'nt'
-    build_tree(alnfile, treefile, nt, options['fast'], config)
+    build_tree(tmpfile, treefile, nt, options['fast'], config)
 
     # Run evaluation
-    #evaluate_subtypes(options, config)
+    evaluate_subtypes(options, config)
 
 
 def prep_sequences(options, identified):
@@ -440,7 +446,7 @@ def check_gene_names(options):
         for fasta in fasta_sequences:
             name = fasta.id
 
-            if uniq[name] != 1:
+            if not name in uniq:
                 raise Exception(msg1+"unknown gene {} in file {}".format(name, input_file))
 
             uniq[name] += 1
@@ -472,11 +478,11 @@ if __name__ == "__main__":
 
     # New subtype command
     new_parser = subparsers.add_parser('new', help='Build new subtype scheme')
-    new_parser.add_argument('gene', action='store', help='Subtype gene name, becomes subtype scheme name')
-    new_parser.add_argument('subtype', action='store', help='Input reference gene subtypes')
+    new_parser.add_argument('gene', action='store', help='Subtype name')
+    new_parser.add_argument('subtype', action='store', help='Subtypes for reference sequences')
     new_parser.add_argument('results', action='store', help='Directory for evaluation result files')
-    new_parser.add_argument('ref', nargs='+', metavar='reference', help='Fasta input(s) for reference gene sequences')
-    new_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
+    new_parser.add_argument('ref', nargs='+', metavar='reference', help='Fasta input(s) for reference sequences')
+    new_parser.add_argument('--aa', action='store_true', help='Amino acid')
     new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     new_parser.set_defaults(which='new')
@@ -507,7 +513,8 @@ if __name__ == "__main__":
     config = PhylotyperOptions(config_file)
 
     # Default index location
-    subtype_config_file = os.path.join(os.path.dirname(__file__), 'subtypes_index.yaml')
+    subtype_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'subtypes_index.yaml')
+
     # Non-default location
     if options.index:
         if not os.path.isfile(options.index):
@@ -544,11 +551,13 @@ if __name__ == "__main__":
 
         # Create subtype directory & file names
         subtype_options = stConfig.create_subtype(options.gene, n_loci, options.aa)
+        #subtype_options = stConfig.get_subtype_config(options.gene)
 
         # Save additional build options inputted by user
         subtype_options['input'] = [os.path.abspath(f) for f in options.ref]
         subtype_options['subtype_orig'] = os.path.abspath(options.subtype)
         subtype_options['output_directory'] = outdir
+        subtype_options['nloci'] = n_loci
         subtype_options['fast'] = False
 
         # Run pipeline
