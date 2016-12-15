@@ -571,9 +571,7 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 
 	if(is.null(fixedQ)) {
 		YY<-fitMk(tt,yy,model=model,output.liks=TRUE)
-		Q<-matrix(c(0,YY$rates)[YY$index.matrix+1],length(YY$states),
-			length(YY$states),dimnames=list(YY$states,YY$states))
-		diag(Q)<--colSums(Q,na.rm=TRUE)
+		Q <- phylotyper$makeQ(YY)
 	} else {
 		if(!is.matrix(fixedQ)){ 
 			stop("fixedQ should be a matrix")
@@ -601,6 +599,15 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	rownames(liks) <- 1:tt$Nnode+n
 
 	return(list(loglik=YY$logLik,Q=Q,marginal.anc=XX,conditional.likelihoods=liks,rerootedTree=tt,tip=uncertain[1]))
+}
+
+phylotyper$makeQ <- function(YY) {
+	# Compute rate matrix Q from a fitMk object
+	Q<-matrix(c(0,YY$rates)[YY$index.matrix+1],length(YY$states),
+			length(YY$states),dimnames=list(YY$states,YY$states))
+		diag(Q)<--colSums(Q,na.rm=TRUE)
+
+	return(Q)
 }
 
 while("phylotyper" %in% search())

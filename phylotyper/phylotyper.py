@@ -171,7 +171,7 @@ class Phylotyper(object):
         return None
 
 
-    def evaluate(self, tree, subtypes, output_dir):
+    def evaluate(self, tree, subtypes, rate_matrix, output_dir, accession_map):
         """Evaluate new subtype scheme
         
         Runs performance tests and reports accuracy. Identifies anomylous subtypes.
@@ -180,7 +180,10 @@ class Phylotyper(object):
         Args:
             tree (str): Filepath to newick tree containing both typed & untyped genes
             subtypes (str): Filepath to tab-delimited subtype assignments for typed genes
+            rate_matrix (str): Filepath for R serialized file containing transition rate matrix from winning model
             output_dir (str): Filepath to output directory
+            accession_map (dict): Value from SeqDict.accession_map()
+            
 
         Returns:
             results are output to output_dir
@@ -216,13 +219,14 @@ class Phylotyper(object):
         if suspect:
             newvalues = robjects.r('as.character(fixes$new)')
             genomes = robjects.r('row.names(fixes)')
-            accession_map = 
            
             # Save to file
             newsubtype_file = os.path.join(output_dir, 'phylotyper_proposed_subtypes.csv')
             with open(newsubtype_file, 'w') as outfh:
                 for i in xrange(len(newvalues)):
-                    outfh.write('{}\t{}\n'.format(genomes[i], newvalues[i]))
+                    original_genome_labels = accession_map[str(genomes[i])]
+                    for g in original_genome_labels:
+                        outfh.write('{}\t{}\n'.format(g, newvalues[i]))
 
             self.logger.warn(
                 '''\nSuspicious Subtypes! Detected anomylous subtype assignments for the following sequences
@@ -235,59 +239,75 @@ class Phylotyper(object):
                 '''.format('\n  '.join(tuple(suspect)), newsubtype_file, newsubtype_file))
 
 
+        # Examine different transition matrix models
+        rcode = '''
+        models <- list('equal_rates'='ER')
+        if(length(levels(subtypes)) < 10) {
+            models <- c(models, 'symmetric_rates'='SYM')
+        }
+        
+        rs = transition.rate.parameters(tree, subtypes)
+        models[['iterative_binning']] = rs$model
 
-        # untyped = robjects.r('untyped')
-        # self.logger.debug('phylotyper.R detected the following genes have no subtype: %s' % (','.join(untyped)))
+        rs = transition.rate.parameters2(tree, subtypes)
+        models[['small_distance_binning']] = rs$model
+        '''
+        robjects.r(rcode)
 
-        # # Make prior matrix
-        # rcode = 'priorR = phylotyper$makePriors(tree, subtypes); priorM = priorR$prior.matrix'
-        # robjects.r(rcode)
-       
-        # # Run subtype procedure
-        # rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped)'
-        # robjects.r(rcode)
+        # Assess performance of models via leave-one-out cross-validation
+        rcode = '''
+        showdown <- list()
+        for(modname in names(models)) {
+            mod <- models[[modname]]
+            est.scheme = 5 # only computes pp for tips
+            pp = loocv(tree=tree, subtypes=subtypes, scheme=est.scheme, model=mod)
 
-        # # Write subtype predictions
-        # rcode = '''
-        # cn = colnames(result$tip.pp);
-        # matrix(round(result$tip.pp[untyped,], digits=7),ncol=length(cn),nrow=length(untyped),dimnames=list(untyped,cn), byrow=TRUE)
-        # '''
-        # predictions = robjects.r(rcode)
-        # subtype_states = predictions.colnames
-        # assignments = {}
+            # Summarize performance
+            results = simulationSummary(subtypes, pp)
 
-        # # Find largest pp
-        # for genome in untyped:
-        #     pprow = predictions.rx(genome, True)
-            
-        #     maxpp = -1
-        #     maxst = []
-        #     i = 0
-        #     for pp in pprow:
-        #         if pp > maxpp:
-        #             maxst = [subtype_states[i]]
-        #             maxpp = pp
-        #         elif pp == maxpp:
-        #             maxst.append(subtype_states[i])
+            # Save a copy of the fit
+            fit <- fitMk(tree, subtypes, model=mod)
 
-        #         i += 1
+            showdown[[modname]] = list(pp=pp, results=results, anc=fit)
+        }
+        '''
+        robjects.r(rcode)
 
-        #     assignments[genome] = (maxst, maxpp)
+        # Retrieve F-scores
+        rcode = '''
+        performance <- data.frame(model=names(models), fscore=0, stringsAsFactors=FALSE)
 
-        # # Plot pp on the tree
-        # if plot_name:
-        #     rcode = '''
-        #     dim = phylotyper$plotDim(tree)
-        #     graphics.off()
-        #     png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']])
-        #     do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
-        #     graphics.off()
-        #     ''' % (plot_name)
-        #     robjects.r(rcode)
+        for(modname in names(showdown)) {
+            rs = showdown[[modname]]$results$metrics
+            fs = rs['ave / total','F-score']
+        
+            row = performance[,'model'] == modname
+            performance[row,'fscore'] = fs
+        }
 
-        # # Return assignments
-        # return assignments
+        # find best model, with the following tie-break precedence: ER, SYM, Custom, Custom2
+        modrow = min(which.max(performance$fscore))
+        bestmodel = performance$model[modrow]
+        bestfscore = performance$fscore[modrow]
+        '''
+        robjects.r(rcode)
+        bestmodel = tuple(robjects.r('bestmodel'))[0]
+        bestfscore = tuple(robjects.r('bestfscore'))[0]
 
+        self.logger.info("The rate matrix model with highest accuracy is {}. Its associated F1-score: {}".format(bestmodel, bestfscore))
+
+        if bestfscore < 0.9:
+            # Not an ideal phylogenetic tree for predicting subtypes
+            self.logger.warn(
+                '''\nLow accuracy! The calculated F1-score from a leave-one-out cross-validation is {},
+                suggesting that the ability of this phylogenetic tree to predict subtypes is questionable (highest scoring rate matrix model: {}).
+                '''.format(bestfscore, bestmodel))
+
+        # Save rate matrix
+        rcode = 'Q = phylotyper$makeQ(showdown[[bestmodel]]$anc); saveRDS(Q, "{}")'.format(rate_matrix)
+        robjects.r(rcode)
+
+        # Return to the main directory
         robjects.r('setwd("%s")' % self.cwd)
 
 

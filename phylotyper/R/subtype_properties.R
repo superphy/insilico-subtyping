@@ -592,7 +592,7 @@ transition.rate.parameters <- function(tree, subtypes, zero=TRUE, nbins=3:12) {
 
 		k <- paste(c(s1, s2), collapse='__')
 		rates$rate[rates$key == k] <- rate
-		print(paste('completed iteration:',k))
+		#print(paste('completed iteration:',k))
 	}
 
 	cl <- Mclust(rates$rate, G=nbins)

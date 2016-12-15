@@ -5,6 +5,7 @@ subtypes:
   stx2:
     alignment: [stx2/stx2_reference0.affn, stx2/stx2_reference1.affn]
     lookup: stx2/stx2_dictionary.json
+    rate_matrix: stx2/stx2_rate_matrix.rds
     search_database: stx2/stx2_search_database
     seq: aa
     subtype: stx2/stx2_subtypes.csv

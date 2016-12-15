@@ -81,7 +81,7 @@ loocv = function(tree, subtypes, scheme=5, model='ER') {
 
 		pp[i,3:nc] = testfit$tip.pp[tip, ]
 
-		cat("Completed test iteration",i,"...\n")
+		#cat("Completed test iteration",i,"...\n")
 	}
 
 	return(pp)

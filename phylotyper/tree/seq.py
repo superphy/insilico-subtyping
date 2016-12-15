@@ -84,8 +84,8 @@ class SeqDict(object):
         subtypes = {}
 
         for row in csv.reader(open(subtype_file,'r'),delimiter='\t'):
-            name = row[0].upper()
-            subt = row[1].lower()
+            name = row[0]
+            subt = row[1]
 
             subtypes[name] = subt
             
@@ -101,12 +101,9 @@ class SeqDict(object):
         sequences = concat.collect(fasta_files)
        
         for name,seqs in sequences.iteritems():
-            name = name.upper()
-            seq = ''.join(seqs).upper()
-            seq.replace('-','')
             this_subt = subtypes[name]
 
-            
+            self.add(seqs, name, this_subt)
 
 
     def find(self, seq):
@@ -150,17 +147,20 @@ class SeqDict(object):
             None
             
         """
+
         keystr = seq
         if self._nloci > 1:
             if isinstance(seq, str):
                 raise Exception('Invalid seq parameter. Multiple loci need to be passed as list')
-            keystr = ''.join(seq)
+            keystr = ''.join(seq).upper()
 
         else:
             if not isinstance(seq, str):
-                keystr = seq[0]
+                keystr = seq[0].upper()
 
-        matched = self.find(seq)
+        keystr = keystr.replace('-','')
+        matched = self.find(keystr)
+
         if matched:
             # Existing identical sequence
             # Append accession
@@ -189,7 +189,7 @@ class SeqDict(object):
                 self.seqs[searchstr][keystr]['loci'] = seq
 
 
-    def accession_map(self, name):
+    def accession_map(self):
         """Return dict of SeqDict names mapped to lists of original accessions"""
 
         acc_map = {}
@@ -197,7 +197,7 @@ class SeqDict(object):
             for seq,seqentry in seqs.iteritems():
                 acc_map[seqentry['name']] = seqentry['accessions']
 
-        acc_map
+        return acc_map
 
 
     def format_name(self, name, subtype):

@@ -23,7 +23,7 @@ from __future__ import division
 import logging
 import re
 import tempfile
-from collections import defaultdict, Counter
+from collections import defaultdict
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC

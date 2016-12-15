@@ -173,11 +173,11 @@ def print_results(options, assignments):
     None
 
 
-def subtype_pipeline(options, config, write_results=True):
+def subtype_pipeline(options, config):
     """Run phylotyper pipeline 
 
     Runs individual steps in phylotyper pipeline
-    for internal subtype scheme
+    for pre-built subtype scheme
         
         Args:
             options (dict): user defined settings from __main__
@@ -192,9 +192,13 @@ def subtype_pipeline(options, config, write_results=True):
 
 
     # Define files
+    genome_search = False
+    if 'genomes' in options:
+        options['input'] = os.path.join(options['output_directory'], 'loci.fasta')
+        genome_search = True
     alnfile = os.path.join(options['output_directory'], 'combined.aln')
     options['profile_alignment'] = alnfile
-    oldalnfile = options['alignment']
+    refalnfile = options['alignment']
     treefile = os.path.join(options['output_directory'], 'combined.tree')
     options['tree_file'] = treefile
     options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
@@ -207,6 +211,15 @@ def subtype_pipeline(options, config, write_results=True):
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
+    if genome_search:
+        # Identify loci in input genomes
+        seqtype = 'prot' if options.aa else 'nucl'
+        detector = LociSearch(config, options['search_database'], None, seqtype)
+
+        for genome in options['genomes']:
+            detector.search(genome, options['input'], append=True)
+
+    # Predict subtypes
     assignments = [] # Phylotyper subtype assignments
 
     # Check if sequences match known subtyped sequences
@@ -217,7 +230,7 @@ def subtype_pipeline(options, config, write_results=True):
     if num_remaining > 0:    
 
         # Align
-        align_new_sequences(options['input'], oldalnfile, summary, alnfile, config)
+        align_new_sequences(options['input'], refalnfile, summary, alnfile, config)
 
         # Compute tree
         nt = options['seq'] == 'nt'
@@ -232,7 +245,7 @@ def subtype_pipeline(options, config, write_results=True):
     return assignments
 
 
-def evaluate_subtypes(options, config):
+def evaluate_subtypes(options, config, seqdict):
     """Examine correlation of subtype in phylogenetic tree
 
     Wrapper around the Phylotyper.subtype method. Identifies
@@ -242,6 +255,7 @@ def evaluate_subtypes(options, config):
     Args:
         options (dict): user defined settings from __main__
         config (obj): PhylotyperConfig with .ini file settings
+        seqdict (obj): SeqDict object
 
     """
 
@@ -250,10 +264,11 @@ def evaluate_subtypes(options, config):
     # Define files
     subtfile = options['subtype']
     treefile = options['tree_file']
+    ratematfile = options['rate_matrix'] 
 
     pt = Phylotyper(config)
 
-    pt.evaluate(treefile, subtfile, options['output_directory'])
+    pt.evaluate(treefile, subtfile, ratematfile, options['output_directory'], seqdict.accession_map())
 
     None
 
@@ -310,17 +325,16 @@ def build_pipeline(options, config):
     build_tree(tmpfile, treefile, nt, options['fast'], config)
 
     # Run evaluation
-    evaluate_subtypes(options, config)
+    evaluate_subtypes(options, config, seqdict)
 
 
 def prep_sequences(options, identified):
-    """Create temporary sequence names that are unique
+    """Checks for unique gene names of suitable length
 
-    Autogenerate temporary name placeholders and rewrite
-    inputs with these names.  Also flags sequences that are identical
-    to subtyped sequences in the reference set.  These do not need
-    to be run with phylotyper. Subtype assignment will be transfered
-    from identical sequences.
+    Checks that gene names defined in fasta inputs are ok.  Also 
+    flags sequences that are identical to subtyped sequences in 
+    the reference set. These do not need to be run with phylotyper. 
+    Subtype assignment will be transfered from identical sequences.
 
     Sets filename key-values in options dict for new temp input file
     and mapping file.
@@ -335,23 +349,28 @@ def prep_sequences(options, identified):
     """
 
     logger.debug('Searching for identical sequences with known subtype')
-    logger.debug('Renaming sequences')
+    logger.debug('Checking sequence names')
 
     # Define files
     output_file = os.path.join(options['output_directory'], 'input.fasta')
-    mapping_file = os.path.join(options['output_directory'], 'mapping.txt')
     input_file = options['input']
 
     # Load lookup object
     lookup = SeqDict()
     lookup.load(options['lookup'])
 
+    # Validate names
+    # Check for identical sequences
+    uniq = Counter()
+    reserved = set(':(), ') # Newick reserve characters
+
     i = 0
-    pre = 'pt_'
     fasta_sequences = SeqIO.parse(open(input_file, 'r'),'fasta')
-    with open(output_file, 'w') as outf, open(mapping_file, 'w') as mapf:
+    with open(output_file, 'w') as outf:
         for fasta in fasta_sequences:
-            name, sequence = fasta.description, str(fasta.seq)
+            name, sequence = fasta.id, str(fasta.seq)
+            desc = fasta.description[0:20]
+
             found = lookup.find(sequence)
 
             if found:
@@ -365,14 +384,23 @@ def prep_sequences(options, identified):
                     ])
 
             else:
-                i += 1
-                newname = '%s%i' % (pre, i)
-                mapf.write('%s\t%s\n' % (name, newname))
-                outf.write('>%s\n%s\n' % (newname, sequence))
+                # Check name will be ok for tree building
+                # and alignment programs
+                if len(name) > 20:
+                    raise Exception("Invalid fasta file: {} id in header is too long".format(desc))
 
-    options['input'] = output_file
-    options['user_input'] = input_file
-    options['mapping_file'] = mapping_file
+                if uniq[name] > 0:
+                    raise Exception("Invalid fasta file: {} id in header is not unique".format(desc))
+                uniq[name] += 1
+
+                if any((c in reserved) for c in name):
+                    raise Exception("Invalid fasta file: invalid character in header {}".format(desc))
+            
+                outf.write('>%s\n%s\n' % (name, sequence))
+                i += 1
+
+        options['input'] = output_file
+        options['user_input'] = input_file
 
     return(i)
 
@@ -405,8 +433,8 @@ def check_gene_names(options):
         name = fasta.id
         desc = fasta.description[0:20]
 
-        if len(fasta.description) > 300:
-            raise Exception(msg1+"{} header is too long".format(desc))
+        if len(name) > 30:
+            raise Exception(msg1+"{} id in header is too long".format(desc))
 
         if uniq[name] > 0:
             raise Exception(msg1+"{} id in header is not unique".format(desc))
@@ -487,7 +515,18 @@ if __name__ == "__main__":
     new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     new_parser.set_defaults(which='new')
 
-    # Builtin subtype command
+    # Builtin subtype command with genome as input
+    genome_parser = subparsers.add_parser('genome', help='Predict subtype for scheme provided in phylotyper for genome input')
+    genome_parser.add_argument('gene', action='store', help='Subtype gene name')
+    genome_parser.add_argument('output', action='store', help='Directory for subtype predictions')
+    genome_parser.add_argument('inputs', nargs='+', help='Fasta input for genomes')
+    genome_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
+    genome_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
+    genome_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
+    genome_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    genome_parser.set_defaults(which='genome')
+
+    # Builtin subtype command with gene as input
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
     subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
     subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
@@ -565,7 +604,48 @@ if __name__ == "__main__":
 
         # Update subtype YAML file
         stConfig.save()
-    
+
+    elif options.which == 'genome':
+        # Compute subtype for builtin scheme
+        # Genome input
+
+        # Check arguments
+
+        # Fast mode of tree calculation
+        fast = False
+
+        # Check input file exists
+        n_genomes = 0
+        for f in options.inputs:
+            if not os.path.isfile(f):
+                msg = 'Invalid/missing input file argument.'
+                raise Exception(msg)
+            n_genomes += 1
+
+        # Check output directory exists, if not create it if possible
+        if not os.path.exists(options.output):
+            os.makedirs(options.output)
+
+        # Load requested subtype data files
+        scheme = options.gene
+        subtype_options = stConfig.get_subtype_config(scheme)
+
+        # Add pipeline options
+        subtype_options['genomes'] = [os.path.abspath(f) for f in options.inputs]
+        subtype_options['output_directory'] = os.path.abspath(options.output)
+        subtype_options['ngenomes'] = n_genomes
+        subtype_options['fast'] = False
+        subtype_options['noplots'] = False
+
+        if options.noplots:
+            subtype_options['noplots'] = True
+
+        if options.aa and (subtype_options['seq'] != 'aa'):
+            msg = 'Sequence type of input does not match Phylotyper gene sequences for %s' % (scheme)
+            raise Exception(msg)
+
+        # Run pipeline
+        subtype_pipeline(subtype_options, config)
 
     elif options.which == 'subtype':
         # Compute subtype for builtin scheme

@@ -100,7 +100,7 @@ class SubtypeConfig(object):
         """
         root_dir = self._root_dir
 
-        for filepath_parameter in ['subtype', 'lookup']:
+        for filepath_parameter in ['subtype', 'lookup', 'rate_matrix']:
 
             if filepath_parameter in config:
                 config[filepath_parameter] = os.path.join(root_dir, config[filepath_parameter])
@@ -158,6 +158,7 @@ class SubtypeConfig(object):
                 lookup: Filepath
                 search_database:
                 seq: str (aa|nt)
+                rate_matrix: Filepath
 
         """
 
@@ -188,6 +189,7 @@ class SubtypeConfig(object):
                 lookup: Filepath
                 search_database: Filepath
                 seq: str (aa|nt)
+                rate_matrix: Filepath
 
         """
 
@@ -206,6 +208,7 @@ class SubtypeConfig(object):
             'subtype': os.path.join(scheme, '{}_subtypes.csv'.format(scheme)),
             'lookup': os.path.join(scheme, '{}_dictionary.json'.format(scheme)),
             'search_database': os.path.join(scheme, '{}_search_database'.format(scheme)),
+            'rate_matrix': os.path.join(scheme, '{}_rate_matrix.rds'.format(scheme)),
         }
 
         subtype_options = {
@@ -213,6 +216,7 @@ class SubtypeConfig(object):
             'subtype': os.path.join(self._root_dir, rel_paths['subtype']),
             'lookup': os.path.join(self._root_dir, rel_paths['lookup']),
             'search_database': os.path.join(self._root_dir, rel_paths['search_database']),
+            'rate_matrix': os.path.join(self._root_dir, rel_paths['rate_matrix']),
         }
 
         # Sequence type
