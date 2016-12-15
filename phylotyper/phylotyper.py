@@ -209,28 +209,30 @@ class Phylotyper(object):
         # Check for weird subtypes
         rcode = '''
         fixes = reassign.subtypes(tree, subtypes);
-        fixes[fixes$new != fixes$prev,]
+        row.names(fixes)[as.character(fixes$new) != as.character(fixes$prev)]
         '''
-        fixed = robjects.r(rcode)
+        suspect = robjects.r(rcode)
 
-        print robjects.r('fixes')
-        
-        if fixed.nrow > 0:
+        if suspect:
+            newvalues = robjects.r('as.character(fixes$new)')
+            genomes = robjects.r('row.names(fixes)')
+            accession_map = 
+           
+            # Save to file
+            newsubtype_file = os.path.join(output_dir, 'phylotyper_proposed_subtypes.csv')
+            with open(newsubtype_file, 'w') as outfh:
+                for i in xrange(len(newvalues)):
+                    outfh.write('{}\t{}\n'.format(genomes[i], newvalues[i]))
 
-            for r in fixed.iter_row():
-                print r
-
-        # if len(fixed):
-
-        #     for 
-
-        #     self.logger.warn(
-        #         '''Suspicious Subtypes! Detected anomylous subtype assignments for the following sequences
-        #         that do not follow phylogenetic groupings:{}
-        #         A proposed subtype assignment has been generated and is available in {}. Review the subtypes, 
-        #         and if you want to use this subtype assignment, replace your subtype file with the one provided 
-        #         in {} and re-run the build script.
-        #         '''.format())
+            self.logger.warn(
+                '''\nSuspicious Subtypes! Detected anomylous subtype assignments for the following sequences
+                that do not follow phylogenetic groupings:
+                  {}
+                A proposed subtype assignment has been generated and is available in:
+                  {}
+                Review the subtypes and if you want to use this subtype assignment, replace your subtype file 
+                with this one and re-run the build script.
+                '''.format('\n  '.join(tuple(suspect)), newsubtype_file, newsubtype_file))
 
 
 

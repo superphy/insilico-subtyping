@@ -106,18 +106,7 @@ class SeqDict(object):
             seq.replace('-','')
             this_subt = subtypes[name]
 
-            matched = self.find(seq)
-            if matched:
-                # Existing identical sequence
-                if not matched['subtype'] == this_subt:
-                    raise Exception('Identical sequence {} has different subtype assignment than {} (expected: {}, assigned: {})'.format(
-                        name, ','.join(matched['accessions']), matched['subtype'], this_subt))
-
-                # Record gene/genome
-                matched['accessions'].append(name)
-
-            else:
-                self.add(seqs, name, this_subt)
+            
 
 
     def find(self, seq):
@@ -171,21 +160,44 @@ class SeqDict(object):
             if not isinstance(seq, str):
                 keystr = seq[0]
 
-        searchstr = self.digest(keystr)
+        matched = self.find(seq)
+        if matched:
+            # Existing identical sequence
+            # Append accession
+            if not matched['subtype'] == subt:
+                raise Exception('Identical sequence {} has different subtype assignment than {} (expected: {}, assigned: {})'.format(
+                    name, ','.join(matched['accessions']), matched['subtype'], subt))
 
-        if not searchstr in self.seqs:
-            self.seqs[searchstr] = {}
+            # Record gene/genome
+            matched['accessions'].append(name)
 
-        self._genenum += 1
+        else:
+            # Add new sequence
+            searchstr = self.digest(keystr)
+            if not searchstr in self.seqs:
+                self.seqs[searchstr] = {}
 
-        self.seqs[searchstr][keystr] = {
-            'subtype': subt,
-            'name': self.format_name(name, subt),
-            'accessions': [name]
-        }
+            self._genenum += 1
 
-        if self._nloci > 1:
-            self.seqs[searchstr][keystr]['loci'] = seq
+            self.seqs[searchstr][keystr] = {
+                'subtype': subt,
+                'name': self.format_name(name, subt),
+                'accessions': [name]
+            }
+
+            if self._nloci > 1:
+                self.seqs[searchstr][keystr]['loci'] = seq
+
+
+    def accession_map(self, name):
+        """Return dict of SeqDict names mapped to lists of original accessions"""
+
+        acc_map = {}
+        for seqkey,seqs in self._seqdict.iteritems():
+            for seq,seqentry in seqs.iteritems():
+                acc_map[seqentry['name']] = seqentry['accessions']
+
+        acc_map
 
 
     def format_name(self, name, subtype):

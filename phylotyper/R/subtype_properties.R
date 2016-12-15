@@ -662,10 +662,12 @@ reassign.subtypes <- function(tree, subtypes) {
 # 	data.frame with 'new' and 'prev' subtype factors
 #
 
-	rs = subtype.diameter(tree, subtypes, 0.5)
+	rs = subtype.diameter(tree, subtypes, 0.4)
 
 	# Find subtrees that fall under this distance threshold
+	print(rs$diameter)
 	subt = assignSubtrees(rs$patristic.distance, tree, rs$diameter, plot.name=NULL)
+	newsubt = subt
 
 	for(s in levels(subt)) {
 		grp <- names(subt)[subt == s]
@@ -674,11 +676,12 @@ reassign.subtypes <- function(tree, subtypes) {
 		newsubtype = names(which(table(oldsubtypes) == max(table(oldsubtypes))))
 		
 		# Rename
-		levels(subt)[levels(subt)==s] <- newsubtype
+		levels(newsubt)[levels(newsubt)==s] <- paste(newsubtype,collapse='_')
+
 	}	
 
-	ord <- names(subt)[order(subt)]
-	return(data.frame(new=subt[ord], prev=subtypes[ord]))
+	ord <- names(newsubt)[order(newsubt)]
+	return(data.frame(new=newsubt[ord], prev=subtypes[ord]))
 }
 
 subtype.diameter <- function(tree, subtypes, p) {
