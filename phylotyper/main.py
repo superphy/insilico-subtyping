@@ -17,6 +17,7 @@ import csv
 import logging
 import os
 import pprint
+import re
 from Bio import SeqIO
 from collections import Counter
 
@@ -43,7 +44,7 @@ def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     """Build MSA
 
     Args:
-        input (list): List of Fasta files
+        inputs (list): List of Fasta files
         outputs (list): Output files for MSA
         superaln_output (str): Output file for concatenated alignment
         summary (str): Trimming summary file
@@ -58,12 +59,12 @@ def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     aln.trim(superaln_output, superaln_output, trimming_summary_file=summary)
 
 
-def align_new_sequences(input, alignment, summary, output, config):
+def align_new_sequences(inputs, alignment, summary, output, config):
     """Add new sequences to existing MSA using
     profile alignment
 
     Args:
-        input (str): Fasta file
+        inputs (list): List of Fasta files
         alignment (str): Aligned fasta file
         summary (str): Trimming summary file
         output (str): Output file for MSA
@@ -74,7 +75,7 @@ def align_new_sequences(input, alignment, summary, output, config):
     logger.debug('Aligning genes to existing alignment')
 
     aln = SeqAligner(config)
-    aln.add(input, alignment, output)
+    aln.madd(inputs, alignment, output)
     aln.trim(output, output, trimming_summary_file=summary)
 
 
@@ -96,7 +97,7 @@ def build_tree(input, output, nt, fast, config):
     tree.build(input, output, nt, fast)
     
 
-def predict_subtypes(options, config, assignments):
+def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments):
     """Calls subtype method
 
     Wrapper around the Phylotyper.subtype method. Identifies
@@ -104,6 +105,9 @@ def predict_subtypes(options, config, assignments):
     file.
 
     Args:
+        treefile (str): Filepath to newick tree
+        subtypefile (str): Filepath to tab-delim subtype assignments for leaves in tree
+        plotfile (str|False): If provided, filepath to probability plot
         options (dict): user defined settings from __main__
         config (obj): PhylotyperConfig with .ini file settings
 
@@ -111,18 +115,9 @@ def predict_subtypes(options, config, assignments):
 
     logger.debug('Running phylotyper')
 
-    # Define files
-    subtfile = options['subtype']
-    treefile = options['tree_file']
-
     pt = Phylotyper(config)
 
-    assignment_dict = pt.subtype(treefile, subtfile, options['output_directory'], options['posterior_probability_plot'])
-
-    # Load mapping
-    rev_mapping = {}
-    for x in csv.reader(open(options['mapping_file'],'r'), delimiter='\t'):
-        rev_mapping[x[1]] = x[0]
+    assignment_dict = pt.subtype(treefile, subtypefile, options['rate_matrix'], plotfile)
 
     # Compute assignments
     cutoff = float(config.get('phylotyper','prediction_threshold'))
@@ -133,12 +128,12 @@ def predict_subtypes(options, config, assignments):
         pp = subtup[1]
         subt = ','.join(subtup[0])
 
-        pred = 'undetermined'
+        pred = 'non-significant/undetermined'
         if pp > cutoff:
             pred = subt
         
         assignments.append([
-            rev_mapping[genome_id],
+            genome_id,
             subt,
             str(pp),
             pred
@@ -162,7 +157,7 @@ def print_results(options, assignments):
 
     logger.debug('Writing results')
 
-    assfile = options['result_file']
+    assfile = options['result']
     mode = 'w'
     with open(assfile, mode) as outf:
         
@@ -190,30 +185,22 @@ def subtype_pipeline(options, config):
     global logger
     logger = logging.getLogger('phylotyper.main')
 
-
     # Define files
     genome_search = False
     if 'genomes' in options:
         options['input'] = os.path.join(options['output_directory'], 'loci.fasta')
         genome_search = True
-    alnfile = os.path.join(options['output_directory'], 'combined.aln')
-    options['profile_alignment'] = alnfile
+
     refalnfile = options['alignment']
-    treefile = os.path.join(options['output_directory'], 'combined.tree')
-    options['tree_file'] = treefile
-    options['result_file'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
-    if not options['noplots']:
-        options['posterior_probability_plot'] = os.path.join(options['output_directory'], 'posterior_probability_tree.png')
-    else:
-        options['posterior_probability_plot'] = False
-    summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
+    subtypefile = options['subtype']
+    options['result'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
     if genome_search:
         # Identify loci in input genomes
-        seqtype = 'prot' if options.aa else 'nucl'
+        seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
         detector = LociSearch(config, options['search_database'], None, seqtype)
 
         for genome in options['genomes']:
@@ -223,24 +210,31 @@ def subtype_pipeline(options, config):
     assignments = [] # Phylotyper subtype assignments
 
     # Check if sequences match known subtyped sequences
-    # Otherwise. rename sequences with unique ids, change input files
+    # Otherwise, prepare input files
     num_remaining = prep_sequences(options, assignments)
 
     # Run phylotyper on remaining untyped input sequences
-    if num_remaining > 0:    
+    if num_remaining > 0:
 
-        # Align
-        align_new_sequences(options['input'], refalnfile, summary, alnfile, config)
+        for i in xrange(num_remaining):
+            infile = options['input'][i]
+            summary = os.path.join(options['output_directory'], 'alignment_trimming_summary_{}.html'.format(i))
+            treefile = options['tree'][i]
+            alnfile = options['profile_alignment'][i]
+            plotfile = options['posterior_probability_plot'][i] if options['posterior_probability_plot'] else False
 
-        # Compute tree
-        nt = options['seq'] == 'nt'
-        build_tree(alnfile, treefile, nt, options['fast'], config)
+            # Align
+            align_new_sequences(infile, refalnfile, summary, alnfile, config)
 
-        # Predict subtypes & write to file
-        predict_subtypes(options, config, assignments)
+            # Compute tree
+            nt = options['seq'] == 'nt'
+            build_tree(alnfile, treefile, nt, options['fast'], config)
 
-    if write_results:
-        print_results(options, assignments)
+            # Predict subtypes & write to file
+            predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments)
+
+    
+    print_results(options, assignments)
 
     return assignments
 
@@ -263,7 +257,7 @@ def evaluate_subtypes(options, config, seqdict):
 
     # Define files
     subtfile = options['subtype']
-    treefile = options['tree_file']
+    treefile = options['tree']
     ratematfile = options['rate_matrix'] 
 
     pt = Phylotyper(config)
@@ -290,12 +284,12 @@ def build_pipeline(options, config):
 
     alnfiles = options['alignment']
     tmpfiles = []
-    for i in xrange(len(options['alignment'])):
+    for i in xrange(options['nloci']):
         alnfile = os.path.basename(options['alignment'][i])
         tmpfiles.append(os.path.join(options['output_directory'], '{}.tmp{}'.format(alnfile, i)))
 
     tmpfile = os.path.join(options['output_directory'], 'tmpsuperaln.fasta')
-    treefile = options['tree_file'] = os.path.join(options['output_directory'], 'test.tree')
+    treefile = options['tree'] = os.path.join(options['output_directory'], 'test.tree')
     summary = os.path.join(options['output_directory'], 'alignment_trimming_summary.html')
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
@@ -352,9 +346,15 @@ def prep_sequences(options, identified):
     logger.debug('Checking sequence names')
 
     # Define files
-    output_file = os.path.join(options['output_directory'], 'input.fasta')
+    input_files = []
+    tree_files = []
+    aln_files = []
     input_file = options['input']
-
+    options['posterior_probability_plot'] = do_plots = False
+    if not options['noplots']:
+        options['posterior_probability_plot'] = []
+        do_plots = True
+   
     # Load lookup object
     lookup = SeqDict()
     lookup.load(options['lookup'])
@@ -366,41 +366,54 @@ def prep_sequences(options, identified):
 
     i = 0
     fasta_sequences = SeqIO.parse(open(input_file, 'r'),'fasta')
-    with open(output_file, 'w') as outf:
-        for fasta in fasta_sequences:
-            name, sequence = fasta.id, str(fasta.seq)
-            desc = fasta.description[0:20]
+    for fasta in fasta_sequences:
+        name, sequence = fasta.id, str(fasta.seq)
+        desc = fasta.description[0:20]
 
-            found = lookup.find(sequence)
+        found = lookup.find(sequence)
 
-            if found:
-                subt = found['subtype']
-                hit = found['name']
-                identified.append([
-                    name,
-                    subt,
-                    'identical to {}'.format(hit),
-                    subt
-                    ])
+        if found:
+            subt = found['subtype']
+            hit = found['name']
+            identified.append([
+                name,
+                subt,
+                'identical to {}'.format(hit),
+                subt
+                ])
 
-            else:
-                # Check name will be ok for tree building
-                # and alignment programs
-                if len(name) > 20:
-                    raise Exception("Invalid fasta file: {} id in header is too long".format(desc))
+        else:
+            # Check name will be ok for tree building
+            # and alignment programs
+            name = re.sub(r'^lcl\|', '', name)
+            name = name.replace('|','-')
 
-                if uniq[name] > 0:
-                    raise Exception("Invalid fasta file: {} id in header is not unique".format(desc))
-                uniq[name] += 1
+            if len(name) > 40:
+                raise Exception("Invalid fasta file: {} id in header is too long".format(desc))
 
-                if any((c in reserved) for c in name):
-                    raise Exception("Invalid fasta file: invalid character in header {}".format(desc))
-            
+            if uniq[name] > 0:
+                raise Exception("Invalid fasta file: {} id in header is not unique".format(desc))
+            uniq[name] += 1
+
+            if any((c in reserved) for c in name):
+                raise Exception("Invalid fasta file: invalid character in header {}".format(desc))
+        
+            # Save file names
+            if do_plots:
+                options['posterior_probability_plot'].append(os.path.join(options['output_directory'], 
+                    '{}_posterior_probability_tree.png'.format(name)))
+            aln_files.append(os.path.join(options['output_directory'], '{}_alignment.fasta'.format(name)))
+            tree_files.append(os.path.join(options['output_directory'], '{}_tree.newick'.format(name)))
+            infile = os.path.join(options['output_directory'],'{}.fasta'.format(name))
+            input_files.append(infile)
+            with open(infile, 'w') as outf:
                 outf.write('>%s\n%s\n' % (name, sequence))
-                i += 1
+            i += 1
 
-        options['input'] = output_file
-        options['user_input'] = input_file
+        options['input'] = input_files
+        options['tree'] = tree_files
+        options['profile_alignment'] = aln_files
+        options['loci'] = input_file
 
     return(i)
 
@@ -433,7 +446,7 @@ def check_gene_names(options):
         name = fasta.id
         desc = fasta.description[0:20]
 
-        if len(name) > 30:
+        if len(name) > 40:
             raise Exception(msg1+"{} id in header is too long".format(desc))
 
         if uniq[name] > 0:
@@ -496,7 +509,7 @@ if __name__ == "__main__":
 
     """
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
    
     # Parse command-line args
     # Phylotyper functions are broken up into commands
@@ -590,13 +603,13 @@ if __name__ == "__main__":
 
         # Create subtype directory & file names
         subtype_options = stConfig.create_subtype(options.gene, n_loci, options.aa)
-        #subtype_options = stConfig.get_subtype_config(options.gene)
 
         # Save additional build options inputted by user
         subtype_options['input'] = [os.path.abspath(f) for f in options.ref]
         subtype_options['subtype_orig'] = os.path.abspath(options.subtype)
         subtype_options['output_directory'] = outdir
         subtype_options['nloci'] = n_loci
+
         subtype_options['fast'] = False
 
         # Run pipeline

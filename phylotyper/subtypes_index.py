@@ -49,9 +49,7 @@ class SubtypeConfig(object):
             yamlfile (str): Location of YAML config file
             
         """
-
-        print yamlfile
-
+        
         if not yamlfile:
             raise Exception("Missing config file")
 

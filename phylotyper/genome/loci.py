@@ -292,13 +292,13 @@ class LociSearch(object):
                             coverage = alen / slen
 
                             addr = self.locad(blast_record.query, hsp.query_start, hsp.query_end)
-                            self.logger.debug('Hit {} location: {}, length: {}, subject length:{}, coverage: {}, identities:{}, percent identity:{}'.format(
-                                subject, addr, alen, slen, int(coverage*100), hsp.identities, int(pident*100)))
+                            # self.logger.debug('Hit {} location: {}, length: {}, subject length:{}, coverage: {}, identities:{}, percent identity:{}'.format(
+                            #     subject, addr, alen, slen, int(coverage*100), hsp.identities, int(pident*100)))
 
                             if coverage > self._alignment_coverage and pident > self._percent_identity:
                                 # Found one, save it if its a new loci
 
-                                self.logger.debug('Found loci {}'.format(addr))
+                                #self.logger.debug('Found loci {}'.format(addr))
 
                                 if not addr in loci[loci_set]:
 

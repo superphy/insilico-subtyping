@@ -65,12 +65,13 @@ class NewTests(unittest.TestCase):
             raise Exception(msg)
 
         # Create subtype directory & file names
-        subtype_options = stConfig.create_subtype(scheme, aa)
+        subtype_options = stConfig.create_subtype(scheme, 1, aa)
 
         # Save additional build options
         subtype_options['input'] = [os.path.abspath(inpu)]
         subtype_options['subtype_orig'] = os.path.abspath(subt)
         subtype_options['output_directory'] = self.test_dir
+        subtype_options['nloci'] = 1
         subtype_options['fast'] = False
 
         self.configObj = config
@@ -119,7 +120,7 @@ class NewTests(unittest.TestCase):
 
         # Check output files
         filepaths = self.subtypeOptionsObj.get_subtype_config(self.scheme)
-        fasta = SeqIO.index(filepaths['alignment'], 'fasta')
+        fasta = SeqIO.index(filepaths['alignment'][0], 'fasta')
 
         with open(filepaths['subtype']) as f:
             for i, l in enumerate(f):
@@ -143,7 +144,7 @@ class NewTests(unittest.TestCase):
 
         # Check output files
         filepaths = self.subtypeOptionsObj.get_subtype_config(self.scheme)
-        fasta = SeqIO.index(filepaths['alignment'], 'fasta')
+        fasta = SeqIO.index(filepaths['alignment'][0], 'fasta')
 
         with open(filepaths['subtype']) as f:
             for i, l in enumerate(f):
@@ -212,12 +213,13 @@ class NewTestsMultiLoci(unittest.TestCase):
             raise Exception(msg)
 
         # Create subtype directory & file names
-        subtype_options = stConfig.create_subtype(scheme, aa)
+        subtype_options = stConfig.create_subtype(scheme, 2, aa)
 
         # Save additional build options
         subtype_options['input'] = [ os.path.abspath(i) for i in inpu ]
         subtype_options['subtype_orig'] = os.path.abspath(subt)
         subtype_options['output_directory'] = self.test_dir
+        subtype_options['nloci'] = 2
         subtype_options['fast'] = False
 
         self.configObj = config
@@ -279,6 +281,7 @@ class NewTestsMultiLoci(unittest.TestCase):
         self.assertEqual(lengths[0]+lengths[1], lengths[2])
 
 
+    ## TODO Add test for new multi amino acid/dna 
 
 class SubtypeIndexTests(unittest.TestCase):
 
@@ -303,8 +306,8 @@ class SubtypeIndexTests(unittest.TestCase):
     def testCreate1(self):
         # Test creation of options for new subtype scheme
         sc = SubtypeConfig(self.yamlfile)
-        options = sc.create_subtype('test_gene',False)
-        keys = ['alignment','subtype','lookup','seq']
+        options = sc.create_subtype('test_gene',1,False)
+        keys = ['rate_matrix','search_database', 'alignment','subtype','lookup','seq']
         self.assertTrue(all(k in options for k in keys))
 
 
@@ -317,13 +320,20 @@ class SubtypeIndexTests(unittest.TestCase):
         # Test creation of directory for new subtype scheme
         scheme = 'test_gene'
         pre = SubtypeConfig(self.yamlfile)
-        pre_options = pre.create_subtype(scheme,False)
+        pre_options = pre.create_subtype(scheme,1,False)
         pre.save()
         
         # Create files
-        paths = ['alignment','subtype','lookup']
+        paths = ['rate_matrix','subtype','lookup']
         for p in paths:
             touch(os.path.join(self.root_dir, pre_options[p]))
+
+        # Multiple alignment files
+        for f in pre_options['alignment']:
+            touch(os.path.join(self.root_dir, f))
+
+        # Blast files
+        touch(os.path.join(self.root_dir, pre_options['search_database']+'.psq'))
 
         post = SubtypeConfig(self.yamlfile)
         post_options = post.get_subtype_config(scheme)

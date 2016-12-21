@@ -51,7 +51,7 @@ class Phylotyper(object):
         }
 
 
-    def subtype(self, tree, subtypes, output_dir, plot_name='posterior_probability_tree.png'):
+    def subtype(self, tree, subtypes, rate_matrix, plot_name='posterior_probability_tree.png'):
     	"""Run phylotyper subtyping method
 
         Wrapper around the phylotyper.R functions. Calls
@@ -61,8 +61,8 @@ class Phylotyper(object):
         Args:
             tree (str): Filepath to newick tree containing both typed & untyped genes
             subtypes (str): Filepath to tab-delimited subtype assignments for typed genes
-            output_dir (str): Filepath to output directory
-            noplots (bool): Generate png images of tree
+            rate_matrix (str): Filepath to R-serialized rate matrix
+            plot_name (str|false): If provided, tree saved as png image to this file
 
         Returns:
             assignments (dict): Each untyped gene key will contain a tuple with:
@@ -89,12 +89,16 @@ class Phylotyper(object):
         untyped = robjects.r('untyped')
         self.logger.debug('phylotyper.R detected the following genes have no subtype: %s' % (','.join(untyped)))
 
+        # Load rate matrix saved during build procedure
+        rcode = 'Q = readRDS("{}")'.format(rate_matrix)
+        robjects.r(rcode)
+
         # Make prior matrix
         rcode = 'priorR = phylotyper$makePriors(tree, subtypes); priorM = priorR$prior.matrix'
         robjects.r(rcode)
        
         # Run subtype procedure
-        rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped)'
+        rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped, fixedQ=Q)'
         robjects.r(rcode)
 
         # Write subtype predictions
@@ -293,6 +297,7 @@ class Phylotyper(object):
         robjects.r(rcode)
         bestmodel = tuple(robjects.r('bestmodel'))[0]
         bestfscore = tuple(robjects.r('bestfscore'))[0]
+        print robjects.r('showdown')
 
         self.logger.info("The rate matrix model with highest accuracy is {}. Its associated F1-score: {}".format(bestmodel, bestfscore))
 

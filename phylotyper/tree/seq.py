@@ -33,7 +33,6 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "mwhiteside@canada.ca"
 
 
-
 class SeqDict(object):
     """Library of non-redundant set of sequences for quick lookup
 
