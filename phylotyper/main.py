@@ -19,7 +19,7 @@ import os
 import pprint
 import re
 from Bio import SeqIO
-from collections import Counter
+from collections import Counter, namedtuple
 
 from config import PhylotyperOptions
 from genome.loci import LociSearch
@@ -27,7 +27,7 @@ from subtypes_index import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
-from tree.seq import SeqDict
+from tree.seq import SeqDict, AlleleID
 
 
 __author__ = "Matthew Whiteside"
@@ -428,77 +428,127 @@ def check_gene_names(options):
 
     logger.debug('Checking gene sequence names')
 
-  
     # Define files
     subtype_file = options['subtype_orig']
     input_files = iter(options['input'])
 
     # Check first fasta file
+    i = 0
     input_file = next(input_files)
     fasta_sequences = SeqIO.parse(open(input_file),'fasta')
-    msg1 = 'Invalid fasta file: '
-    msg2 = 'Invalid subtype file: '
-
+    
     uniq = Counter()
-    reserved = set(':(), ') # Newick reserve characters
-
+    genomes = Counter()
+    
     for fasta in fasta_sequences:
         name = fasta.id
         desc = fasta.description[0:20]
 
-        if len(name) > 40:
-            raise Exception(msg1+"{} id in header is too long".format(desc))
+        allele = validate_fasta_header(name)
 
-        if uniq[name] > 0:
-            raise Exception(msg1+"{} id in header is not unique".format(desc))
-        uniq[name] += 1
-
-        if any((c in reserved) for c in name):
-            raise Exception(msg1+"invalid character in header {}".format(desc))
+        genomes[allele.genome] = i
+        if uniq[str(allele)] > 0:
+            raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele))
+        uniq[str(allele)] += 1
 
     fasta_sequences.close()
 
     # Check subtype file
+    i += 1
+    reserved = set(':(), ') # Newick reserved characters
     for row in csv.reader(open(subtype_file,'r'),delimiter='\t'):
         name = row[0]
         subt = row[1]
 
         if any((c in reserved) for c in subt):
-            raise Exception(msg+"invalid character in subtype {}".format(subt))
+            raise Exception("invalid character in subtype {}".format(subt))
 
         if len(subt) > 20:
-            raise Exception(msg2+"{} subtype name is too long".format(subt))
+            raise Exception("{} subtype name is too long".format(subt))
 
-        if uniq[name] != 1:
-            raise Exception(msg2+"unknown gene {}".format(name))
+        if genomes[name] != 1:
+            raise Exception("unknown genome {} in subtype file".format(name))
+        genomes[name] = i
 
-        uniq[name] += 1
-
-
-    for name in uniq:
-        if uniq[name] != 2:
-            raise Exception(msg2+"missing gene {}".format(name))
+    for name in genomes:
+        if genomes[name] != 2:
+            raise Exception("missing genome {} in subtype file".format(name))
 
     # Check remaining input files
-    i = 2
     for input_file in input_files:
         fasta_sequences = SeqIO.parse(open(input_file),'fasta')
-
+        uniq = Counter()
+        i += i
         for fasta in fasta_sequences:
-            name = fasta.id
+            allele = validate_fasta_header(fasta.id)
 
-            if not name in uniq:
-                raise Exception(msg1+"unknown gene {} in file {}".format(name, input_file))
+            if uniq[str(allele)] > 0:
+                raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele))
+            uniq[str(allele)] += 1
 
-            uniq[name] += 1
+            if not name.genome in genomes:
+                raise Exception("unknown genome {} in file {}".format(allele.genome, input_file))
+            genomes[name.genome] = i
 
-        i += 1
-        for name in uniq:
-            if uniq[name] != i:
-                raise Exception(msg2+"missing gene {} in file {}".format(name, input_file))
+        for genome in genomes:
+            if genomes[genome] != i:
+                raise Exception("missing genome entry {} in file {}".format(genome, input_file))
 
 
     return True
+
+
+def parse_fasta_id(id):
+    """Extract Genome and gene identifier fasta header
+
+    From the ID component of a fasta header, determine
+    for a particular genome copy, whether there is multiple 
+    alleles of a gene in the genome.  Format is:
+
+        >[lcl|]genome|allele
+
+        Args:
+            id (str): Fasta ID
+
+        Returns:
+            AlleleID namedtuple
+
+    """
+
+    # Remove database id
+    id = re.sub(r'^(?:lcl)|(?:gi)\|', '', id)
+
+    # Extract genome and gene Ids if they exist
+    parts = re.split('|', id, maxsplit=1)
+
+    return AlleleID(parts)
+
+
+def validate_fasta_header(name):
+    """Check that fasta header is suitable for phylotyper downstream
+    applications. 
+        
+        Args:
+            id (str): Fasta ID check
+
+        Returns:
+            AlleleID namedtuple
+
+        Raises:
+            Exception if format unsuitable
+
+    """
+
+
+    reserved = set(':(), ') # Newick reserved characters
+
+    if len(name) > 40:
+        raise Exception("{} id in fasta header is too long".format(name))
+
+    if any((c in reserved) for c in name):
+        raise Exception("invalid character in fasta header id {}".format(desc))
+
+    return parse_fasta_id(name)
 
 
 if __name__ == "__main__":

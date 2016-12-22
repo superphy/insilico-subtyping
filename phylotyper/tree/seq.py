@@ -327,7 +327,7 @@ class LociConcat(object):
     def collapse(self, inputs, fasta_filepath=None):
         """Concatenate loci from mulitple fasta files
 
-        Returns dict indexed by fasta ID containg supersequences.
+        Returns dict indexed by genome ID containg supersequences.
         Optionally, writes to fasta file.
 
         Args:
@@ -406,5 +406,17 @@ class LociConcat(object):
         return sequences
 
 
+# Factory for AlleleID class
+# Stores genome and allele ID components
+class AlleleID(namedtuple('AlleleID', ['genome', 'allele'])):
+    __slots__ = ()
+    def __new__(cls, genome, allele=None):
+        # add default values
+        return super(AlleleID, cls).__new__(cls, genome, allele)
+    @property
+    def __str__(self):
+        # String
+        allele = '|'+self.allele if self.allele else ''
+        return '{}{}'.format(self.genome, allele)
 
 
