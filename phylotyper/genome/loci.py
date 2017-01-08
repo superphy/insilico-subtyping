@@ -38,7 +38,7 @@ class LociSearch(object):
 
     """
     
-    def __init__(self, config, database, inputs, sequence_type):
+    def __init__(self, config, database, inputs, sequence_type, n_loci):
         """Constructor
 
         Either a pre-existing blast database or one or more loci fasta files are required as arguments.
@@ -50,6 +50,7 @@ class LociSearch(object):
             database (str): Blast database location
             inputs (list): Filepaths to fasta sequences.
             sequence_type (str): nucl or prot
+            n_loci (int): Number of individual alleles in database
 
         Returns:
             None
@@ -62,6 +63,11 @@ class LociSearch(object):
             self.seqtype = sequence_type
         else:
             raise Exception('Invalid sequence_type argument {}'.format(sequence_type))
+
+        if n_loci is None:
+            raise Exception('Missing n_loci argument')
+        else:
+            self.nloci = n_loci
 
         self._db_title = 'Phylotyper Blast Database v1'
         self._db_prefix = 'ptloci'
@@ -110,6 +116,8 @@ class LociSearch(object):
 
 
         if inputs:
+            if len(inputs) != n_loci:
+                raise Exception('Missing input fasta file for specified number of loci')
             self.make_db(inputs)
         
         self.load_db(database)
@@ -218,7 +226,7 @@ class LociSearch(object):
 
         Args:
             genome (str): Filepath to input fasta sequence
-            output (str): Filepath for fasta output
+            output (str|list): Filepaths for fasta output for each loci in database
             append (bool): False = overwrite output file
             fasta_prefix (str): All fasta headers in output will start with this
 
@@ -228,6 +236,13 @@ class LociSearch(object):
 
         loci = {}
         locations = defaultdict(list)
+
+        if isinstance(output, str):
+            output = [output]
+
+        if len(output) != self.nloci:
+            raise Exception('Missing output file. Need {} files for each loci.'.format(self.nloci))
+
 
         if not fasta_prefix:
             # If an output fasta header ID prefix is not provided
@@ -334,37 +349,24 @@ class LociSearch(object):
                     loci_hits = ','.join(new_loci[ls].keys())
                     self.logger.info("{} hits found for loci {} after filtering overlapping hits\n\t({})".format(len(new_loci[ls]), ls, loci_hits))
 
-                # Concatenate loci sets
-                loci_sequences = self.concatenate(new_loci.keys(), new_loci)
-
-                # Output
+                # Output hits for each loci set in individual files
+                loci_sets = new_loci.keys()
+                if len(loci_sets) > len(output):
+                    raise Exception('Number of discovered loci ({}) is greater than number of output files ({})'.format(len(loci_sets), len(output)))
                 mode = 'w'
                 if append:
                     mode = 'a'
 
-                nloci = 1
-                with open(output, mode) as outfh:
-                    for s in loci_sequences:
-                        outfh.write("\n>{}loci{} {}\n{}".format(fasta_prefix, nloci, s[0], s[1]))
-                        nloci += 1
+                locus = 0
+                for ls in loci_sets:
+                    genome_copy = 1
+                    outp = output[locus]
+                    with open(outp, mode) as outfh:
+                        for h,s in new_loci[ls].iteritems():
+                            outfh.write("\n>{}pt_allele{} {}\n{}".format(fasta_prefix, genome_copy, h, s))
+                            genome_copy += 1
 
-
-    def concatenate(self, loci_sets, loci):
-        # Generate all combinations of loci set hits
-
-        ls = loci_sets.pop()
-
-        if not loci_sets:
-            return loci[ls].iteritems()
-
-        else:
-            seqs = self.concatenate(loci_sets, loci)
-            newseqs = []
-            for k,v in loci[ls].iteritems():
-                for s in seqs:
-                    newseqs.append((k+','+s[0],v+s[1]))
-
-            return newseqs
+                    locus += 1
 
 
     def locad(self, contig, start, stop):

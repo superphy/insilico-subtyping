@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import tempfile
@@ -5,10 +6,11 @@ import unittest
 from Bio import SeqIO
 
 from phylotyper.config import PhylotyperOptions
-from phylotyper.main import build_pipeline
+from phylotyper.main import build_pipeline, check_gene_names
 from phylotyper.subtypes_index import SubtypeConfig
 from phylotyper.tree.seq import SeqDict
 from phylotyper.tree.seqaligner import SeqAligner
+
 
 class NewTests(unittest.TestCase):
 
@@ -340,7 +342,137 @@ class SubtypeIndexTests(unittest.TestCase):
 
         self.assertEqual(pre_options, post_options)
 
-   
+
+class PipelineTests(unittest.TestCase):
+
+    def setUp(self):
+        # Create temporary directory
+        sandbox = os.path.abspath(os.path.join(os.path.dirname(__file__),'sandbox'))
+        self.root_dir = os.path.abspath(tempfile.mkdtemp(dir=sandbox))
+
+        # Set up logger
+        logging.basicConfig(level=logging.DEBUG)
+
+
+    def tearDown(self):
+        # Remove previous directories created
+        shutil.rmtree(self.root_dir)
+
+    def testCheckNames1(self):
+
+        # Write input files for check
+        options = {
+            'subtype_orig': os.path.join(self.root_dir, 'test_subtype.csv'),
+            'input': [os.path.join(self.root_dir, 'test_input1.fasta'),
+                os.path.join(self.root_dir, 'test_input2.fasta')]
+        }
+
+        with open(options['subtype_orig'], 'w') as outfh:
+            outfh.write('genome1\tsubtype1\n')
+            outfh.write('genome2\tsubtype1')
+
+        with open(options['input'][0], 'w') as outfh:
+            outfh.write('>lcl|genome1|allele1\nACGT\n');
+            outfh.write('>lcl|genome1|allele2\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+
+        with open(options['input'][1], 'w') as outfh:
+            outfh.write('>genome1|allele1\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+
+        self.assertTrue(check_gene_names(options))
+
+
+    def testCheckNames2(self):
+
+        # Write input files for check
+        options = {
+            'subtype_orig': os.path.join(self.root_dir, 'test_subtype.csv'),
+            'input': [os.path.join(self.root_dir, 'test_input1.fasta'),
+                os.path.join(self.root_dir, 'test_input2.fasta')]
+        }
+
+        with open(options['subtype_orig'], 'w') as outfh:
+            outfh.write('genome1\tsubtype1\n')
+           
+        with open(options['input'][0], 'w') as outfh:
+            outfh.write('>lcl|genome1|allele1\nACGT\n');
+            outfh.write('>lcl|genome1|allele2\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+            
+
+        with open(options['input'][1], 'w') as outfh:
+            outfh.write('>genome1|allele1\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+
+        with self.assertRaises(Exception) as context:
+            check_gene_names(options)
+
+        errmsg = 'missing genome {} in subtype file'.format('genome2')
+        self.assertTrue(errmsg in str(context.exception))
+
+    def testCheckNames3(self):
+
+        # Write input files for check
+        options = {
+            'subtype_orig': os.path.join(self.root_dir, 'test_subtype.csv'),
+            'input': [os.path.join(self.root_dir, 'test_input1.fasta'),
+                os.path.join(self.root_dir, 'test_input2.fasta')]
+        }
+
+        with open(options['subtype_orig'], 'w') as outfh:
+            outfh.write('genome1\tsubtype1\n')
+            outfh.write('genome2\tsubtype2\n')
+            outfh.write('genome3\tsubtype2\n')
+           
+        with open(options['input'][0], 'w') as outfh:
+            outfh.write('>lcl|genome1|allele1\nACGT\n');
+            outfh.write('>lcl|genome1|allele2\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+            outfh.write('>genome3|allele\nAAA\n');
+
+        with open(options['input'][1], 'w') as outfh:
+            outfh.write('>genome1|allele1\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+
+        with self.assertRaises(Exception) as context:
+            check_gene_names(options)
+
+        errmsg = 'missing genome entry {}'.format('genome3')
+        self.assertTrue(errmsg in str(context.exception))
+
+
+    def testCheckNames4(self):
+
+        # Write input files for check
+        options = {
+            'subtype_orig': os.path.join(self.root_dir, 'test_subtype.csv'),
+            'input': [os.path.join(self.root_dir, 'test_input1.fasta'),
+                os.path.join(self.root_dir, 'test_input2.fasta')]
+        }
+
+        with open(options['subtype_orig'], 'w') as outfh:
+            outfh.write('genome1\tsubtype1\n')
+            outfh.write('genome2\tsubtype2\n')
+            outfh.write('genome3\tsubtype2\n')
+           
+        with open(options['input'][0], 'w') as outfh:
+            outfh.write('>lcl|genome1|allele1\nACGT\n');
+            outfh.write('>lcl|genome1|allele2\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+            outfh.write('>genome2\nAAA\n');
+
+        with open(options['input'][1], 'w') as outfh:
+            outfh.write('>genome1|allele1\nACGT\n');
+            outfh.write('>genome2\nACGT\n');
+
+        with self.assertRaises(Exception) as context:
+            check_gene_names(options)
+
+        errmsg = 'is not unique'
+        self.assertTrue(errmsg in str(context.exception))
+
+
 
 def main():
     unittest.main()

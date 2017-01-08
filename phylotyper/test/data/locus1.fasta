@@ -1,0 +1,10 @@
+>lcl|genome1|allele1
+ATGC
+>lcl|genome1|allele5
+ATGG
+>gi|genome2
+ATGC
+>genome3|allele1 contig1:1-4
+ATGC
+>genome4
+ATGC

@@ -1,0 +1,12 @@
+>lcl|genome1|allele3
+AA
+>lcl|genome1|allele4
+AT
+>gi|genome2
+TT
+>genome3|allele3 contig2:1-2
+CC
+>genome3|allele4 contig2:3-4
+CG
+>genome4
+GG

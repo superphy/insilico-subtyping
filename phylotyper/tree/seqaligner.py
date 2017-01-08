@@ -150,47 +150,88 @@ class SeqAligner(object):
         None
 
 
-    def trim(self, alignment_file, trimmed_file, ident_matrix_file=False, 
-        trimming_summary_file=False):
+    def trim(self, alignment_files, trimmed_files, 
+        trimming_summary_files=False, ident_matrix_files=False):
         """Trim alignment using external program trimal
 
         Args:
-            alignment_file (str): Filepath to aligned fasta file
-            trimmed_file (str): Filepath for output with trimmed alignment
-            ident_matrix_file(str)[OPTIONAL]: Filepath for output figure 
-                showing pairwise sequence identities
-            trimming_summary_file(str)[OPTIONAL]: Filepath for HTML output showing trimmed 
+            alignment_files (str|list): Filepath to aligned fasta file
+            trimmed_files (str|list): Filepath for output with trimmed alignment
+            trimming_summary_files (str|list)[OPTIONAL]: Filepath for HTML output showing trimmed 
                 alignment columns
+            ident_matrix_files (str|list)[OPTIONAL]: Filepath for output figure 
+                showing pairwise sequence identities
 
         Returns:
             None
 
         """
+        ident_matrix = False
+        summary = False
 
-        cmd_args = self.trim_args
-        output_args = "{} {}".format(self.trim_output_args, trimmed_file)
-        cmd = "{} {} {} {}".format(self.trimmer, cmd_args, alignment_file, 
-            output_args)
+        iterables = []
+        if alignment_files is str:
+            alignment_files = [alignment_files]
+        iterables.append(alignment_files)
 
-        if trimming_summary_file:
-            cmd += " {} {}".format(self._trimal_args['html'], trimming_summary_file)
+        if trimmed_files is str:
+            trimmed_files = [trimmed_files]
+        if len(trimmed_files) != len(alignment_files):
+            raise Exception("List of 'trimmed_file' contains incorrect number of files ({} provided, {} expeced)."
+                .format(len(trimmed_files), len(alignment_files)))
+        iterables.append(trimmed_files)
 
-        if ident_matrix_file:
-            # Output to stdout
-            cmd += " {} > {}".format(self._trimal_args['matrix'], ident_matrix_file)
+        if trimming_summary_files is str:
+            trimming_summary_files = [trimming_summary_files]
+            if len(trimming_summary_files) != len(alignment_files):
+                raise Exception("List of 'trimming_summary_files' contains incorrect number of files ({} provided, {} expeced)."
+                    .format(len(trimming_summary_files), len(alignment_files)))
+            iterables.append(trimming_summary_files)
+            summary = True
 
-        #print cmd
 
-        try:
-            check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
-        except CalledProcessError as e:
-            msg = "Alignment trimming failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
-            raise Exception(msg)
+        if ident_matrix_files:
+            if ident_matrix_files is str:
+                ident_matrix_files = [ident_matrix_files]
+            if len(ident_matrix_files) != len(alignment_files):
+                raise Exception("List of 'ident_matrix_files' contains incorrect number of files ({} provided, {} expeced)."
+                    .format(len(ident_matrix_files), len(alignment_files)))
+            iterables.append(iterables)
+            ident_matrix = True
+
+
+        for fileset in zip(iterables):
+            alignment_file = fileset[0]
+            trimmed_file = fileset[1]
+
+            cmd_args = self.trim_args
+            output_args = "{} {}".format(self.trim_output_args, trimmed_file)
+            cmd = "{} {} {} {}".format(self.trimmer, cmd_args, alignment_file, 
+                output_args)
+
+            if summary:
+                trimming_summary_file = fileset[2]
+                cmd += " {} {}".format(self._trimal_args['html'], trimming_summary_file)
+
+            if ident_matrix:
+                # Output to stdout
+                ident_matrix_file = fileset[2]
+                if summary:
+                    ident_matrix_file = fileset[3]
+                cmd += " {} > {}".format(self._trimal_args['matrix'], ident_matrix_file)
+
+            #print cmd
+
+            try:
+                check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+            except CalledProcessError as e:
+                msg = "Alignment trimming failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+                raise Exception(msg)
 
         None
 
     
-    def madd(self, fasta_files, existing_alignment_files, output_alignment_file):
+    def madd(self, fasta_files, existing_alignment_files, output_files):
         """Add new sequences to multiple existing alignments
 
         Individual alignments are concatenated and output in single file.
@@ -198,23 +239,15 @@ class SeqAligner(object):
         Args:
             fasta_files (list): Filepath to input fasta file
             existing_alignment_files (list): Filepath to aligned fasta file
-            output_alignment_file (str): Filepath for superalignment
+            output_files (str): Filepath for superalignment
 
         Returns:
             None
 
         """
 
-        # Tmp outputs
-        individual_outputs = []
-        for i in xrange(len(fasta_files)):
-            individual_outputs.append('{}.tmp{}'.format(output_alignment_file, i))
-
-        for ff, af, of in zip(fasta_files, existing_alignment_files, individual_outputs):
+        for ff, af, of in zip(fasta_files, existing_alignment_files, output_files):
             self.add(ff, af, of)
-
-        concat = LociConcat()
-        concat.collapse(individual_outputs, fasta_filepath=output_alignment_file)
 
         None
 

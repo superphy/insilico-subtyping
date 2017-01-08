@@ -23,7 +23,7 @@ import hashlib
 import json
 import re
 from Bio import SeqIO
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, namedtuple
 
 __author__ = "Matthew Whiteside"
 __copyright__ = "Copyright 2015, Public Health Agency of Canada"
@@ -327,7 +327,7 @@ class LociConcat(object):
     def collapse(self, inputs, fasta_filepath=None):
         """Concatenate loci from mulitple fasta files
 
-        Returns dict indexed by genome ID containg supersequences.
+        Returns dict indexed by genome ID containing supersequences.
         Optionally, writes to fasta file.
 
         Args:
@@ -342,24 +342,8 @@ class LociConcat(object):
 
         """
 
-        i = 0
-        uniq = Counter()
-        sequences = defaultdict(str)
-
-        for ff in inputs:
-            fasta = SeqIO.parse(ff, 'fasta')
-            for record in fasta:
-                name = record.id
-
-                uniq[name] += 1
-                sequences[name] += str(record.seq)
-
-
-            i += 1
-            for name in uniq:
-                if uniq[name] != i:
-                    raise Exception('Missing gene {} in file {}'.format(name, ff))
-
+        sequences = self.collect(inputs)
+        sequences = { genome: ''.join(sequences[genome]) for genome in sequences }
 
         if fasta_filepath:
             with open(fasta_filepath, 'w') as f:
@@ -380,30 +364,140 @@ class LociConcat(object):
         Returns:
             dict
 
+        Raises:
+            Exception when missing loci in a file
+
+        """
+
+        sequencesonly = {}
+        superseqs = self.load(inputs)
+        for genome in superseqs:
+            sequencesonly[genome] = [ s[1] for s in sequencesonly[genome] ]
+        
+        return sequencesonly
+
+
+    def load(self, inputs):
+        """Read loci from mulitple fasta files
+
+        Returns dict indexed by fasta ID containg list of loci sequences.
+        Tracks all individual allele fasta headers and sequences.
+       
+        Args:
+            inputs (list): Filepaths to fasta sequences.
+        
+        Returns:
+            dict of typing sequences
+
         Raise:
             Exception when missing loci in a file
 
         """
 
         i = 0
+        
+        sequences = defaultdict(TypingSequence)
         uniq = Counter()
-        sequences = defaultdict(list)
+        genomes = set()
 
+        # Load gene allele sequences into memory
+        # for each loci
         for ff in inputs:
+            
             fasta = SeqIO.parse(ff, 'fasta')
             for record in fasta:
-                name = record.id
+                name = LociConcat.parse_fasta_id(record.id)
 
-                uniq[name] += 1
-                sequences[name].append(str(record.seq))
+                # Record allele for this genome
+                sequences[name.genome].add(i, str(record.seq), str(record.description))
+                uniq[name.genome] = i
+
+                if i == 0:
+                    genomes.add(name.genome)
+                else:
+                    if not name.genome in genomes:
+                        raise Exception('Unknown fasta record for {} in file {}'.format(name, ff))
+
+            for name in uniq:
+                if uniq[name] != i:
+                    raise Exception('Missing fasta record for {} in file {}'.format(name, ff))
+
 
 
             i += 1
-            for name in uniq:
-                if uniq[name] != i:
-                    raise Exception('Missing gene {} in file {}'.format(name, ff))
- 
+
         return sequences
+        
+
+    # def combinations(self, loci_sets, loci):
+    #     """Generate all combinations of alleles for each of the loci sets
+
+    #     Returns dict indexed by genome name containg list of tuples. Each
+    #     tuple represents one allele combination. Tuples contain two lists:
+    #     1. Names of all concatenated loci in this combination
+    #     2. Sequences of all concatenated loci in this combination
+
+    #     Args:
+    #         loci_sets (list): Names of loci sets
+    #         loci (dict): dict of genome alleles 
+        
+    #     Returns:
+    #         dict
+
+    #     Raise:
+    #         Exception when missing loci in a file
+
+    #     """
+    #     # 
+
+    #     ls = loci_sets.pop()
+
+    #     if not loci_sets:
+    #         return loci[ls].iteritems()
+
+    #     else:
+    #         seqs = self.combinations(loci_sets, loci)
+    #         newseqs = defaultdict(list)
+    #         for genome, hits in loci[ls].iteritems():
+
+    #             # Genomes should have at least one copy in each loci set
+    #             if not genome in seqs:
+    #                 raise Exception('Genome {} missing loci {}'.format(genome, ls))
+
+    #             # Append all copies for this loci
+    #             for identifier, seq in hits.iteritems():
+    #                 for s in seqs[genome]:
+    #                     newseqs[genome].append((identifier+s[0],seq+s[1]))
+
+    #         return newseqs
+
+
+    @classmethod
+    def parse_fasta_id(cls, id):
+        """Extract Genome and gene identifier fasta header
+
+        From the ID component of a fasta header, determine
+        for a particular genome copy, whether there is multiple 
+        alleles of a gene in the genome.  Format is:
+
+            >[lcl|]genome|allele
+
+            Args:
+                id (str): Fasta ID
+
+            Returns:
+                AlleleID namedtuple
+
+        """
+
+        # Remove database id
+        id = re.sub(r'^(?:lcl\|)|(?:gi\|)', '', id)
+
+        # Extract genome and gene Ids if they exist
+        parts = re.split(r'\|', id, maxsplit=1)
+        
+        return AlleleID(*parts)
+
 
 
 # Factory for AlleleID class
@@ -413,10 +507,149 @@ class AlleleID(namedtuple('AlleleID', ['genome', 'allele'])):
     def __new__(cls, genome, allele=None):
         # add default values
         return super(AlleleID, cls).__new__(cls, genome, allele)
-    @property
     def __str__(self):
         # String
-        allele = '|'+self.allele if self.allele else ''
+        allele = '|'+str(self.allele) if self.allele else ''
         return '{}{}'.format(self.genome, allele)
 
 
+
+class TypingSequence(object):
+    """Stores supersequences for single genomes 
+
+    In phylotyper, multiple loci can be concatenated to form single typing sequence.
+    Genomes can have multiple copy of any one loci.  TypingSequence is a storage class
+    for managing this data for a genome.
+
+    """
+
+    def __init__(self):
+        """Constructor
+
+        Args:
+            None
+
+        """
+
+        self.alleles = []
+        self.positions = {}
+        self.nloci = 0
+        self.typing_sequences = [[]]
+       
+
+    def __iter__(self):
+        return iter(self.typing_sequences)
+
+
+    def __len__(self):
+        return len(self.typing_sequences)
+
+
+    def add(self, loci, sequence, header):
+        """Add allele for given loci
+
+        Either appends new loci to typing sequence,
+        or if this loci is already in sequence, splits
+        typing sequence into multiple instances for each
+        allele.
+
+        Args:
+            loci(str): Loci identifier
+            sequence(str): bio sequence string
+            header(str): Fasta header associated with this loci copy
+
+        Returns:
+            None
+
+        """
+
+        alleleid = len(self.alleles)
+        newallele = Allele(alleleid, sequence, header)
+        self.alleles.append(newallele)
+
+        if not isinstance(loci, str):
+            loci = str(loci)
+
+        if not loci in self.positions:
+            # Adding new loci
+
+            self.positions[loci] = self.nloci
+
+            for ts in self.typing_sequences:
+                ts.append(alleleid)
+
+            self.nloci += 1
+
+        else:
+            # Add allele to existing loci
+            # Splits typing sequence into multiple
+            # versions; one for each allele
+
+            pos = self.positions[loci]
+            newseqs = []
+
+            for ts in self.typing_sequences:
+                # make copy and change allele
+                copy = self._copy(ts)
+                copy[pos] = alleleid
+                newseqs.append(copy)
+
+            # Save new typing sequences with alternate
+            # allele
+            self.typing_sequences.extend(newseqs)
+
+
+    def _copy(self, ts):
+        # Make a copy of a typing sequence
+
+        newts = []
+        for allele in ts:
+            newts.append(allele)
+
+        return newts
+
+
+    def iteralleles(self):
+        """generator iterating over each typing sequence
+
+        Each iteration returns an AlleleList object
+
+        """
+
+        for ts in self.typing_sequences:
+            yield AlleleList([ self.alleles[a] for a in ts ])
+
+
+
+# Helper class for working with lists of Alleles
+class AlleleList(object):
+
+    def __init__(self, allele_list):
+        self.allele_list = allele_list
+
+    def seqlist(self):
+        return [ a.sequence for a in self.allele_list ]
+
+    def seq(self):
+        return ''.join(self.seqlist())
+
+    def idlist(self):
+        return [ a.allele for a in self.allele_list ]
+
+    def indexlist(self):
+        return [ a.alleleid for a in self.allele_list ]
+
+    def iddump(self):
+        return json.dump(self.idarray())
+
+    def alleles(self):
+        return self.allele_list
+
+
+# Factory for Allele class
+# Stores sequence and allele ID components
+class Allele(namedtuple('Allele', ['alleleid', 'sequence', 'allele'])):
+    __slots__ = ()
+    def __str__(self):
+        # String
+        return '{}'.format(self.sequence)

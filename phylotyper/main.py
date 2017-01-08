@@ -19,7 +19,7 @@ import os
 import pprint
 import re
 from Bio import SeqIO
-from collections import Counter, namedtuple
+from collections import Counter, defaultdict
 
 from config import PhylotyperOptions
 from genome.loci import LociSearch
@@ -27,7 +27,7 @@ from subtypes_index import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
-from tree.seq import SeqDict, AlleleID
+from tree.seq import SeqDict, AlleleID, LociConcat
 
 
 __author__ = "Matthew Whiteside"
@@ -38,7 +38,7 @@ __maintainer__ = "Matthew Whiteside"
 __email__ = "matthew.whiteside@phac-aspc.gc.ca"
 
 
-logger = None
+logger = logging.getLogger('phylotyper.main')
 
 def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     """Build MSA
@@ -59,15 +59,15 @@ def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     aln.trim(superaln_output, superaln_output, trimming_summary_file=summary)
 
 
-def align_new_sequences(inputs, alignment, summary, output, config):
+def align_new_sequences(inputs, alignments, summaries, outputs, config):
     """Add new sequences to existing MSA using
     profile alignment
 
     Args:
         inputs (list): List of Fasta files
-        alignment (str): Aligned fasta file
-        summary (str): Trimming summary file
-        output (str): Output file for MSA
+        alignment (str): List of aligned fasta files
+        summaries (str): List of trimming summary files
+        output (str): List of output files for MSA
         config (obj): PhylotyperOptions object
 
     """
@@ -75,8 +75,8 @@ def align_new_sequences(inputs, alignment, summary, output, config):
     logger.debug('Aligning genes to existing alignment')
 
     aln = SeqAligner(config)
-    aln.madd(inputs, alignment, output)
-    aln.trim(output, output, trimming_summary_file=summary)
+    aln.madd(inputs, alignments, outputs)
+    aln.trim(outputs, outputs, trimming_summary_file=summaries)
 
 
 def build_tree(input, output, nt, fast, config):
@@ -142,31 +142,11 @@ def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignmen
     
     return(assignments)
 
+
 def results_header():
-    # Returns header string
-    return '#genome\tsubtype\tprobability\tphylotyper_assignment\n'
-
-def print_results(options, assignments):
-    """Writes results to file.
-
-    Args:
-        options (dict): user defined settings from __main__
-        assignments (list): list of lists with individual results
-
-    """
-
-    logger.debug('Writing results')
-
-    assfile = options['result']
-    mode = 'w'
-    with open(assfile, mode) as outf:
-        
-        outf.write(results_header())
-        for row in assignments:
-            outf.write('\t'.join(row)+'\n')
-
-    None
-
+    # Returns output fields
+    return ['genome','tree_label','subtype','probability','phylotyper_assignment','loci']
+    
 
 def subtype_pipeline(options, config):
     """Run phylotyper pipeline 
@@ -181,17 +161,21 @@ def subtype_pipeline(options, config):
                 individual results returned not printed to file.
 
     """
-
-    global logger
-    logger = logging.getLogger('phylotyper.main')
-
+    
     # Define files
     genome_search = False
     if 'genomes' in options:
-        options['input'] = os.path.join(options['output_directory'], 'loci.fasta')
+        # Inputs are genome files
+        # Need to define fasta files for each loci
+        # found in the blast search
+        locifiles = []
+        for i in xrange(options['nloci']):
+            file_name = 'search_results'
+            locifiles.append(os.path.join(options['output_directory'], '{}.locus{}'.format(file_name, i)))
+        options['input'] = locifiles
         genome_search = True
 
-    refalnfile = options['alignment']
+    refalnfiles = options['alignment']
     subtypefile = options['subtype']
     options['result'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
 
@@ -201,42 +185,70 @@ def subtype_pipeline(options, config):
     if genome_search:
         # Identify loci in input genomes
         seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
-        detector = LociSearch(config, options['search_database'], None, seqtype)
+        detector = LociSearch(config, options['search_database'], None, seqtype, options['nloci'])
 
         for genome in options['genomes']:
             detector.search(genome, options['input'], append=True)
 
     # Predict subtypes
-    assignments = [] # Phylotyper subtype assignments
+    with open(options['result'], 'w') as resfile:
+        assignments = csv.DictWriter(resfile, fieldnames=results_header())
 
-    # Check if sequences match known subtyped sequences
-    # Otherwise, prepare input files
-    num_remaining = prep_sequences(options, assignments)
+        # Check if sequences match known subtyped sequences
+        remaining = identical_sequences(options, assignments)
 
-    # Run phylotyper on remaining untyped input sequences
-    if num_remaining > 0:
+        # Run phylotyper on remaining untyped input sequences
+        if remaining:
 
-        for i in xrange(num_remaining):
-            infile = options['input'][i]
-            summary = os.path.join(options['output_directory'], 'alignment_trimming_summary_{}.html'.format(i))
-            treefile = options['tree'][i]
-            alnfile = options['profile_alignment'][i]
-            plotfile = options['posterior_probability_plot'][i] if options['posterior_probability_plot'] else False
+            # Setup output files for profile_alignment and trimming summaries
+            alnfiles = []
+            trim_summaries = []
+            for f in options['input']:
+                alnfiles.append(modify_filename(f, 'profile_alignment'))
+                trim_summaries.append(modify_filename(f, 'alignment_trimming_summary'), 'html')
 
-            # Align
-            align_new_sequences(infile, refalnfile, summary, alnfile, config)
+            # Run alignment on each locus
+            align_new_sequences(options['input'], refalnfiles, trim_summaries, alnfiles, config)
 
-            # Compute tree
-            nt = options['seq'] == 'nt'
-            build_tree(alnfile, treefile, nt, options['fast'], config)
+            # Compute subtype for each genome
+            concat = LociConcat()
+            typing_sequences = concat.load(alnfiles)
 
-            # Predict subtypes & write to file
-            predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments)
+            for genome in typing_sequences:
+                filename = genome.replace('|','_')
+                allele = 1
+                for sequence in typing_sequences[genome]:
 
-    
-    print_results(options, assignments)
+                    # Tree label
+                    tree_label = "{}|{}".format(genome,allele)
+                    
+                    # Define files
+                    alnfile = os.path.join(options['output_directory'], "{}_allele{}_superaln.fasta".format(filename, allele))
+                    treefile = os.path.join(options['output_directory'], "{}_allele{}_tree.newick".format(filename, allele))
+                    plotfile = os.path.join(options['output_directory'], "{}_allele{}_posterior_probabililty_plot.png".format(filename, allele))
 
-    return assignments
+                    # Write sequence to file
+                    with open(alnfile, 'w') as out:
+                        out.write(">{}\n{}\n") 
+
+
+            for i in xrange(num_remaining):
+                infile = options['input'][i]
+                summary = os.path.join(options['output_directory'], 'alignment_trimming_summary_{}.html'.format(i))
+                treefile = options['tree'][i]
+                alnfile = options['profile_alignment'][i]
+                plotfile = options['posterior_probability_plot'][i] if options['posterior_probability_plot'] else False
+
+                # Align
+                align_new_sequences(infile, refalnfiles, summary, alnfile, config)
+
+                # Compute tree
+                nt = options['seq'] == 'nt'
+                build_tree(alnfile, treefile, nt, options['fast'], config)
+
+                # Predict subtypes & write to file
+                predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments)
+
 
 
 def evaluate_subtypes(options, config, seqdict):
@@ -279,9 +291,6 @@ def build_pipeline(options, config):
 
     """
 
-    global logger
-    logger = logging.getLogger('phylotyper.main')
-
     alnfiles = options['alignment']
     tmpfiles = []
     for i in xrange(options['nloci']):
@@ -300,7 +309,7 @@ def build_pipeline(options, config):
 
     # Create blast database for searching genomes
     seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
-    LociSearch(config, options['search_database'], options['input'], seqtype)
+    LociSearch(config, options['search_database'], options['input'], seqtype, options['nloci'])
 
     # Remove identical sequences, 
     logger.debug('Collapsing identical sequences')
@@ -322,16 +331,15 @@ def build_pipeline(options, config):
     evaluate_subtypes(options, config, seqdict)
 
 
-def prep_sequences(options, identified):
-    """Checks for unique gene names of suitable length
+def identical_sequences(options, identified):
+    """Looks for exact matches
 
-    Checks that gene names defined in fasta inputs are ok.  Also 
-    flags sequences that are identical to subtyped sequences in 
-    the reference set. These do not need to be run with phylotyper. 
+    Sequences that are identical to subtyped sequences in 
+    the reference set do not need to be run with phylotyper. 
     Subtype assignment will be transfered from identical sequences.
 
-    Sets filename key-values in options dict for new temp input file
-    and mapping file.
+    Sets filename values in options dictionary for downstream 
+    analyses.
         
     Args:
         options (dict): user defined settings from __main__
@@ -343,79 +351,43 @@ def prep_sequences(options, identified):
     """
 
     logger.debug('Searching for identical sequences with known subtype')
-    logger.debug('Checking sequence names')
-
-    # Define files
-    input_files = []
-    tree_files = []
-    aln_files = []
-    input_file = options['input']
-    options['posterior_probability_plot'] = do_plots = False
-    if not options['noplots']:
-        options['posterior_probability_plot'] = []
-        do_plots = True
    
     # Load lookup object
     lookup = SeqDict()
     lookup.load(options['lookup'])
 
-    # Validate names
-    # Check for identical sequences
-    uniq = Counter()
-    reserved = set(':(), ') # Newick reserve characters
+    # Load all allele combinations for each loci
+    # in all genomes
+    remaining = defaultdict(list)
+    concat = LociConcat()
+    supersequences = concat.load(options['input'])
 
-    i = 0
-    fasta_sequences = SeqIO.parse(open(input_file, 'r'),'fasta')
-    for fasta in fasta_sequences:
-        name, sequence = fasta.id, str(fasta.seq)
-        desc = fasta.description[0:20]
+    for genome, typing_sequences in supersequences.iteritems():
 
-        found = lookup.find(sequence)
+        for allele_list in typing_sequences.iteralleles():
 
-        if found:
-            subt = found['subtype']
-            hit = found['name']
-            identified.append([
-                name,
-                subt,
-                'identical to {}'.format(hit),
-                subt
-                ])
+            sequence = allele_list.seqarray()
+            found = lookup.find(sequence)
 
-        else:
-            # Check name will be ok for tree building
-            # and alignment programs
-            name = re.sub(r'^lcl\|', '', name)
-            name = name.replace('|','-')
+            if found:
+                # Matches reference sequence
 
-            if len(name) > 40:
-                raise Exception("Invalid fasta file: {} id in header is too long".format(desc))
+                subt = found['subtype']
+                hit = found['name']
+                identified.writerow({
+                    'genome': genome,
+                    'tree_label': 'not applicable',
+                    'subtype': subt,
+                    'probability': 'identical to {}'.format(hit),
+                    'phylotyper_assignment': subt,
+                    'loci': allele_list.iddump() # Use the power of json to ecode this fasta header string
+                })
 
-            if uniq[name] > 0:
-                raise Exception("Invalid fasta file: {} id in header is not unique".format(desc))
-            uniq[name] += 1
-
-            if any((c in reserved) for c in name):
-                raise Exception("Invalid fasta file: invalid character in header {}".format(desc))
-        
-            # Save file names
-            if do_plots:
-                options['posterior_probability_plot'].append(os.path.join(options['output_directory'], 
-                    '{}_posterior_probability_tree.png'.format(name)))
-            aln_files.append(os.path.join(options['output_directory'], '{}_alignment.fasta'.format(name)))
-            tree_files.append(os.path.join(options['output_directory'], '{}_tree.newick'.format(name)))
-            infile = os.path.join(options['output_directory'],'{}.fasta'.format(name))
-            input_files.append(infile)
-            with open(infile, 'w') as outf:
-                outf.write('>%s\n%s\n' % (name, sequence))
-            i += 1
-
-        options['input'] = input_files
-        options['tree'] = tree_files
-        options['profile_alignment'] = aln_files
-        options['loci'] = input_file
-
-    return(i)
+            else:
+                # Need to run through phylotyper
+                remaining[genome].append(allele_list)
+            
+    return(remaining)
 
 
 def check_gene_names(options):
@@ -433,7 +405,7 @@ def check_gene_names(options):
     input_files = iter(options['input'])
 
     # Check first fasta file
-    i = 0
+    i = 1
     input_file = next(input_files)
     fasta_sequences = SeqIO.parse(open(input_file),'fasta')
     
@@ -448,11 +420,11 @@ def check_gene_names(options):
 
         genomes[allele.genome] = i
         if uniq[str(allele)] > 0:
-            raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele))
+            raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele)))
         uniq[str(allele)] += 1
 
     fasta_sequences.close()
-
+    
     # Check subtype file
     i += 1
     reserved = set(':(), ') # Newick reserved characters
@@ -483,12 +455,12 @@ def check_gene_names(options):
             allele = validate_fasta_header(fasta.id)
 
             if uniq[str(allele)] > 0:
-                raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele))
+                raise Exception("allele id in {} in file {} is not unique (allele: {})".format(desc, input_file, str(allele)))
             uniq[str(allele)] += 1
 
-            if not name.genome in genomes:
+            if not allele.genome in genomes:
                 raise Exception("unknown genome {} in file {}".format(allele.genome, input_file))
-            genomes[name.genome] = i
+            genomes[allele.genome] = i
 
         for genome in genomes:
             if genomes[genome] != i:
@@ -496,32 +468,6 @@ def check_gene_names(options):
 
 
     return True
-
-
-def parse_fasta_id(id):
-    """Extract Genome and gene identifier fasta header
-
-    From the ID component of a fasta header, determine
-    for a particular genome copy, whether there is multiple 
-    alleles of a gene in the genome.  Format is:
-
-        >[lcl|]genome|allele
-
-        Args:
-            id (str): Fasta ID
-
-        Returns:
-            AlleleID namedtuple
-
-    """
-
-    # Remove database id
-    id = re.sub(r'^(?:lcl)|(?:gi)\|', '', id)
-
-    # Extract genome and gene Ids if they exist
-    parts = re.split('|', id, maxsplit=1)
-
-    return AlleleID(parts)
 
 
 def validate_fasta_header(name):
@@ -546,9 +492,17 @@ def validate_fasta_header(name):
         raise Exception("{} id in fasta header is too long".format(name))
 
     if any((c in reserved) for c in name):
-        raise Exception("invalid character in fasta header id {}".format(desc))
+        raise Exception("invalid character in fasta header id {}".format(name))
 
-    return parse_fasta_id(name)
+    return LociConcat.parse_fasta_id(name)
+
+
+# Modify filename, not extension
+def modify_filename(filename, uid, altext=None):
+    name, ext = os.path.splitext(filename)
+    if not altext is None:
+        ext = altext
+    return "{name}_{uid}{ext}".format(name=name, uid=uid, ext=ext)
 
 
 if __name__ == "__main__":
