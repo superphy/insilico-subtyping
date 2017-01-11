@@ -88,7 +88,6 @@ class SeqDict(object):
 
             subtypes[name] = subt
             
-        
         if isinstance(fasta_files, str):
             # Create list
             fasta_files = [fasta_files]
@@ -99,10 +98,11 @@ class SeqDict(object):
         concat = LociConcat()
         sequences = concat.collect(fasta_files)
        
-        for name,seqs in sequences.iteritems():
+        for name,seqslist in sequences.iteritems():
             this_subt = subtypes[name]
 
-            self.add(seqs, name, this_subt)
+            for seqs in seqslist:
+                self.add(seqs, name, this_subt)
 
 
     def find(self, seq):
@@ -146,7 +146,7 @@ class SeqDict(object):
             None
             
         """
-
+        print seq
         keystr = seq
         if self._nloci > 1:
             if isinstance(seq, str):
@@ -324,11 +324,15 @@ class LociConcat(object):
 
     """
     
-    def collapse(self, inputs, fasta_filepath=None):
+    def safe_collapse(self, inputs, fasta_filepath=None):
         """Concatenate loci from mulitple fasta files
 
         Returns dict indexed by genome ID containing supersequences.
         Optionally, writes to fasta file.
+
+        Assumes that there is one supersequence per genome.  Checks
+        this assertion. This ususually guranteed by manipulations to the
+        fasta headers/files
 
         Args:
             inputs (list): Filepaths to fasta sequences.
@@ -339,18 +343,24 @@ class LociConcat(object):
 
         Raise:
             Exception when missing loci in a file
+            Duplicate alleles per genome
 
         """
 
-        sequences = self.collect(inputs)
-        sequences = { genome: ''.join(sequences[genome]) for genome in sequences }
-
+        seqdict = {}
+        superseqs = self.load(inputs, parseheaders=False)
+        for genome in superseqs:
+            seqlist = [ a.seq() for a in superseqs[genome].iteralleles() ]
+            if len(seqlist) > 1:
+                raise Exception("Multiple alleles for genome {}".format(genome))
+            seqdict[genome] = seqlist[0]
+           
         if fasta_filepath:
             with open(fasta_filepath, 'w') as f:
-                for name,seq in sequences.iteritems():
+                for name,seq in seqdict.iteritems():
                     f.write(">{}\n{}\n".format(name, seq))
                 
-        return sequences
+        return seqdict
 
 
     def collect(self, inputs):
@@ -372,12 +382,12 @@ class LociConcat(object):
         sequencesonly = {}
         superseqs = self.load(inputs)
         for genome in superseqs:
-            sequencesonly[genome] = [ s[1] for s in sequencesonly[genome] ]
+            sequencesonly[genome] = [ a.seqlist() for a in superseqs[genome].iteralleles() ]
         
         return sequencesonly
 
 
-    def load(self, inputs):
+    def load(self, inputs, parseheaders=True):
         """Read loci from mulitple fasta files
 
         Returns dict indexed by fasta ID containg list of loci sequences.
@@ -385,6 +395,7 @@ class LociConcat(object):
        
         Args:
             inputs (list): Filepaths to fasta sequences.
+            parseheaders (bool): Split header into genome|allele parts
         
         Returns:
             dict of typing sequences
@@ -406,23 +417,25 @@ class LociConcat(object):
             
             fasta = SeqIO.parse(ff, 'fasta')
             for record in fasta:
-                name = LociConcat.parse_fasta_id(record.id)
+                if parseheaders:
+                    name = LociConcat.parse_fasta_id(record.id)
+                    genome = name.genome
+                else:
+                    name = genome = record.id
 
                 # Record allele for this genome
-                sequences[name.genome].add(i, str(record.seq), str(record.description))
-                uniq[name.genome] = i
+                sequences[genome].add(i, str(record.seq), str(record.description))
+                uniq[genome] = i
 
                 if i == 0:
-                    genomes.add(name.genome)
+                    genomes.add(genome)
                 else:
-                    if not name.genome in genomes:
+                    if not genome in genomes:
                         raise Exception('Unknown fasta record for {} in file {}'.format(name, ff))
 
             for name in uniq:
                 if uniq[name] != i:
                     raise Exception('Missing fasta record for {} in file {}'.format(name, ff))
-
-
 
             i += 1
 
@@ -620,7 +633,6 @@ class TypingSequence(object):
             yield AlleleList([ self.alleles[a] for a in ts ])
 
 
-
 # Helper class for working with lists of Alleles
 class AlleleList(object):
 
@@ -640,7 +652,7 @@ class AlleleList(object):
         return [ a.alleleid for a in self.allele_list ]
 
     def iddump(self):
-        return json.dump(self.idarray())
+        return json.dumps(self.idlist())
 
     def alleles(self):
         return self.allele_list

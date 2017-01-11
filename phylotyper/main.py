@@ -59,15 +59,15 @@ def align_all_sequences(inputs, outputs, superaln_output, summary, config):
     aln.trim(superaln_output, superaln_output, trimming_summary_file=summary)
 
 
-def align_new_sequences(inputs, alignments, summaries, outputs, config):
+def align_new_sequences(inputs, alignments, trim_summary, output, config):
     """Add new sequences to existing MSA using
     profile alignment
 
     Args:
         inputs (list): List of Fasta files
         alignment (str): List of aligned fasta files
-        summaries (str): List of trimming summary files
-        output (str): List of output files for MSA
+        trim_summary (str): trimming summary file
+        output (str): Output files for MSA
         config (obj): PhylotyperOptions object
 
     """
@@ -75,8 +75,8 @@ def align_new_sequences(inputs, alignments, summaries, outputs, config):
     logger.debug('Aligning genes to existing alignment')
 
     aln = SeqAligner(config)
-    aln.madd(inputs, alignments, outputs)
-    aln.trim(outputs, outputs, trimming_summary_file=summaries)
+    aln.madd(inputs, alignments, output)
+    aln.trim(output, output, trimming_summary_file=trim_summary)
 
 
 def build_tree(input, output, nt, fast, config):
@@ -97,7 +97,7 @@ def build_tree(input, output, nt, fast, config):
     tree.build(input, output, nt, fast)
     
 
-def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments):
+def predict_subtypes(treefile, subtypefile, plotfile, options, config):
     """Calls subtype method
 
     Wrapper around the Phylotyper.subtype method. Identifies
@@ -111,6 +111,12 @@ def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignmen
         options (dict): user defined settings from __main__
         config (obj): PhylotyperConfig with .ini file settings
 
+    Returns:
+        dict with keys:
+            subtype
+            probability
+            phylotyper_assignment
+
     """
 
     logger.debug('Running phylotyper')
@@ -123,6 +129,7 @@ def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignmen
     cutoff = float(config.get('phylotyper','prediction_threshold'))
     logger.debug('Using posterior probability cutoff: %f' % (cutoff))
 
+    results = {}
     for genome_id,subtup in assignment_dict.items():
 
         pp = subtup[1]
@@ -131,16 +138,14 @@ def predict_subtypes(treefile, subtypefile, plotfile, options, config, assignmen
         pred = 'non-significant/undetermined'
         if pp > cutoff:
             pred = subt
-        
-        assignments.append([
-            genome_id,
-            subt,
-            str(pp),
-            pred
-        ])
 
-    
-    return(assignments)
+        results[genome_id] = {
+            'subtype': subt,
+            'probability': str(pp),
+            'phylotyper_assignment': pred,
+        }
+        
+    return(results)
 
 
 def results_header():
@@ -192,62 +197,68 @@ def subtype_pipeline(options, config):
 
     # Predict subtypes
     with open(options['result'], 'w') as resfile:
-        assignments = csv.DictWriter(resfile, fieldnames=results_header())
+        assignments = csv.DictWriter(resfile, fieldnames=results_header(), delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+        assignments.writeheader()
 
         # Check if sequences match known subtyped sequences
         remaining = identical_sequences(options, assignments)
 
         # Run phylotyper on remaining untyped input sequences
-        if remaining:
+        for genome in remaining:
+            allele = 1
 
-            # Setup output files for profile_alignment and trimming summaries
-            alnfiles = []
-            trim_summaries = []
-            for f in options['input']:
-                alnfiles.append(modify_filename(f, 'profile_alignment'))
-                trim_summaries.append(modify_filename(f, 'alignment_trimming_summary'), 'html')
+            for alleleset in remaining[genome]:
 
-            # Run alignment on each locus
-            align_new_sequences(options['input'], refalnfiles, trim_summaries, alnfiles, config)
+                # Setup input/output files
+                infiles = []
+                loci = 1
 
-            # Compute subtype for each genome
-            concat = LociConcat()
-            typing_sequences = concat.load(alnfiles)
+                # Only one gene for one genome submitted
+                # don't need to split genes into individual files
+                tree_label = "{}-allele{}".format(genome,allele)
+                filename = tree_label.replace('|','_')
+                
+                # Only one gene, don't need to distinguish alleles
+                if len(remaining[genome]) == 1:
+                    tree_label = genome
 
-            for genome in typing_sequences:
-                filename = genome.replace('|','_')
-                allele = 1
-                for sequence in typing_sequences[genome]:
+                # Only one gene for one genome, don't need to split up input
+                if options['ngenomes'] == 1 and len(remaining[genome]) == 1: 
+                        infiles = options['input']
+                else:
+                    for s in alleleset.seqlist():
+                        infile = os.path.join(options['output_directory'], "{}_loci{}_step2_alignment_input.fasta".format(filename, loci))
+                        loci += 1
+                        with open(infile, 'w') as outfh:
+                            outfh.write('>{}\n{}\n'.format(tree_label, s))
+                        infiles.append(infile)
 
-                    # Tree label
-                    tree_label = "{}|{}".format(genome,allele)
-                    
-                    # Define files
-                    alnfile = os.path.join(options['output_directory'], "{}_allele{}_superaln.fasta".format(filename, allele))
-                    treefile = os.path.join(options['output_directory'], "{}_allele{}_tree.newick".format(filename, allele))
-                    plotfile = os.path.join(options['output_directory'], "{}_allele{}_posterior_probabililty_plot.png".format(filename, allele))
+                trimfile = os.path.join(options['output_directory'], "{}_step3_alignment_trimming_summary.html".format(filename))
+                alnfile = os.path.join(options['output_directory'], "{}_step4_profile_alignment_output.fasta".format(filename))
+                treefile = os.path.join(options['output_directory'], "{}_step5_subtype_tree.newick".format(filename))
+                plotfile = os.path.join(options['output_directory'], "{}_step5_posterior_probability_tree.png".format(filename))
 
-                    # Write sequence to file
-                    with open(alnfile, 'w') as out:
-                        out.write(">{}\n{}\n") 
-
-
-            for i in xrange(num_remaining):
-                infile = options['input'][i]
-                summary = os.path.join(options['output_directory'], 'alignment_trimming_summary_{}.html'.format(i))
-                treefile = options['tree'][i]
-                alnfile = options['profile_alignment'][i]
-                plotfile = options['posterior_probability_plot'][i] if options['posterior_probability_plot'] else False
-
-                # Align
-                align_new_sequences(infile, refalnfiles, summary, alnfile, config)
+                # Run alignment on each locus
+                align_new_sequences(infiles, refalnfiles, trimfile, alnfile, config)
 
                 # Compute tree
                 nt = options['seq'] == 'nt'
                 build_tree(alnfile, treefile, nt, options['fast'], config)
 
                 # Predict subtypes & write to file
-                predict_subtypes(treefile, subtypefile, plotfile, options, config, assignments)
+                results = predict_subtypes(treefile, subtypefile, plotfile, options, config)
+                print results
+                print tree_label
+                if not tree_label in results:
+                    raise Exception("Phylotyper failed to complete")
+
+                this_results = results[tree_label]
+                this_results['genome'] = genome
+                this_results['tree_label'] = tree_label
+                this_results['loci'] = alleleset.iddump()
+                assignments.writerow(this_results)
+
+                allele += 1
 
 
 
@@ -364,9 +375,9 @@ def identical_sequences(options, identified):
 
     for genome, typing_sequences in supersequences.iteritems():
 
-        for allele_list in typing_sequences.iteralleles():
+        for alleleset in typing_sequences.iteralleles():
 
-            sequence = allele_list.seqarray()
+            sequence = alleleset.seqlist()
             found = lookup.find(sequence)
 
             if found:
@@ -380,12 +391,12 @@ def identical_sequences(options, identified):
                     'subtype': subt,
                     'probability': 'identical to {}'.format(hit),
                     'phylotyper_assignment': subt,
-                    'loci': allele_list.iddump() # Use the power of json to ecode this fasta header string
+                    'loci': alleleset.iddump() # Use the power of json to ecode this fasta header string
                 })
 
             else:
                 # Need to run through phylotyper
-                remaining[genome].append(allele_list)
+                remaining[genome].append(alleleset)
             
     return(remaining)
 

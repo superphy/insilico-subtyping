@@ -2,11 +2,7 @@
 *.log
 *alignment_trimming_summary.html
 *.gb
+subtypes_index.yaml_*
 test.tree
 tmp.fasta
 dump/*
-phylotyper/output/*
-phylotyper/data/**/*.gb
-phylotyper/data/**/*.png
-phylotyper/data/**/*.csv
-phylotyper/test/sandbox/*

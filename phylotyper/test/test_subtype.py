@@ -55,7 +55,7 @@ class SubtypeTests(unittest.TestCase):
         self.scheme = scheme
     
 
-    def testStx2(self):
+    def testStx2Unknowns(self):
 
         self.init('stx2')
 

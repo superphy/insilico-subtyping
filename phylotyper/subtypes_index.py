@@ -126,8 +126,11 @@ class SubtypeConfig(object):
             else:
                 return "no <%s> parameter" % (filepaths_parameter)
 
-        if not config['seq'] and (config['seq'] != 'nt' or config['seq'] != 'aa'):
+        if (not 'seq' in config) or not (config['seq'] != 'nt' or config['seq'] != 'aa'):
             return "missing/invalid <seq> parameter"
+
+        if not 'nloci' in config or config['nloci'] < 1:
+            return "missing/invalid <nloci> parameter"
 
         for blastdb_parameter in ['search_database']:
 
@@ -188,6 +191,7 @@ class SubtypeConfig(object):
                 search_database: Filepath
                 seq: str (aa|nt)
                 rate_matrix: Filepath
+                nloci: int
 
         """
 
@@ -207,6 +211,7 @@ class SubtypeConfig(object):
             'lookup': os.path.join(scheme, '{}_dictionary.json'.format(scheme)),
             'search_database': os.path.join(scheme, '{}_search_database'.format(scheme)),
             'rate_matrix': os.path.join(scheme, '{}_rate_matrix.rds'.format(scheme)),
+            'nloci': num_loci
         }
 
         subtype_options = {
@@ -215,6 +220,7 @@ class SubtypeConfig(object):
             'lookup': os.path.join(self._root_dir, rel_paths['lookup']),
             'search_database': os.path.join(self._root_dir, rel_paths['search_database']),
             'rate_matrix': os.path.join(self._root_dir, rel_paths['rate_matrix']),
+            'nloci': num_loci
         }
 
         # Sequence type
