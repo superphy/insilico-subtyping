@@ -17,7 +17,6 @@ import csv
 import logging
 import os
 import pprint
-import re
 from Bio import SeqIO
 from collections import Counter, defaultdict
 
@@ -27,7 +26,7 @@ from subtypes_index import SubtypeConfig
 from phylotyper import Phylotyper
 from tree.fasttree import FastTreeWrapper
 from tree.seqaligner import SeqAligner
-from tree.seq import SeqDict, AlleleID, LociConcat
+from tree.seq import SeqDict, LociConcat
 
 
 __author__ = "Matthew Whiteside"
@@ -247,8 +246,6 @@ def subtype_pipeline(options, config):
 
                 # Predict subtypes & write to file
                 results = predict_subtypes(treefile, subtypefile, plotfile, options, config)
-                print results
-                print tree_label
                 if not tree_label in results:
                     raise Exception("Phylotyper failed to complete")
 
@@ -369,34 +366,40 @@ def identical_sequences(options, identified):
 
     # Load all allele combinations for each loci
     # in all genomes
+    # Skip genomes that have don't have all copies of
+    # each loci
     remaining = defaultdict(list)
     concat = LociConcat()
-    supersequences = concat.load(options['input'])
+    supersequences, incomplete = concat.load(options['input'], missing='warn')
 
     for genome, typing_sequences in supersequences.iteritems():
 
-        for alleleset in typing_sequences.iteralleles():
+        if genome in incomplete:
+            logger.info('{} has incomplete set of loci. Skipping genome.'.format(genome))
+        else:
 
-            sequence = alleleset.seqlist()
-            found = lookup.find(sequence)
+            for alleleset in typing_sequences.iteralleles():
 
-            if found:
-                # Matches reference sequence
+                sequence = alleleset.seqlist()
+                found = lookup.find(sequence)
 
-                subt = found['subtype']
-                hit = found['name']
-                identified.writerow({
-                    'genome': genome,
-                    'tree_label': 'not applicable',
-                    'subtype': subt,
-                    'probability': 'identical to {}'.format(hit),
-                    'phylotyper_assignment': subt,
-                    'loci': alleleset.iddump() # Use the power of json to ecode this fasta header string
-                })
+                if found:
+                    # Matches reference sequence
 
-            else:
-                # Need to run through phylotyper
-                remaining[genome].append(alleleset)
+                    subt = found['subtype']
+                    hit = found['name']
+                    identified.writerow({
+                        'genome': genome,
+                        'tree_label': 'not applicable',
+                        'subtype': subt,
+                        'probability': 'identical to {}'.format(hit),
+                        'phylotyper_assignment': subt,
+                        'loci': alleleset.iddump() # Use the power of json to ecode this fasta header string
+                    })
+
+                else:
+                    # Need to run through phylotyper
+                    remaining[genome].append(alleleset)
             
     return(remaining)
 

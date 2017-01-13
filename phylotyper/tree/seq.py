@@ -4,24 +4,14 @@
 
 Tools for manipulating / validating input DNA and protein sequences
 
-Example:
-    Examples can be given using either the ``Example`` or ``Examples``
-    sections. Sections support any reStructuredText formatting, including
-    literal blocks::
 
-        $ python example_google.py
-
-Section breaks are created by resuming unindented text. Section breaks
-are also implicitly created anytime a new section starts.
-
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
 """
 
 import csv
 import hashlib
 import json
 import re
+import warnings
 from Bio import SeqIO
 from collections import Counter, defaultdict, namedtuple
 
@@ -115,12 +105,15 @@ class SeqDict(object):
             None if no identical sequence found -or- SeqDict entry
             
         """
-
+        seqstr = seq
         if not isinstance(seq, str):
             # Concatenate list
-            seq = ''.join(seq)
+            for s in seq:
+                seqstr += self.prepseq(s.upper())
+        else:
+            seqstr = self.prepseq(seqstr.upper())
         
-        searchstr = self.digest(seq)
+        searchstr = self.digest(seqstr)
 
         if searchstr in self.seqs:
             hits = self.seqs[searchstr]
@@ -132,6 +125,16 @@ class SeqDict(object):
             
         else:
             return None
+            
+
+    def prepseq(self, seq):
+        """Sequence manipulations
+
+        Ignore trailing stop codons, if any
+
+        """
+
+        return re.sub(r'\*$', '', seq)
 
    
     def add(self, seq, name, subt):
@@ -146,16 +149,18 @@ class SeqDict(object):
             None
             
         """
-        print seq
+        
         keystr = seq
         if self._nloci > 1:
             if isinstance(seq, str):
                 raise Exception('Invalid seq parameter. Multiple loci need to be passed as list')
-            keystr = ''.join(seq).upper()
+            for s in seq:
+                keystr += self.prepseq(s.upper())
 
         else:
             if not isinstance(seq, str):
-                keystr = seq[0].upper()
+                keystr = seq[0].upper
+            keystr = self.prepseq(keystr)
 
         keystr = keystr.replace('-','')
         matched = self.find(keystr)
@@ -348,7 +353,7 @@ class LociConcat(object):
         """
 
         seqdict = {}
-        superseqs = self.load(inputs, parseheaders=False)
+        superseqs, incomplete = self.load(inputs, parseheaders=False)
         for genome in superseqs:
             seqlist = [ a.seq() for a in superseqs[genome].iteralleles() ]
             if len(seqlist) > 1:
@@ -380,14 +385,14 @@ class LociConcat(object):
         """
 
         sequencesonly = {}
-        superseqs = self.load(inputs)
+        superseqs, incomplete = self.load(inputs)
         for genome in superseqs:
             sequencesonly[genome] = [ a.seqlist() for a in superseqs[genome].iteralleles() ]
         
         return sequencesonly
 
 
-    def load(self, inputs, parseheaders=True):
+    def load(self, inputs, parseheaders=True, missing='raise'):
         """Read loci from mulitple fasta files
 
         Returns dict indexed by fasta ID containg list of loci sequences.
@@ -396,9 +401,11 @@ class LociConcat(object):
         Args:
             inputs (list): Filepaths to fasta sequences.
             parseheaders (bool): Split header into genome|allele parts
+            missing (str): Behavior when genome is missing one loci. Options are 'raise' Exception or
+              'warn'.
         
         Returns:
-            dict of typing sequences
+            dict of typing sequences, set of genomes with missing loci
 
         Raise:
             Exception when missing loci in a file
@@ -410,6 +417,7 @@ class LociConcat(object):
         sequences = defaultdict(TypingSequence)
         uniq = Counter()
         genomes = set()
+        incomplete = set()
 
         # Load gene allele sequences into memory
         # for each loci
@@ -423,23 +431,33 @@ class LociConcat(object):
                 else:
                     name = genome = record.id
 
-                # Record allele for this genome
-                sequences[genome].add(i, str(record.seq), str(record.description))
+               
                 uniq[genome] = i
 
                 if i == 0:
                     genomes.add(genome)
                 else:
                     if not genome in genomes:
-                        raise Exception('Unknown fasta record for {} in file {}'.format(name, ff))
+                        if missing == 'raise':
+                            raise Exception('Unknown fasta record for {} in file {}'.format(name, ff))
+                        elif missing == 'warn':
+                            warnings.warn('Loci missing for {}.'.format(name))
+                        incomplete.add(genome)
+
+                # Record allele for this genome
+                sequences[genome].add(i, str(record.seq), str(record.description))
 
             for name in uniq:
                 if uniq[name] != i:
-                    raise Exception('Missing fasta record for {} in file {}'.format(name, ff))
+                    if missing == 'raise':
+                        raise Exception('Missing fasta record for {} in file {}'.format(name, ff))
+                    elif missing == 'warn':
+                        warnings.warn('Loci missing for {}.'.format(name))
+                    incomplete.add(name)
 
             i += 1
 
-        return sequences
+        return (sequences, incomplete)
         
 
     # def combinations(self, loci_sets, loci):

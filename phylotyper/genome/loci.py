@@ -328,7 +328,7 @@ class LociSearch(object):
                                         nstops = seq.count('*')
                                         if nstops > 1:
                                             self.logger.warning('Query hit {} has multiple stop codons: {}'.format(blast_record.query, nstops))
-                                        seq = str(seq).replace('*','')
+                                        seq = re.sub(r'\*$','',str(seq))
 
                                     loci[loci_set][addr] = seq
                                     locations[blast_record.query].append(sorted((hsp.query_start, hsp.query_end)))

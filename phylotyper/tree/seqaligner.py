@@ -4,18 +4,6 @@
 
 Tools for building and manipulating alignments
 
-Example:
-    Examples can be given using either the ``Example`` or ``Examples``
-    sections. Sections support any reStructuredText formatting, including
-    literal blocks::
-
-        $ python example_google.py
-
-Section breaks are created by resuming unindented text. Section breaks
-are also implicitly created anytime a new section starts.
-
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
 """
 
 from subprocess import check_output, CalledProcessError, STDOUT
