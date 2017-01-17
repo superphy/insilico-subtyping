@@ -1,0 +1,8 @@
+
+include README.md
+include LICENSE
+include phylotyper_example.ini
+include phylotyper/subtypes_index.yaml
+include phylotyper/data/*
+include phylotyper/test/data/*
+include phylotyper/test/etc/*

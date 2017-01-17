@@ -17,6 +17,7 @@ import csv
 import logging
 import os
 import pprint
+import pkg_resources
 from Bio import SeqIO
 from collections import Counter, defaultdict
 
@@ -519,7 +520,7 @@ def modify_filename(filename, uid, altext=None):
     return "{name}_{uid}{ext}".format(name=name, uid=uid, ext=ext)
 
 
-if __name__ == "__main__":
+def main():
     """Run phylotyper functions
 
     Parses command-line arguments and calls appropriate
@@ -583,8 +584,8 @@ if __name__ == "__main__":
     config = PhylotyperOptions(config_file)
 
     # Default index location
-    subtype_config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'subtypes_index.yaml')
-
+    subtype_config_file = pkg_resources.resource_filename(__name__,  'subtypes_index.yaml')
+   
     # Non-default location
     if options.index:
         if not os.path.isfile(options.index):
@@ -682,9 +683,6 @@ if __name__ == "__main__":
         # Compute subtype for builtin scheme
 
         # Check arguments
-
-        # Fast mode of tree calculation
-        fast = False
 
         # Check input file exists
         if not os.path.isfile(options.input):
