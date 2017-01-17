@@ -14,20 +14,10 @@ setup(name='phylotyper',
 		]
 	},
 	install_requires=[
-		'argparse',
-		'os',
 		'Bio',
-		'subprocess',
-		'logging',
 		'pkg_resources',
-		'pprint',
-		'csv',
 		'yaml',
-		'datetime',
 		'rpy2',
-		're',
-		'collections',
-		'json'
 	],
 	include_package_data = True,
 	zip_safe = False
