@@ -6,7 +6,7 @@ import unittest
 from Bio import SeqIO
 
 from phylotyper.config import PhylotyperOptions
-from phylotyper.main import build_pipeline, check_gene_names
+from phylotyper.run import build_pipeline, check_gene_names
 from phylotyper.subtypes_index import SubtypeConfig
 from phylotyper.tree.seq import SeqDict
 from phylotyper.tree.seqaligner import SeqAligner

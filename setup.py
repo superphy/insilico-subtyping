@@ -1,8 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='phylotyper',
 	version='0.1.0',
-	packages=['phylotyper'],
 	description='Phylogenetic-based prediction of subtypes',
     url='https://github.com/superphy/insilico-subtyping',
     author='Matt Whiteside',
@@ -14,11 +13,13 @@ setup(name='phylotyper',
 		]
 	},
 	install_requires=[
-		'Bio',
-		'pkg_resources',
-		'yaml',
+		'biopython',
+		'pyaml',
 		'rpy2',
 	],
 	include_package_data = True,
-	zip_safe = False
+	zip_safe = False,
+	packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "*.data", "*.data.*", "data.*", "data"]),
+	test_suite = 'nose.collector',
+	tests_require = ['nose']
 )

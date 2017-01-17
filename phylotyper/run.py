@@ -599,9 +599,6 @@ def main():
 
         # Check arguments
 
-        # Fast mode of tree calculation
-        fast = False
-
         # Check input files exists
         n_loci = 0
         for f in options.ref:
@@ -642,9 +639,6 @@ def main():
         # Genome input
 
         # Check arguments
-
-        # Fast mode of tree calculation
-        fast = False
 
         # Check input file exists
         n_genomes = 0

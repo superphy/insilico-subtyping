@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from phylotyper.config import PhylotyperOptions
-from phylotyper.main import subtype_pipeline
+from phylotyper.run import subtype_pipeline
 from phylotyper.subtypes_index import SubtypeConfig
 
 class SubtypeTests(unittest.TestCase):

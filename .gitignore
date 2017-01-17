@@ -6,3 +6,8 @@ subtypes_index.yaml_*
 test.tree
 tmp.fasta
 dump/*
+.eggs/
+build/
+dist/
+phylotyper.egg-info/
+
