@@ -16,7 +16,9 @@ class SequenceManipulationTests(unittest.TestCase):
         inputs = []
         for i in ('locus1.fasta','locus2.fasta','locus3.fasta'):
             inputs.append(os.path.join(self.data_dir, i))
-        sequences = concat.load(inputs)
+        sequences = concat.load(inputs)[0]
+
+	print sequences
 
         correctlen = [ len(ts) == 3 for ts in sequences['genome1'] ]
        
@@ -34,7 +36,7 @@ class SequenceManipulationTests(unittest.TestCase):
         inputs = []
         for i in ('locus1.fasta','locus2.fasta','locus3.fasta'):
             inputs.append(os.path.join(self.data_dir, i))
-        sequences = concat.load(inputs)
+        sequences = concat.load(inputs)[0]
 
         it = sequences['genome1'].iteralleles()
         testseq1 = it.next()
