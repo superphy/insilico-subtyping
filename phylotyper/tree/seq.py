@@ -87,7 +87,7 @@ class SeqDict(object):
 
         concat = LociConcat()
         sequences = concat.collect(fasta_files)
-       
+      
         for name,seqslist in sequences.iteritems():
             this_subt = subtypes[name]
 
@@ -105,21 +105,22 @@ class SeqDict(object):
             None if no identical sequence found -or- SeqDict entry
             
         """
-        seqstr = seq
+        
         if not isinstance(seq, str):
+            seqstr = ''
             # Concatenate list
             for s in seq:
                 seqstr += self.prepseq(s.upper())
         else:
-            seqstr = self.prepseq(seqstr.upper())
+            seqstr = self.prepseq(seq.upper())
         
         searchstr = self.digest(seqstr)
 
         if searchstr in self.seqs:
             hits = self.seqs[searchstr]
 
-            if seq in hits:
-                return hits[seq]
+            if seqstr in hits:
+                return hits[seqstr]
             else:
                 return None
             
@@ -134,7 +135,8 @@ class SeqDict(object):
 
         """
 
-        return re.sub(r'\*$', '', seq)
+        wtf = re.sub(r'\*$', '', seq)
+        return wtf
 
    
     def add(self, seq, name, subt):
@@ -150,16 +152,19 @@ class SeqDict(object):
             
         """
         
-        keystr = seq
         if self._nloci > 1:
+            
             if isinstance(seq, str):
                 raise Exception('Invalid seq parameter. Multiple loci need to be passed as list')
-            for s in seq:
-                keystr += self.prepseq(s.upper())
+           
+            keystr = ''
+            for s in xrange(len(seq)):
+                thisseq = seq[s]
+                keystr += self.prepseq(thisseq.upper())
 
         else:
             if not isinstance(seq, str):
-                keystr = seq[0].upper
+                keystr = seq[0].upper()
             keystr = self.prepseq(keystr)
 
         keystr = keystr.replace('-','')

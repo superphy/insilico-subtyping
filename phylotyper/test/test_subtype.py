@@ -96,7 +96,12 @@ class SubtypeTests(unittest.TestCase):
             csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
             csvreader.next() # Header
             for row in csvreader:
-                assignments[row[1]] = row[4]
+                if row[1] == 'not applicable':
+                    ID = row[0]
+                    assignments[ID] = row[3]
+                else:
+                    ID = row[1]
+                    assignments[ID] = row[4]
             
         print assignments
 
@@ -104,8 +109,8 @@ class SubtypeTests(unittest.TestCase):
             len(assignments) == 4,
             assignments['minigenome1-allele1'] == 'a',
             assignments['minigenome1-allele2'] == 'a',
-            assignments['minigenome2'] == 'g',
-            assignments['minigenome3'] == 'g'
+            assignments['minigenome3'] == 'g',
+            bool(re.search(r'^identical', assignments['minigenome2']))
         ]))
 
 

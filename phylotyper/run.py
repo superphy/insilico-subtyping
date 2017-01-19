@@ -401,7 +401,7 @@ def identical_sequences(options, identified):
                 else:
                     # Need to run through phylotyper
                     remaining[genome].append(alleleset)
-            
+
     return(remaining)
 
 
@@ -545,6 +545,7 @@ def main():
     new_parser.add_argument('--aa', action='store_true', help='Amino acid')
     new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    new_parser.add_argument('--description', action='store', help='Description of subtype scheme')
     new_parser.set_defaults(which='new')
 
     # Builtin subtype command with genome as input
@@ -560,14 +561,21 @@ def main():
 
     # Builtin subtype command with gene as input
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
-    subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
-    subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
-    subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
-    subtype_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
-    subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
-    subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
+    # INCOMPLETE
+    # subtype_parser.add_argument('gene', action='store', help='Subtype gene name')
+    # subtype_parser.add_argument('input', action='store', help='Fasta input for unknowns')
+    # subtype_parser.add_argument('output', action='store', help='Directory for subtype predictions')
+    
+    # subtype_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
+    # subtype_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     subtype_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    subtype_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     subtype_parser.set_defaults(which='subtype')
+
+    list_parser = subparsers.add_parser('list', help='List subtype schemes')
+    list_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    list_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
+    list_parser.set_defaults(which='list')
 
     options = parser.parse_args()
 
@@ -618,7 +626,7 @@ def main():
         outdir = os.path.abspath(options.results)
 
         # Create subtype directory & file names
-        subtype_options = stConfig.create_subtype(options.gene, n_loci, options.aa)
+        subtype_options = stConfig.create_subtype(options.gene, n_loci, options.aa, options.description)
 
         # Save additional build options inputted by user
         subtype_options['input'] = [os.path.abspath(f) for f in options.ref]
@@ -666,15 +674,13 @@ def main():
         if options.noplots:
             subtype_options['noplots'] = True
 
-        if options.aa and (subtype_options['seq'] != 'aa'):
-            msg = 'Sequence type of input does not match Phylotyper gene sequences for %s' % (scheme)
-            raise Exception(msg)
-
         # Run pipeline
         subtype_pipeline(subtype_options, config)
 
     elif options.which == 'subtype':
         # Compute subtype for builtin scheme
+
+        raise Exception("Subcommand currently unavailable")
 
         # Check arguments
 
@@ -707,6 +713,12 @@ def main():
         # Run pipeline
         subtype_pipeline(subtype_options, config)
 
+    elif options.which == 'list':
+
+        # List available subtype schemes
+        schemes = stConfig.list()
+        for n, t, l, d in zip(schemes[0], schemes[1], schemes[2], schemes[3]):
+           print '- {}\n..+ sequence type: {}\n..+ number of loci: {}\n..+ description: {}'.format(n, t, l, d)
 
     else:
         raise Exception("Unrecognized command")

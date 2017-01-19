@@ -4,6 +4,7 @@ root_dir: data/
 subtypes:
   stx2:
     alignment: [stx2/stx2_reference0.affn, stx2/stx2_reference1.affn]
+    desc: Escherichia coli Stx2 subtypes
     lookup: stx2/stx2_dictionary.json
     nloci: 2
     rate_matrix: stx2/stx2_rate_matrix.rds

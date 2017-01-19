@@ -94,8 +94,94 @@ argument `--config` when running `phylotyper`.
 Running Phylotyper using built-in subtype scheme
 ------------------------------------------------
 
+See section [Setting up Phylotyper config
+file](#setting-up-phylotyper-config-file).
+
+Phylotyper can first identify putative subtype loci in input genomes and
+then use the detected loci to predict subtypes. To run phylotyper with
+genome DNA sequences as input:
+
+`phylotyper genome subtype_scheme output_directory genome_input1.fasta [genome_input2.fasta genome_input3.fasta...][--noplots][--config /path/to/config/file][--index /path/to/index/file]`
+
+### Arguments:
+
+1.  `genome` - sub-command for running phylotyper on genome input. Other
+    sub-commands are `new` for building new subtype schemes.
+2.  `subtype_scheme` - The name for the subtype scheme. See [Built-in
+    subtype schemes](#built-in-subtype-schemes) for a list of the
+    subtypes currently packaged with phylotyper. E.g. value `stx2`.
+3.  `output_directory` - Results and graphics will be output to this
+    directory. Files will be overwritten.
+4.  `genome_input1.fasta` - Genome multi-fasta DNA sequence input.
+    Multiple genomes should be provided as separate files.
+
+### Options:
+
+1.  `--noplots` - Turn off figures.
+2.  `--config /path/to/file` - Phylotyper config file. Can also be set
+    in environment variable `PHYLOTYPER_CONFIG`. See [Setting up
+    Phylotyper config file](#setting-up-phylotyper-config-file).
+3.  `--index /path/to/file` - YAML-format file that lists the locations
+    of subtype reference files. You can specify a file that is not the
+    default file packaged with phylotyper.
+
+Built-in subtype schemes
+------------------------
+
+Listed below are the subtypes, their sequence type, number of loci used
+in the prediction and a description of subtype. Inputs for genomes is
+always nucleotide multi-fasta sequences. Detected loci in genomes are
+translated if the subtype sequence type is amino acid. If the input are
+gene sequences, the correct sequence type and number of loci are
+required.
+
+~~~~ {include="available_subtypes.md"}
+- stx2
+..+ sequence type: aa
+..+ number of loci: 2
+..+ description: Escherichia coli Stx2 subtypes
+~~~~
+
 Adding new subtype scheme to Phylotyper
 ---------------------------------------
+
+See section [Setting up Phylotyper config
+file](#setting-up-phylotyper-config-file).
+
+New subtype schemes can be added to phylotyper. The reference inputs
+will be processed and saved in the locations specified in the
+YAML-format file: `subtypes_index.yaml`. Optionally, you can define a
+non-default subtype data directory by providing your own YAML file
+using `--index /path/to/index/file`.
+
+To create a new subtype for use in phylotyper:
+
+`phylotyper new subtype_scheme subtype_assignment_file output_directory reference_loci1.fasta [reference_loci2.fasta reference_loci3.fasta...][--aa][--config /path/to/config/file][--index /path/to/index/file][--description "Help description"]`
+
+### Arguments:
+
+1.  `new` - sub-command for adding new subtype in phylotyper. Other
+    sub-commands are `genome` for running phylotyper on genome input.
+2.  `subtype_scheme` - The name for the subtype scheme.
+3.  `subtype_assignment_file` - Subtypes for input loci sequences.
+4.  `output_directory` - Results and graphics will be output to this
+    directory. Files will be overwritten.
+5.  `reference_loci1.fasta` - fasta DNA or amino-acid sequence input.
+    Multiple loci should be provided as separate files. Each entry in
+    each fasta file should have a subtype assignment in the
+    `subtype_assignment_file`.
+
+### Options:
+
+1.  `--aa` - Set flag when input is amino-acid sequences. Default is
+    nucleotide.
+2.  `--config /path/to/file` - Phylotyper config file. Can also be set
+    in environment variable `PHYLOTYPER_CONFIG`. See [Setting up
+    Phylotyper config file](#setting-up-phylotyper-config-file).
+3.  `--index /path/to/file` - YAML-format file that lists the locations
+    of subtype reference files. You can specify a file that is not the
+    default file packaged with phylotyper.
+4.  `--description` - A help description to describe the subtype scheme.
 
 ABOUT PHYLOTYPER
 ================

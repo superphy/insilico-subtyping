@@ -132,6 +132,9 @@ class SubtypeConfig(object):
         if not 'nloci' in config or config['nloci'] < 1:
             return "missing/invalid <nloci> parameter"
 
+        if not 'desc' in config:
+            return "missing/invalid <desc> parameter"
+
         for blastdb_parameter in ['search_database']:
 
             if blastdb_parameter in config:
@@ -169,7 +172,7 @@ class SubtypeConfig(object):
         return self._config[subtype_name]
 
 
-    def create_subtype(self, scheme, num_loci, is_aa=False):
+    def create_subtype(self, scheme, num_loci, is_aa=False, description='No description available'):
         """Create subtype index file list
 
         Creates directory under root_dir named by <scheme>
@@ -182,6 +185,7 @@ class SubtypeConfig(object):
             scheme (str): YAML subtype key
             num_loci (int): Number if loci/alignments in this scheme
             is_aa (bool): True = amino acid sequences
+            description (str): Description of subtype scheme for help info
 
         Returns:
             dictionary with keys:
@@ -205,13 +209,16 @@ class SubtypeConfig(object):
         for i in xrange(num_loci):
             alignment_file_list.append(os.path.join(scheme, '{}_reference{}.affn'.format(scheme, i)))
 
+        print description
+
         rel_paths = {
             'alignment': alignment_file_list,
             'subtype': os.path.join(scheme, '{}_subtypes.csv'.format(scheme)),
             'lookup': os.path.join(scheme, '{}_dictionary.json'.format(scheme)),
             'search_database': os.path.join(scheme, '{}_search_database'.format(scheme)),
             'rate_matrix': os.path.join(scheme, '{}_rate_matrix.rds'.format(scheme)),
-            'nloci': num_loci
+            'nloci': num_loci,
+            'desc': description
         }
 
         subtype_options = {
@@ -220,7 +227,8 @@ class SubtypeConfig(object):
             'lookup': os.path.join(self._root_dir, rel_paths['lookup']),
             'search_database': os.path.join(self._root_dir, rel_paths['search_database']),
             'rate_matrix': os.path.join(self._root_dir, rel_paths['rate_matrix']),
-            'nloci': num_loci
+            'nloci': num_loci,
+            'desc': description
         }
 
         # Sequence type
@@ -261,6 +269,34 @@ class SubtypeConfig(object):
         with open(self._yamlfile, 'w') as w:
             w.write(output)
             w.flush()
+
+
+    def list(self):
+        """List available subtypes
+
+        Args:
+            None
+
+        Returns:
+            tuple containing:
+                0: list of subtype scheme names
+                1: nt|aa status
+                2: number of loci
+                3: description
+
+        """
+
+        names = self._config.keys()
+        types = []
+        nloci = []
+        desc = []
+        for n in names:
+            opt = self._config[n]
+            types.append(opt['seq'])
+            nloci.append(opt['nloci'])
+            desc.append(opt['desc'])
+
+        return (names, types, nloci, desc)
 
 
 

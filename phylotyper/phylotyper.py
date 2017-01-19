@@ -44,10 +44,10 @@ class Phylotyper(object):
         self.rrepo = config.get('R', 'repo')
         self.rscript = config.get('R', 'rscript')
         self.rfiles = {
-            'phylotyper': os.path.join(self.rwd, 'phylotyper.R'),
-            'tests': os.path.join(self.rwd, 'test_functions.R'),
-            'performance_tests': os.path.join(self.rwd, 'performance_tests.R'),
-            'subtype_properties': os.path.join(self.rwd, 'subtype_properties.R')
+            'phylotyper': 'phylotyper.R',
+            'tests': 'test_functions.R',
+            'performance_tests': 'performance_tests.R',
+            'subtype_properties': 'subtype_properties.R'
         }
 
 
@@ -196,6 +196,7 @@ class Phylotyper(object):
 
         # Set work dir
         robjects.r('setwd("{}")'.format(self.rwd))
+        print os.getcwd()
 
         # Load Phylotyper R functions
         rcode = 'source("{}")'.format(self.rfiles['phylotyper']) 
