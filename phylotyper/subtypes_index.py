@@ -74,11 +74,12 @@ class SubtypeConfig(object):
             raise Exception("Invalid/missing <subtypes> config parameter in YAML file %s" % (yamlfile))
 
         for subt in config_map['subtypes']:
-            e = self._is_invalid_subtype_config(config_map['subtypes'][subt])
+            subtype_config = config_map['subtypes'][subt].copy()
+            e = self._is_invalid_subtype_config(subtype_config)
             if e:
                 raise Exception("Invalid/missing config in YAML file %s for subtype %s: %s" % (yamlfile, subt, e))
             else:
-                self._config[subt] = config_map['subtypes'][subt]
+                self._config[subt] = subtype_config
                 
 
 
@@ -140,7 +141,10 @@ class SubtypeConfig(object):
             if blastdb_parameter in config:
                 config[blastdb_parameter] = os.path.join(root_dir, config[blastdb_parameter])
 
-                blast_file = config[blastdb_parameter]+'.psq'
+                ext = '.nsq'
+                if config['seq'] == 'aa':
+                    ext = '.psq'
+                blast_file = config[blastdb_parameter]+ext
                 if not os.path.isfile(blast_file):
                     return "%s blast database %s not found" % (blastdb_parameter, config[blastdb_parameter])
 

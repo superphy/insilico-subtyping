@@ -105,7 +105,7 @@ genome DNA sequences as input:
 
 ### Arguments:
 
-1.  `genome` - sub-command for running phylotyper on genome input. Other
+1.  `genome` - Sub-command for running phylotyper on genome input. Other
     sub-commands are `new` for building new subtype schemes.
 2.  `subtype_scheme` - The name for the subtype scheme. See [Built-in
     subtype schemes](#built-in-subtype-schemes) for a list of the
@@ -160,13 +160,13 @@ To create a new subtype for use in phylotyper:
 
 ### Arguments:
 
-1.  `new` - sub-command for adding new subtype in phylotyper. Other
+1.  `new` - Sub-command for adding new subtype in phylotyper. Other
     sub-commands are `genome` for running phylotyper on genome input.
 2.  `subtype_scheme` - The name for the subtype scheme.
 3.  `subtype_assignment_file` - Subtypes for input loci sequences.
 4.  `output_directory` - Results and graphics will be output to this
     directory. Files will be overwritten.
-5.  `reference_loci1.fasta` - fasta DNA or amino-acid sequence input.
+5.  `reference_loci1.fasta` - Fasta DNA or amino-acid sequence input.
     Multiple loci should be provided as separate files. Each entry in
     each fasta file should have a subtype assignment in the
     `subtype_assignment_file`.
@@ -181,7 +181,9 @@ To create a new subtype for use in phylotyper:
 3.  `--index /path/to/file` - YAML-format file that lists the locations
     of subtype reference files. You can specify a file that is not the
     default file packaged with phylotyper.
-4.  `--description` - A help description to describe the subtype scheme.
+4.  `--description` - A help description for the subtype scheme.
+
+If you would like to contribute a subtype scheme to the main repository, please contact us.
 
 ABOUT PHYLOTYPER
 ================

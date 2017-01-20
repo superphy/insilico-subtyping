@@ -2,6 +2,15 @@
 
 root_dir: data/
 subtypes:
+  eae:
+    alignment: [eae/eae_reference0.affn]
+    desc: Escherichia coli Initimin (eae) subtype
+    lookup: eae/eae_dictionary.json
+    nloci: 1
+    rate_matrix: eae/eae_rate_matrix.rds
+    search_database: eae/eae_search_database
+    seq: nt
+    subtype: eae/eae_subtypes.csv
   stx2:
     alignment: [stx2/stx2_reference0.affn, stx2/stx2_reference1.affn]
     desc: Escherichia coli Stx2 subtypes
