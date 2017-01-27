@@ -11,7 +11,7 @@
 
 \subtitle{Subject Section}
 
-\title[short Title]{Phylotyper: In silico predictor of bacterial strain types from gene sequences}
+\title[short Title]{Phylotyper: In silico predictor of bacterial subtypes from gene sequences}
 \author[Whiteside \textit{et~al}.]{Matthew D. Whiteside\,$^{\text{\sfb 1,}*}$, Chad R. Laing\,$^{\text{\sfb 1}}$ and Victor P.J. Gannon\,$^{\text{\sfb 1,}*}$}
 \address{$^{\text{\sf 1}}$National Microbiology Laboratory, Public Health Agency of Canada, Lethbridge, AB, Canada, T1J 3Z4}
 
@@ -28,9 +28,8 @@ Text Text Text Text Text Text
 Text Text Text Text Text.\\
 \textbf{Results:} Text  Text Text Text Text Text Text Text Text Text  Text Text Text Text Text
 Text Text Text Text Text Text Text Text Text Text Text Text Text  Text Text Text Text Text Text\\
-\textbf{Availability:} Text  Text Text Text Text Text Text Text Text Text  Text Text Text Text
-Text Text Text Text Text Text Text Text Text Text Text Text Text Text  Text\\
-\textbf{Contact:} \href{name@bio.com}{name@bio.com}\\
+\textbf{Availability:} Phylotyper is available for download from: \url{https://github.com/superphy/insilico-subtyping}.\\
+\textbf{Contact:} \href{matthew.whiteside@phac-aspc.gc.ca}{matthew.whiteside@phac-aspc.gc.ca}\\
 \textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}
 online.}
 
@@ -50,20 +49,24 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4876609/
 
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508412/
 
-Transition to WGS.  Need rapid / accurate prediction of typing
+Whole-genome sequencing (WGS) is a transformative technology.
+In public health, the speed, discriminatory power and broad utility of WGS data promises to improve surviellence and outbreak analysis.
+Adoption of WGS in the public health, however, requires bridging of historical data and systems with new the technologies and data.
+One of the workhorse methods used in public health are phenotypic subtyping (such as serotyping).
+As a survillence tool, subtypes provide an straight-forward designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens.
+A WGS-based approach to subtyping would have several benefits over current subtype systems; improved discrimination, cheaper and easier to maintain and routinely run, and would be faster.
+Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data.
 
-Subtyping schemes have been used as as indicators. As a survillence tool, subtypes 
-
-Current sequence-based predictors of bacterial strain types use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known types.
-Type assignment is based on sequence similarity with the type annotation from the top match above a pre-selected sequence similarity score threshold being used to assign a type to the unknown query.
-In current in silico type tools, the broader context and rate of sequence mutation within and between types is not built into the predictive framework.
-Sequence similarity scores are not direct indicators of the level of uncertainty assocated with a type prediction.
+The current \textit{in silico} predictors of bacterial subtypes use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known subtypes.
+Subtype assignment is based on sequence similarity with the subtype annotation from the top match above a pre-selected sequence similarity threshold being used to assign a subtype to the unknown query.
+These tools do not examine the phylogenetic context or consider rate of sequence mutation within and between subtypes.
+Sequence similarity scores are not direct indicators of the level of uncertainty assocated with a subtype prediction.
 
 Phylotyper is a novel in silico predictor of subtypes from sequence data. 
 It builds a phylogenetic tree consisting of reference sequences with known subtype and the unknown query sequences.  
-Using phylogenetic ancestral reconstruction to assign likelihoods of each type to the branch points in the tree and also compute the transition rates between subtypes, Phylotyper can assign an unknown query sequence a subtype based on the extrapolated value from its ancestors in the tree.
+Using phylogenetic ancestral reconstruction to assign likelihoods of each type to the branch points in the tree and also compute the transition rates between subtypes, Phylotyper assigns an unknown query sequence a subtype based on the extrapolated value from its ancestors in the tree.
 Subtype information is mainly used as a proxy for evolutionarily-related bacterial strain groups or to infer phenotypes.
-A phylogenetic framework for predicting subtypes is more consistent with the uses of subtype information.
+A phylogenetic framework for predicting subtypes is more consistent with the main uses of subtype information.
 
 
 \section{The Phylotyper Approach}
@@ -90,7 +93,7 @@ Outlined below are the steps and tools used in the Phylotyper pipeline:
 
 \begin{enumerate}
 \item Identify subtype gene loci in input genomes using blastn or blastx.
-\item Align input genes with unknown sunbtype against a pre-aligned set of reference genes using the tool MAFFT's --add feature.
+\item Align input genes with unknown sunbtype against a pre-aligned set of reference genes using the tool MAFFT's \texttt{--add} feature.
 \item If multiple loci are involved, concatenate individual alignments into superalignment.
 \item Generate phylogenetic tree of aligned genes with FastTree.
 \item Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes. 
@@ -99,8 +102,6 @@ Genes with unknown subtype are assigned a flat prior.
 Users are also provided with a image of the phylogenetic tree that shows the position of the unknown genes. 
 An example is shown in Figure~1\vphantom{\ref{fig:01}}.
 \end{enumerate}
-
-Phylotyper is available for download from: \url{https://github.com/superphy/insilico-subtyping}.
 
 \section{Functionality in the Phylotyper Tool}
 
