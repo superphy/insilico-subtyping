@@ -11,7 +11,7 @@
 
 \subtitle{Subject Section}
 
-\title[short Title]{Phylotyper: In silico predictor of bacterial subtypes from gene sequences}
+\title[short Title]{Phylotyper: In silico predictor of molecular subtypes from gene sequences}
 \author[Whiteside \textit{et~al}.]{Matthew D. Whiteside\,$^{\text{\sfb 1,}*}$, Chad R. Laing\,$^{\text{\sfb 1}}$ and Victor P.J. Gannon\,$^{\text{\sfb 1,}*}$}
 \address{$^{\text{\sf 1}}$National Microbiology Laboratory, Public Health Agency of Canada, Lethbridge, AB, Canada, T1J 3Z4}
 
@@ -21,13 +21,13 @@
 
 \editor{Associate Editor: XXXXXXX}
 
-\abstract{\textbf{Motivation:} Text Text Text Text Text Text Text Text Text Text Text Text Text
-Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text
-Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text Text
-Text Text Text Text Text Text
-Text Text Text Text Text.\\
-\textbf{Results:} Text  Text Text Text Text Text Text Text Text Text  Text Text Text Text Text
-Text Text Text Text Text Text Text Text Text Text Text Text Text  Text Text Text Text Text Text\\
+\abstract{\textbf{Motivation:} Whole genome sequencing is being adopted in public health for improved surviellence and outbreak analysis.
+Molecular subtyping has been used in public health to infer phenotypes and flag high-risk bacterial strain groups.
+In silico tools that predict molecular subtypes from WGS data are needed to transition historical data and systems to WGS-based protocols.\\
+\textbf{Results:} Phylotyper is a novel solution for in silico molecular subtype prediction from WGS data.
+It is a general prediction tool that can be applied to most molecular subtype schemes.
+Phylotyper uses phylogeny to model the evolution of the subtype and infer subtypes for unannotated sequences.
+The phylogenic framework in Phylotyper, improves accuracy, provides useful contextual feedback and confidence scores, and is more capable at identifying novel subtypes over in silico approaches based on sequence similarity.\\
 \textbf{Availability:} Phylotyper is available for download from: \url{https://github.com/superphy/insilico-subtyping}.\\
 \textbf{Contact:} \href{matthew.whiteside@phac-aspc.gc.ca}{matthew.whiteside@phac-aspc.gc.ca}\\
 \textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}
@@ -37,27 +37,15 @@ online.}
 
 \section{Introduction}
 
-http://genomemedicine.biomedcentral.com/articles/10.1186/s13073-014-0090-6
-
-https://holtlab.net/2014/12/27/behind-the-paper-srst2-for-short-read-sequence-typing-of-bacterial-pathogens/
-
-http://jcm.asm.org/content/53/8/2410.full
-
-http://mgen.microbiologyresearch.org/content/journal/mgen/10.1099/mgen.0.000064
-
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4876609/
-
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508412/
-
-Whole-genome sequencing (WGS) is a transformative technology.
-In public health, the speed, discriminatory power and broad utility of WGS data promises to improve surviellence and outbreak analysis.
+Whole-genome sequencing (WGS) is transforming the public health field by providing a highly efficent tool for interogating bacterial populations.
+The speed, discriminatory power and broad utility of WGS data can improve surviellence and outbreak analysis.
 Adoption of WGS in the public health, however, requires bridging of historical data and systems with new the technologies and data.
-One of the workhorse methods used in public health are phenotypic subtyping (such as serotyping).
+One of the workhorse methods used in public health are molecular subtyping (such as serotyping).
 As a survillence tool, subtypes provide an straight-forward designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens.
-A WGS-based approach to subtyping would have several benefits over current subtype systems; improved discrimination, cheaper and easier to maintain and routinely run, and would be faster.
+A WGS-based approach to subtyping would have several benefits over current subtype systems; would be faster, have improved discrimination and would be cheaper and easier to maintain and routinely run.
 Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data.
 
-The current \textit{in silico} predictors of bacterial subtypes use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known subtypes.
+Many of the current \textit{in silico} predictors of bacterial subtypes use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known subtypes.
 Subtype assignment is based on sequence similarity with the subtype annotation from the top match above a pre-selected sequence similarity threshold being used to assign a subtype to the unknown query.
 These tools do not examine the phylogenetic context or consider rate of sequence mutation within and between subtypes.
 Sequence similarity scores are not direct indicators of the level of uncertainty assocated with a subtype prediction.
@@ -92,8 +80,8 @@ Phylotyper is developed in python and R.
 Outlined below are the steps and tools used in the Phylotyper pipeline:
 
 \begin{enumerate}
-\item Identify subtype gene loci in input genomes using blastn or blastx.
-\item Align input genes with unknown sunbtype against a pre-aligned set of reference genes using the tool MAFFT's \texttt{--add} feature.
+\item Identify subtype gene loci in input genomes using blastn or blastx %\citep{Camacho2009}.
+\item Align input genes with unknown sunbtype against a pre-aligned set of reference genes using the tool MAFFT's \texttt{--add} feature \citep{Katoh2013}.
 \item If multiple loci are involved, concatenate individual alignments into superalignment.
 \item Generate phylogenetic tree of aligned genes with FastTree.
 \item Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes. 
@@ -102,6 +90,11 @@ Genes with unknown subtype are assigned a flat prior.
 Users are also provided with a image of the phylogenetic tree that shows the position of the unknown genes. 
 An example is shown in Figure~1\vphantom{\ref{fig:01}}.
 \end{enumerate}
+
+%\begin{figure}[!tpb]%figure1
+%%\centerline{\includegraphics{fig01.eps}}
+%\caption{Stx1 subtype phylogenetic tree. The posterior probability of each subtype as estimated by the Phylotyper method is displayed at each node as a pie chart.}\label{fig:01}
+%\end{figure}
 
 \section{Functionality in the Phylotyper Tool}
 
@@ -146,28 +139,68 @@ The individual loci alignments are then concatenated to form a single superalign
 The Stx1 and Stx2 schemes are examples of a multi-loci subtype schemes.  
 The A and B subunit genes that make up the holo-toxin in Shiga-toxin are the inputs in these subtype schemes.
 
+\begin{table}[!t]
+\processtable{Subtype schemes available in Phyloyper\label{Tab:01}} {\begin{tabular}{@{}llll@{}}\toprule Name &
+Description & Species & Loci\\\midrule
+stx1 & Shiga-toxin 1 subtype & {\it E. coli} & 2 \\
+stx2 & Shiga-toxin 1 subtype & {\it E. coli} & 2\\
+eae & Intimin subtype & {\it E. coli} & 1\\
+flic & H-serotype based on flagellin gene & {\it E. coli} & 1\\
+wz & O-serotype based on wzx and wzy genes & {\it E. coli} & 2\\\botrule
+\end{tabular}}{}
+\end{table}
 
 \section{Comparison to a Sequence Similarity Approach}
 
 To assess the performance of the phylogenetic-based method used in Phylotyper and compare it to a direct sequence similarity-based approach, we ran a leave-one-out cross validation analysis. 
 Each reference gene with experimentally validated subtype was removed from the training dataset and used as a test input into the Phylotyper program. 
-Similarily, using a mock sequence-similarity based tool we developed for assessment purposes, each gene was witheld from the BLAST reference database and used as input (Source code is available in TODO).
+Similarily, using a mock sequence-similarity based tool we developed for assessment purposes, each gene was witheld from the BLAST reference database and used as input (Source code is also available in the phyloyper git repository).
 The sequence-similarity tool assigns putative subtypes using a BLAST sequence search.  
 The predicted subtype annotation for the test input is assigned from top BLAST hit, provided the top hit passes a percent identity, e-value and alignment coverage minimum thresholds.  
 The threshold values are listed in TODO.
 This approach of transfering annotations from genes with highest sequence similarity is the core of most current subtying methods.
 
 
+% \begin{table}[!t]
+% \processtable{Results of a Leave-one-out cross validation analysis of Phylotyper and a sequence-similarity approach to predicting subtypes for four different schemes \label{Tab:01}} {
+% \begin{tabular}{@{}lllllll@{}}
+% \toprule 
+% \multirow{2}{*}{Scheme} & \multicolumn{3}{c}{Phylotyper} & \multicolumn{3}{c}{Sequence-similarity}\\
+% & Precision & Recall & F$_{1}$ Score & Precision & Recall & F$_{1}$ Score \\
+% \midrule
+% {\it E. coli} Stx1 & row1 & row1 & row1 & row1 & row1 & row1\\
+% {\it E. coli} Stx2 & row2 & row2 & row2 & row2 & row2 & row2\\
+% {\it E. coli} Intimin & row3 & row3 & row3 & row3 & row3 & row3\\
+% {\it E. coli} H-serotype & row4 & row4 & row4 & row4 & row4 & row4\\
+% {\it E. coli} O-serotype & row4 & row4 & row4 & row4 & row4 & row4\\\botrule
+% \end{tabular}}{This is a footnote}
+% \end{table}
+
+
 \section{Discussion}
 
-Phylotyper can...
-New subtypes,
-Performance test highly accurate.
+From assembled WGS data, Phylotyper can assign unclassifed strains a molecular subtype.
+Currently the Phylotyper software offers several subtyping schemes for \textit{E. coli}.
+It can be applied to most molecular subtype schemes, however.
+To add a new scheme, it requires a reference set of loci sequences that describe the subtype scheme profile.
+The Phylotyper suite includes functionality to build and run new schemes by users.
+Performance testing showed that the Phylotyper method is highly accurate.
 
-Sequence does not develop a model of subtype evolution. 
-Subtypes can evolve and different rates. 
-Strict one-size fits all cutoffs will not work.  
-The phylogenetic framework provides natural statistical interpretation of confidence values.
+Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences. 
+The model can accomodate subtypes that evolve at different rates; a feature that would be difficult in a sequence similarity top-hit approach. 
+By estimating the phylogenetic distribution of each subtype in a particular scheme, Phylotyper more easily identify a novel subtype or accurately classify a novel sequence allele.
+The performance of sequence similarity approaches is more dependent on the reference database containing the exact allele.  
+They do not provide straight-forward mechanism to interpret novel alleles that are not in the database.
+The phylogenetic framework and empirical evolution model provides a statistical confidence value for interpreting novel alleles.
+
+To exand the Phylotyper program suite, we are working on developing functionality that will automatically identify loci in a whole genome sequence that is highly evolutionarily correlated with a target subtype.
+
+
+
+
+
+
+
 
 
 
@@ -193,49 +226,33 @@ text text text\vspace*{-12pt}
 
 This work has been supported by the... \vspace*{-12pt}
 
-%\bibliographystyle{natbib}
-%\bibliographystyle{achemnat}
-%\bibliographystyle{plainnat}
-%\bibliographystyle{abbrv}
+\bibliographystyle{natbib}
+% \bibliographystyle{achemnat}
+% \bibliographystyle{plainnat}
+% \bibliographystyle{abbrv}
 %\bibliographystyle{bioinformatics}
-%
+
 %\bibliographystyle{plain}
-%
-%\bibliography{Document}
+
+\bibliography{phylotyper}
 
 
-\begin{thebibliography}{}
+%\begin{thebibliography}{}
 
-\bibitem[Bofelli {\it et~al}., 2000]{Boffelli03}
-Bofelli,F., Name2, Name3 (2003) Article title, {\it Journal Name}, {\bf 199}, 133-154.
+% \bibitem[Inouye \textit{et~al}., 2014]{Inouye14}
+% Inouye,M. \textit{et~al}. (2014) SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. \textit{Genome Med.}, \textbf{6}, 90.
 
-\bibitem[Bag {\it et~al}., 2001]{Bag01}
-Bag,M., Name2, Name3 (2001) Article title, {\it Journal Name}, {\bf 99}, 33-54.
+% \bibitem[Joensen \textit{et~al}., 2015]{Joensen15}
+% Joensen,K.G. \textit{et~al}. (2015) Rapid and Easy In Silico Serotyping of Escherichia coli Isolates by Use of Whole-Genome Sequencing Data. \textit{J. Clin. Microbiol.}, \textbf{53}, 2410-26.
 
-\bibitem[Yoo \textit{et~al}., 2003]{Yoo03}
-Yoo,M.S. \textit{et~al}. (2003) Oxidative stress regulated genes
-in nigral dopaminergic neurnol cell: correlation with the known
-pathology in Parkinson's disease. \textit{Brain Res. Mol. Brain
-Res.}, \textbf{110}(Suppl. 1), 76--84.
+% \bibitem[Ingle \textit{et~al}., 2016]{Ingle16}
+% Ingle,D.J. \textit{et~al}. (2016) In silico serotyping of E. coli from short read data identifies limited novel O-loci but extensive diversity of O:H serotype combinations within and between pathogenic lineages. \textit{Microb. Genom.}, \textbf{2}, 7.
 
-\bibitem[Lehmann, 1986]{Leh86}
-Lehmann,E.L. (1986) Chapter title. \textit{Book Title}. Vol.~1, 2nd edn. Springer-Verlag, New York.
+% \bibitem[Jenkins, 2016]{Jenkins15}
+% Jenkins C. (2015) Whole-Genome Sequencing Data for Serotyping Escherichia coli—It’s Time for a Change! \textit{J. Clin. Microbiol.},\textbf{53}, 2402-2403.
 
-\bibitem[Crenshaw and Jones, 2003]{Cre03}
-Crenshaw, B.,III, and Jones, W.B.,Jr (2003) The future of clinical
-cancer management: one tumor, one chip. \textit{Bioinformatics},
-doi:10.1093/bioinformatics/btn000.
+% \bibitem[Lindsey \textit{et~al}., 2016]{Lindsey16}
+% Lindsey,R.L. \textit{et~al}. (2016) Implementation of Whole Genome Sequencing (WGS) for Identification and Characterization of Shiga Toxin-Producing Escherichia coli (STEC) in the United States. \textit{Front. Microbiol.}, \textbf{7}, 766.
 
-\bibitem[Auhtor \textit{et~al}. (2000)]{Aut00}
-Auhtor,A.B. \textit{et~al}. (2000) Chapter title. In Smith, A.C.
-(ed.), \textit{Book Title}, 2nd edn. Publisher, Location, Vol. 1, pp.
-???--???.
-
-\bibitem[Bardet, 1920]{Bar20}
-Bardet, G. (1920) Sur un syndrome d'obesite infantile avec
-polydactylie et retinite pigmentaire (contribution a l'etude des
-formes cliniques de l'obesite hypophysaire). PhD Thesis, name of
-institution, Paris, France.
-
-\end{thebibliography}
+%\end{thebibliography}
 \end{document}
