@@ -5,13 +5,14 @@
 \appnotes{Application Note}
 
 \usepackage{url}
+\usepackage{multirow}
 
 \begin{document}
 \firstpage{1}
 
 \subtitle{Subject Section}
 
-\title[short Title]{Phylotyper: In silico predictor of molecular subtypes from gene sequences}
+\title[short Title]{Phylotyper: {\it In silico} predictor of molecular subtypes from gene sequences}
 \author[Whiteside \textit{et~al}.]{Matthew D. Whiteside\,$^{\text{\sfb 1,}*}$, Chad R. Laing\,$^{\text{\sfb 1}}$ and Victor P.J. Gannon\,$^{\text{\sfb 1,}*}$}
 \address{$^{\text{\sf 1}}$National Microbiology Laboratory, Public Health Agency of Canada, Lethbridge, AB, Canada, T1J 3Z4}
 
@@ -21,14 +22,14 @@
 
 \editor{Associate Editor: XXXXXXX}
 
-\abstract{\textbf{Motivation:} Whole genome sequencing is being adopted in public health for improved surviellence and outbreak analysis.
+\abstract{\textbf{Summary:} Whole genome sequencing is being adopted in public health for improved surveillance and outbreak analysis.
 Molecular subtyping has been used in public health to infer phenotypes and flag high-risk bacterial strain groups.
-In silico tools that predict molecular subtypes from WGS data are needed to transition historical data and systems to WGS-based protocols.\\
-\textbf{Results:} Phylotyper is a novel solution for in silico molecular subtype prediction from WGS data.
+\textit{In silico} tools that predict molecular subtypes from WGS data are needed to transition historical data and systems to WGS-based protocols.
+Phylotyper is a novel solution for \textit{in silico} molecular subtype prediction from WGS data.
 It is a general prediction tool that can be applied to most molecular subtype schemes.
 Phylotyper uses phylogeny to model the evolution of the subtype and infer subtypes for unannotated sequences.
-The phylogenic framework in Phylotyper, improves accuracy, provides useful contextual feedback and confidence scores, and is more capable at identifying novel subtypes over in silico approaches based on sequence similarity.\\
-\textbf{Availability:} Phylotyper is available for download from: \url{https://github.com/superphy/insilico-subtyping}.\\
+The phylogenic framework in Phylotyper, improves accuracy, provides useful contextual feedback and confidence scores, and is more capable at identifying novel subtypes over \textit{in silico} approaches based on sequence similarity.\\
+\textbf{Availability and Implementation:} Phylotyper is a python package. It is available from: \url{https://github.com/superphy/insilico-subtyping}.\\
 \textbf{Contact:} \href{matthew.whiteside@phac-aspc.gc.ca}{matthew.whiteside@phac-aspc.gc.ca}\\
 \textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}
 online.}
@@ -37,20 +38,20 @@ online.}
 
 \section{Introduction}
 
-Whole-genome sequencing (WGS) is transforming the public health field by providing a highly efficent tool for interogating bacterial populations.
-The speed, discriminatory power and broad utility of WGS data can improve surviellence and outbreak analysis.
-Adoption of WGS in the public health, however, requires bridging of historical data and systems with new the technologies and data.
-One of the workhorse methods used in public health are molecular subtyping (such as serotyping).
-As a survillence tool, subtypes provide an straight-forward designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens.
-A WGS-based approach to subtyping would have several benefits over current subtype systems; would be faster, have improved discrimination and would be cheaper and easier to maintain and routinely run.
-Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data.
+Whole-genome sequencing (WGS) is transforming the public health field by providing a highly efficient tool for surveying bacterial populations.
+The speed, discriminatory power and broad utility of WGS data can improve surveillance and outbreak analysis.
+Adoption of WGS in the public health, however, requires bridging of historical data and systems with new the technologies and data \citep{Jenkins2015}.
+One of the workhorse methods used in public health are molecular subtyping (such as stereotyping).
+As a surveillance tool, subtypes provide an straight-forward designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens \citep{Jenkins2015}.
+A WGS-based approach to subtyping would have several benefits over current subtype systems; it would be faster, have improved discrimination and would be cheaper and easier to maintain and routinely run \citep{Jenkins2015}.
+Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data \citep{Inouye2014,Joensen2015,Ingle2016,Lindsey2016,CARRILLO2016}.
 
-Many of the current \textit{in silico} predictors of bacterial subtypes use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known subtypes.
+Many of the current \textit{in silico} predictors of bacterial subtypes use a similar approach; genes or genome sequences with unknown type are compared against a reference database of sequences with known subtypes \citep{Joensen2015,CARRILLO2016,Ingle2016}.
 Subtype assignment is based on sequence similarity with the subtype annotation from the top match above a pre-selected sequence similarity threshold being used to assign a subtype to the unknown query.
-These tools do not examine the phylogenetic context or consider rate of sequence mutation within and between subtypes.
-Sequence similarity scores are not direct indicators of the level of uncertainty assocated with a subtype prediction.
+These tools do not examine the phylogeny context or consider rate of sequence mutation within and between subtypes.
+Sequence similarity scores are not direct indicators of the level of uncertainty associated with a subtype prediction.
 
-Phylotyper is a novel in silico predictor of subtypes from sequence data. 
+Phylotyper is a novel \textit{in silico} predictor of subtypes from sequence data. 
 It builds a phylogenetic tree consisting of reference sequences with known subtype and the unknown query sequences.  
 Using phylogenetic ancestral reconstruction to assign likelihoods of each type to the branch points in the tree and also compute the transition rates between subtypes, Phylotyper assigns an unknown query sequence a subtype based on the extrapolated value from its ancestors in the tree.
 Subtype information is mainly used as a proxy for evolutionarily-related bacterial strain groups or to infer phenotypes.
@@ -62,15 +63,15 @@ A phylogenetic framework for predicting subtypes is more consistent with the mai
 The core of Phylotyper, is an ancestral state reconstruction method that has been adapted for hidden state prediction.
 In phylogenetics, ancestral state reconstruction involves the prediction of traits of ancestors from extant descendants.
 This methodology can be extended to predict properties in existing strains under investigation for which the a properties' state is unknown.
-Ancestral state reconstruction (ASR) has been successfully applied to hidden state prediction in the field of microbial metagenomics; the tool PICRUSt uses ASR to estimate the gene family content contributed by a bacteria to a metagenomic sample.
+Ancestral state reconstruction (ASR) has been successfully applied to hidden state prediction in the field of microbial metagenomics; the tool PICRUSt uses ASR to estimate the gene family content contributed by a bacteria to a metagenomics sample.
 
-In Phylotyper, the \texttt{rerootingMethod} function from the phytools R package is used to perform the ASR.
+In Phylotyper, the \texttt{rerootingMethod} function from the phytools R package is used to perform the ASR \citep{Revell2011}.
 It is based on a method originally described in Yang \emph{et al}. (1995) for estimating the marginal likelihood of a discrete set of states for the internal nodes in a phylogenetic tree.
-The phytools \texttt{rerootingMethod} function was selected over alternatives, such as APE ace, because it can handle extant tip nodes with unkown states in the phylogenetic tree and also compute posterior probability for those nodes, hence, making applicable for hidden state prediction.
-The maximum marginal likelihood (also called emperical Bayesian posterior probability) calculated for unknown tip nodes reflects the most likely state for the node given the emperically estimated evolution model and phylogeny.
+The phytools \texttt{rerootingMethod} function was selected over alternatives, such as APE ace, because it can handle extant tip nodes with unkown states in the phylogenetic tree and also compute posterior probability for those nodes, hence, making applicable for hidden state prediction \citep{Revell2011}.
+The maximum marginal likelihood (also called empirical Bayesian posterior probability) calculated for unknown tip nodes reflects the most likely state for the node given the empirically estimated evolution model and phylogeny.
 It captures the uncertainty associated with phylogenetic branch lengths and rates of change associated with the states.
 In the context of Phylotyper, the posterior probabilities provides a confidence value associated with a predicted subtype.
-The evolutionary model used in \texttt{rerootingMethod} is the $\text{M}_{\text{k}}$ model for discrete states (a continuous-time Markov process model)).  
+The evolutionary model used in \texttt{rerootingMethod} is the $\text{M}_{\text{k}}$ model for discrete states (a continuous-time Markov process model)) \citep{Revell2011}.  
 It is estimated from the data, so in Phylotyper, the reference set of genes used to build a phylogenetic tree and run the ASR, is key to the performance of the predictor.
 For subtype schemes packaged in Phylotyper, the annotated genes will be maintained and routinely updated to provide a robust and comprehensive reference set.
 The other key assumption is that gene phylogeny is correlated with the evolution of subtype state.
@@ -81,11 +82,11 @@ Outlined below are the steps and tools used in the Phylotyper pipeline:
 
 \begin{enumerate}
 \item Identify subtype gene loci in input genomes using blastn or blastx %\citep{Camacho2009}.
-\item Align input genes with unknown sunbtype against a pre-aligned set of reference genes using the tool MAFFT's \texttt{--add} feature \citep{Katoh2013}.
+\item Align input genes with unknown subtype against a pre-aligned set of reference genes using the tool MAFFT's \texttt{--add} feature \citep{Katoh2013}.
 \item If multiple loci are involved, concatenate individual alignments into superalignment.
-\item Generate phylogenetic tree of aligned genes with FastTree.
+\item Generate phylogenetic tree of aligned genes with FastTree \citep{Price2010}.
 \item Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes. 
-Genes with unknown subtype are assigned a flat prior.
+Genes with unknown subtype are assigned a flat prior \citep{Revell2011}.
 \item Identify the subtype with maximum marginal likelihood for the unknown genes and report to user.
 Users are also provided with a image of the phylogenetic tree that shows the position of the unknown genes. 
 An example is shown in Figure~1\vphantom{\ref{fig:01}}.
@@ -100,13 +101,13 @@ An example is shown in Figure~1\vphantom{\ref{fig:01}}.
 
 Phylotyper was designed to be incorporated into a whole genome sequencing public health workflow.  
 The main input into Phylotyper is assembled (but not necessarily closed) genome sequences.  
-Putative loci needed for the selected subtype scheme are identified in the input genomes using BLAST.
+Putative loci needed for the selected subtype scheme are identified in the input genomes using BLAST \citep{Camacho2009}.
 The discovered loci are then sent to the Phylotyper subtype prediction module.
 It is possible to bypass the loci search step and provide genes directly to Phylotyper using the subtype run mode.
 
 The Phylotyper approach can be used to predict any biological property that can be inferred from the phylogenetic distribution of a nominal set of genomic loci.
-Currently, subtype schemes for \emph{Escherichia coli} Shiga-toxin 1 and 2 subtypes, Serotype O and H-types and Intimin subtypes are available in the Phylotyper package.
-Details about the current schemes available in the Phylotyper package is provided in table XXX.
+Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) Shiga-toxin 1 and 2 subtypes, Serotype O and H-types and Intimin subtypes are available in the Phylotyper package.
+Details about the current schemes available in the Phylotyper package is provided in Table~1\vphantom{\ref{tab:01}}.
 However, included in the Phylotyper software, is the capability to add new subtype schemes. 
 Creating a new subtype scheme will save the required reference files in a data directory, allowing the newly added schemes to be easily run from Phylotyper. 
 We also encourage users to contribute their subtype schemes to the main software repository (please send us subtype schemes you have developed and wish to share).
@@ -116,21 +117,21 @@ A scan of the reference phylogenetic tree is conducted to search for tightly clu
 We first estimate the distribution of the inter-patristic distances of genes with the same subtype.  
 The distribution is used to dynamically select a distance threshold, which we employ to flag subclades wherein the inter-patristic distance is less than  the threshold but contains multiple distinct subtypes.
 We also conduct a leave-one-out cross validation for each gene in the new subtype scheme to assess the scheme's predictive capability.
-Users are alerted if their subtype schemes that have a F1-score below 0.9 from the cross-validation analysis.
+Users are alerted if their subtype schemes that have a F$_\text{1}$-score below 0.9 from the cross-validation analysis.
 
 Phylotyper also offers flexibility in the parameterization of evolution model used in the ASR step.
-A component of the underlying ASR framework, is an Mk or markov model of subtype evolution, for which an emperical transition rate matrix is estimated from the data.
+A component of the underlying ASR framework, is an $\text{M}_{\text{k}}$ or Markov model of subtype evolution, for which an empirical transition rate matrix is estimated from the data.
 The transition matrix is used to calculate the expected number of subtype state changes given a distance in the phylogenetic tree.  
 Different model parameterizations can be defined for the transition rate matrix. 
 The simplest parameterization available in Phylotyper is the equal rates model; all subtypes have the same forward and reverse rate.  
-The most complex parameterization available im Phylotyper is the symmetric model, wherein each forward and reverse rate for a given pair of subtypes are assigned a separate parameter.
+The most complex parameterization available in Phylotyper is the symmetric model, wherein each forward and reverse rate for a given pair of subtypes are assigned a separate parameter \citep{Revell2011}.
 Frequently, the number of subtypes makes the symmetric model too computationally prohibitive.
 To offer more flexible models in these situations with reduced numbers of free parameters, two custom parameterization approaches were developed.
 The custom approaches both use a binning strategy that attempts to identify sets of subtypes that would have similar rates and assign them a single parameter as a set.
 These approaches are described in detail in the Supplementary Information XXX.
 Each of these model parameterizations; equal, symmetric and the two custom models are tested and evaluated in new subtype pipeline.
 The parameterization that has highest accuracy (based on a LOOCV analysis) is selected.
-In the case of ties, the model with the fewest parameters is given precidence (the symmetric model is not tested when the number of subtypes is over 10)
+In the case of ties, the model with the fewest parameters is given precedence (the symmetric model is not tested when the number of subtypes is over 10)
 
 In testing the predictive capability of Phylotyper, we found that in some cases, jointly using multiple loci increased the subtype prediction accuracy.  
 And so, in Phylotyper, multiple loci can be used in creating subtype schemes.
@@ -157,24 +158,24 @@ Each reference gene with experimentally validated subtype was removed from the t
 Similarily, using a mock sequence-similarity based tool we developed for assessment purposes, each gene was witheld from the BLAST reference database and used as input (Source code is also available in the phyloyper git repository).
 The sequence-similarity tool assigns putative subtypes using a BLAST sequence search.  
 The predicted subtype annotation for the test input is assigned from top BLAST hit, provided the top hit passes a percent identity, e-value and alignment coverage minimum thresholds.  
-The threshold values are listed in TODO.
 This approach of transfering annotations from genes with highest sequence similarity is the core of most current subtying methods.
 
 
-% \begin{table}[!t]
-% \processtable{Results of a Leave-one-out cross validation analysis of Phylotyper and a sequence-similarity approach to predicting subtypes for four different schemes \label{Tab:01}} {
-% \begin{tabular}{@{}lllllll@{}}
-% \toprule 
-% \multirow{2}{*}{Scheme} & \multicolumn{3}{c}{Phylotyper} & \multicolumn{3}{c}{Sequence-similarity}\\
-% & Precision & Recall & F$_{1}$ Score & Precision & Recall & F$_{1}$ Score \\
-% \midrule
-% {\it E. coli} Stx1 & row1 & row1 & row1 & row1 & row1 & row1\\
-% {\it E. coli} Stx2 & row2 & row2 & row2 & row2 & row2 & row2\\
-% {\it E. coli} Intimin & row3 & row3 & row3 & row3 & row3 & row3\\
-% {\it E. coli} H-serotype & row4 & row4 & row4 & row4 & row4 & row4\\
-% {\it E. coli} O-serotype & row4 & row4 & row4 & row4 & row4 & row4\\\botrule
-% \end{tabular}}{This is a footnote}
-% \end{table}
+\begin{table}[!t]
+\processtable{Results of a Leave-one-out cross validation analysis of Phylotyper and a sequence-similarity approach to predicting subtypes for four different schemes \label{Tab:01}} {
+\begin{tabular}{@{\extracolsep{2pt}}lllllll@{}}
+\toprule 
+\multirow{2}{*}{Scheme} & \multicolumn{3}{c}{Phylotyper} & \multicolumn{3}{c}{Sequence-similarity}\\
+\cline{2-4}\cline{5-7}
+& Precision & Recall & F$_{1}$ Score & Precision & Recall & F$_{1}$ Score \\
+\midrule
+{\it E. coli} Stx1 & row1 & row1 & row1 & row1 & row1 & row1\\
+{\it E. coli} Stx2 & row2 & row2 & row2 & row2 & row2 & row2\\
+{\it E. coli} Intimin & row3 & row3 & row3 & row3 & row3 & row3\\
+{\it E. coli} H-serotype & row4 & row4 & row4 & row4 & row4 & row4\\
+{\it E. coli} O-serotype & row4 & row4 & row4 & row4 & row4 & row4\\\botrule
+\end{tabular}}{This is a footnote}
+\end{table}
 
 
 \section{Discussion}
@@ -193,42 +194,20 @@ The performance of sequence similarity approaches is more dependent on the refer
 They do not provide straight-forward mechanism to interpret novel alleles that are not in the database.
 The phylogenetic framework and empirical evolution model provides a statistical confidence value for interpreting novel alleles.
 
-To exand the Phylotyper program suite, we are working on developing functionality that will automatically identify loci in a whole genome sequence that is highly evolutionarily correlated with a target subtype.
-
-
-
-
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%     please remove the " % " symbol from \centerline{\includegraphics{fig01.eps}}
-%     as it may ignore the figures.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Conclusion}
-
-Text Text text\vspace*{-10pt}
+To exand the Phylotyper program suite, we are working on developing functionality that will automatically identify loci in a whole genome sequence that is highly evolutionarily correlated with a target subtype.  This function will help streamline the process of developing new subtype schemes in Phylotyper.\vspace*{-10pt}
 
 
 \section*{Acknowledgements}
 
 text text text\vspace*{-12pt}
 
-
 \section*{Funding}
 
-This work has been supported by the... \vspace*{-12pt}
+This work has been supported by the... Text Text  Text Text.\vspace*{-12pt}
 
 \bibliographystyle{natbib}
 % \bibliographystyle{achemnat}
-% \bibliographystyle{plainnat}
+%\bibliographystyle{plainnat}
 % \bibliographystyle{abbrv}
 %\bibliographystyle{bioinformatics}
 
@@ -237,22 +216,4 @@ This work has been supported by the... \vspace*{-12pt}
 \bibliography{phylotyper}
 
 
-%\begin{thebibliography}{}
-
-% \bibitem[Inouye \textit{et~al}., 2014]{Inouye14}
-% Inouye,M. \textit{et~al}. (2014) SRST2: Rapid genomic surveillance for public health and hospital microbiology labs. \textit{Genome Med.}, \textbf{6}, 90.
-
-% \bibitem[Joensen \textit{et~al}., 2015]{Joensen15}
-% Joensen,K.G. \textit{et~al}. (2015) Rapid and Easy In Silico Serotyping of Escherichia coli Isolates by Use of Whole-Genome Sequencing Data. \textit{J. Clin. Microbiol.}, \textbf{53}, 2410-26.
-
-% \bibitem[Ingle \textit{et~al}., 2016]{Ingle16}
-% Ingle,D.J. \textit{et~al}. (2016) In silico serotyping of E. coli from short read data identifies limited novel O-loci but extensive diversity of O:H serotype combinations within and between pathogenic lineages. \textit{Microb. Genom.}, \textbf{2}, 7.
-
-% \bibitem[Jenkins, 2016]{Jenkins15}
-% Jenkins C. (2015) Whole-Genome Sequencing Data for Serotyping Escherichia coli—It’s Time for a Change! \textit{J. Clin. Microbiol.},\textbf{53}, 2402-2403.
-
-% \bibitem[Lindsey \textit{et~al}., 2016]{Lindsey16}
-% Lindsey,R.L. \textit{et~al}. (2016) Implementation of Whole Genome Sequencing (WGS) for Identification and Characterization of Shiga Toxin-Producing Escherichia coli (STEC) in the United States. \textit{Front. Microbiol.}, \textbf{7}, 766.
-
-%\end{thebibliography}
 \end{document}
