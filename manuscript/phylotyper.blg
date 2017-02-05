@@ -1,46 +1,46 @@
-This is BibTeX, Version 0.99d (TeX Live 2016)
-Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+This is BibTeX, Version 0.99d (TeX Live 2015)
+Capacity: max_strings=150000, hash_size=150000, hash_prime=127507
 The top-level auxiliary file: phylotyper.aux
 The style file: natbib.bst
 Database file #1: phylotyper.bib
-You've used 10 entries,
+You've used 12 entries,
             2378 wiz_defined-function locations,
-            607 strings with 6776 characters,
-and the built_in function-call counts, 5360 in all, are:
-= -- 467
-> -- 390
+            622 strings with 7500 characters,
+and the built_in function-call counts, 6726 in all, are:
+= -- 570
+> -- 518
 < -- 3
-+ -- 118
-- -- 118
-* -- 552
-:= -- 969
-add.period$ -- 47
-call.type$ -- 10
-change.case$ -- 61
-chr.to.int$ -- 10
-cite$ -- 10
-duplicate$ -- 191
-empty$ -- 310
-format.name$ -- 130
-if$ -- 1022
++ -- 158
+- -- 158
+* -- 708
+:= -- 1219
+add.period$ -- 57
+call.type$ -- 12
+change.case$ -- 73
+chr.to.int$ -- 12
+cite$ -- 12
+duplicate$ -- 231
+empty$ -- 381
+format.name$ -- 172
+if$ -- 1278
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 10
-newline$ -- 53
-num.names$ -- 40
-pop$ -- 55
+missing$ -- 12
+newline$ -- 63
+num.names$ -- 48
+pop$ -- 67
 preamble$ -- 1
-purify$ -- 61
+purify$ -- 73
 quote$ -- 0
-skip$ -- 126
+skip$ -- 150
 stack$ -- 0
-substring$ -- 304
-swap$ -- 37
+substring$ -- 387
+swap$ -- 45
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 90
+type$ -- 108
 warning$ -- 0
-while$ -- 42
+while$ -- 51
 width$ -- 0
-write$ -- 132
+write$ -- 158

@@ -7,6 +7,13 @@ Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K.,
 \newblock {BLAST}$+$: architecture and applications.
 \newblock {\em {BMC} Bioinformatics\/}, {\bf 10}(1), 421.
 
+\bibitem[Capella-Gutierrez {\em et~al.}(2009)Capella-Gutierrez, Silla-Martinez,
+  and Gabaldon]{CapellaGutierrez2009}
+Capella-Gutierrez, S., Silla-Martinez, J.~M., and Gabaldon, T. (2009).
+\newblock {trimAl}: a tool for automated alignment trimming in large-scale
+  phylogenetic analyses.
+\newblock {\em Bioinformatics\/}, {\bf 25}(15), 1972--1973.
+
 \bibitem[Carrillo {\em et~al.}(2016)Carrillo, Koziol, Mathews, Goji, Lambert,
   Huszczynski, Gauthier, Amoako, and Blais]{CARRILLO2016}
 Carrillo, C.~D., Koziol, A.~G., Mathews, A., Goji, N., Lambert, D.,
@@ -14,6 +21,17 @@ Carrillo, C.~D., Koziol, A.~G., Mathews, A., Goji, N., Lambert, D.,
 \newblock Comparative evaluation of genomic and laboratory approaches for
   determination of shiga toxin subtypes in escherichia coli.
 \newblock {\em Journal of Food Protection\/}, {\bf 79}(12), 2078--2085.
+
+\bibitem[DebRoy {\em et~al.}(2016)DebRoy, Fratamico, Yan, Baranzoni, Liu,
+  Needleman, Tebbs, O{\textquotesingle}Connell, Allred, Swimley, Mwangi, Kapur,
+  Garay, Roberts, and Katani]{DebRoy2016}
+DebRoy, C., Fratamico, P.~M., Yan, X., Baranzoni, G., Liu, Y., Needleman,
+  D.~S., Tebbs, R., O{\textquotesingle}Connell, C.~D., Allred, A., Swimley, M.,
+  Mwangi, M., Kapur, V., Garay, J. A.~R., Roberts, E.~L., and Katani, R.
+  (2016).
+\newblock Comparison of o-antigen gene clusters of all o-serogroups of
+  escherichia coli and proposal for adopting a new nomenclature for o-typing.
+\newblock {\em {PLOS} {ONE}\/}, {\bf 11}(1), e0147434.
 
 \bibitem[Ingle {\em et~al.}(2016)Ingle, Holt, Levine, Kuzevski, Valcanis,
   Robins-Browne, Tauschek, Inouye, and Stinear]{Ingle2016}
