@@ -23,7 +23,7 @@
 
 \abstract{\textbf{Summary:} Whole genome sequencing (WGS) is being adopted in public health for improved surveillance and outbreak analysis.
 Molecular subtyping has been used in public health to infer phenotypes and flag high-risk bacterial strain groups.
-\textit{In silico} tools that predict molecular subtypes from gene sequences are needed to transition historical data and systems to WGS-based protocols.
+\textit{In silico} tools that predict molecular subtypes from gene sequences are needed to transition historical data to WGS-based protocols.
 Phylotyper is a novel solution for \textit{in silico} molecular subtype prediction from gene sequences.
 Designed for incorporation into WGS pipelines, it is a general prediction tool that can be applied to most molecular subtype schemes.
 Phylotyper uses phylogeny to model the evolution of the subtype and infer subtypes for unannotated sequences.
@@ -38,9 +38,9 @@ online.}
 \section{Introduction}
 
 Whole-genome sequencing (WGS) is transforming the public health field by providing a highly efficient method for surveying bacterial populations.
-The speed, discriminatory power and broad utility of WGS data can improve surveillance and outbreak analysis.
-Adoption of WGS in the public health, however, requires bridging of historical data with the new technologies \citep{Jenkins2015}.
-One of the workhorse methods in public health is molecular subtyping (such as stereotyping).
+The speed, discriminatory power and broad utility of WGS can improve surveillance and outbreak analysis.
+Adoption of WGS in public health, however, requires transitioning of historical data with the new methods \citep{Jenkins2015}.
+One of the workhorse methods in public health is molecular subtyping (such as serotyping).
 As a surveillance tool, subtypes provide a clearcut designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens \citep{Jenkins2015}.
 A WGS-based approach to subtyping would have several benefits over current subtype systems; it would be faster, have improved discrimination and would be cheaper and easier to maintain and routinely run \citep{Jenkins2015}.
 Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data \citep{Inouye2014,Joensen2015,Ingle2016,Lindsey2016,CARRILLO2016}.
@@ -51,7 +51,7 @@ Using phylogenetic ancestral reconstruction to assign the likelihood of each sub
 
 \section{Implementation}
 
-The core of Phylotyper, is an ancestral state reconstruction (ASR) method that has been adapted for hidden state prediction.
+The core of Phylotyper is an ancestral state reconstruction (ASR) method that has been adapted for hidden state prediction.
 In phylogenetic analysis, ancestral state reconstruction involves the prediction of traits of ancestors from existent descendants.
 This methodology can be extended to also predict properties in a limited number of existing strains.
 
@@ -60,7 +60,7 @@ This function calculates the maximum marginal likelihood for unknown tip nodes i
 The likelihood reflects the most likely state for the node given the empirically estimated evolution model and phylogeny.
 It captures the uncertainty associated with phylogenetic branch lengths and rates of change between states.
 In the context of Phylotyper, the marginal likelihood provides a confidence value associated with a predicted subtype.
-The evolutionary model used in Phylotyper, is estimated from the data, so the reference set of genes used to build a phylogenetic tree and run the ASR, is key to the accuracy.
+The evolutionary model used in Phylotyper is estimated from the data, so the reference set of genes used to build a phylogenetic tree and run the ASR, is key to the accuracy.
 The other key assumption is that gene phylogeny is correlated with the evolution of subtype state.
 Because of these assumptions are central to the method, all new subtype schemes are evaluated for their predictive performance.
 
@@ -90,7 +90,7 @@ Putative loci needed for the subtype scheme are identified in the input genomes 
 The identified loci are then sent to the Phylotyper subtype prediction module.
 It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.  
-The Stx1 and Stx2 schemes are examples of a multi-loci subtype schemes, with toxin A and B subunit genes are the inputs in these schemes.
+The Stx1 and Stx2 schemes are examples of a multi-loci subtype scheme; the Stx toxin A and B subunit genes are the inputs in these schemes.
 
 Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package (listed in Supplementary Table~1).
 However, included in the Phylotyper software, is the capability to add new subtype schemes. 
@@ -99,7 +99,7 @@ Checks are built-in to the new subtype pipeline to ensure the assumptions of the
 
 \section{Results}
 
-To assess the performance of the phylogenetic-based method used in Phylotyper and compare it to a sole sequence similarity-based approach, we ran a leave-one-out cross validation analysis.
+To assess the performance of the phylogenetic-based method used in Phylotyper and compare it to a sequence similarity-based approach, we ran a leave-one-out cross validation analysis.
 For this assessment, we developed a mock sequence-similarity based tool that assigns putative subtypes using BLAST.
 The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than in a top-BLAST hit approach (see Supplementary Table S2 for results). The methods have similar recall rates.
 
