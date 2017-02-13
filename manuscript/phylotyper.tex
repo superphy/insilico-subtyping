@@ -62,7 +62,7 @@ It captures the uncertainty associated with phylogenetic branch lengths and rate
 In the context of Phylotyper, the marginal likelihood provides a confidence value associated with a predicted subtype.
 The evolutionary model used in Phylotyper is estimated from the data, so the reference set of genes used to build a phylogenetic tree and run the ASR, is key to the accuracy.
 The other key assumption is that gene phylogeny is correlated with the evolution of subtype state.
-Because of these assumptions are central to the method, all new subtype schemes are evaluated for their predictive performance.
+Because these assumptions are central to the method, all new subtype schemes are evaluated for their predictive performance.
 
 Phylotyper is developed in python and R. 
 Outlined below are the steps and tools used in the Phylotyper pipeline:
@@ -74,7 +74,7 @@ Outlined below are the steps and tools used in the Phylotyper pipeline:
 \item Generate maximum likelihood phylogenetic tree of aligned genes with FastTree \citep{Price2010}.
 \item Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes \citep{Revell2011}.
 \item Identify the subtype with maximum marginal likelihood for the unknown genes and report to user.
-Users are provided with an image of the phylogenetic tree overlaid with the likelihood values (e.g. Figure~1\vphantom{\ref{fig:01}}).
+Users are provided with an image of the phylogenetic tree overlaid with the likelihood values (e.g. Figure~1\vphantom{\ref{fig:01}}). {Is it possible to print out the type directly, without looking at the tree?}
 \end{enumerate}
 
 \begin{figure}[!tpb]%figure1
@@ -92,7 +92,7 @@ It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.  
 The Stx1 and Stx2 schemes are examples of a multi-loci subtype scheme; the Stx toxin A and B subunit genes are the inputs in these schemes.
 
-Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package (listed in Supplementary Table~1).
+Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotyping  (listed in Supplementary Table~1).
 However, included in the Phylotyper software, is the capability to add new subtype schemes. 
 Creating a new subtype scheme will save the required reference files in a data directory, allowing newly added schemes to be easily re-run from Phylotyper.
 Checks are built-in to the new subtype pipeline to ensure the assumptions of the Phylotyper approach are not violated.  
@@ -101,7 +101,7 @@ Checks are built-in to the new subtype pipeline to ensure the assumptions of the
 
 To assess the performance of the phylogenetic-based method used in Phylotyper and compare it to a sequence similarity-based approach, we ran a leave-one-out cross validation analysis.
 For this assessment, we developed a mock sequence-similarity based tool that assigns putative subtypes using BLAST.
-The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than in a top-BLAST hit approach (see Supplementary Table S2 for performance metrics).
+The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than in a top-BLAST hit approach (see Supplementary Table S2 for performance metrics). {Is there room for some mention of time required / batch capability?}
 
 \section{Discussion}
 
