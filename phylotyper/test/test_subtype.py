@@ -25,8 +25,7 @@ class SubtypeTests(unittest.TestCase):
 
     def tearDown(self):
         # Remove previous directories created
-        #shutil.rmtree(self.test_dir)
-        pass
+        shutil.rmtree(self.test_dir)
 
 
     def init(self, scheme):
@@ -51,13 +50,13 @@ class SubtypeTests(unittest.TestCase):
         self.subtype_options['output_directory'] = self.test_dir
 
 
-    def testcase1(self):
+    def genomes1(self):
         test_genomes = ['test_stx2_genome1.fasta', 'test_stx2_genome2.fasta']
         self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
         self.subtype_options['ngenomes'] = 2
 
         
-    def testcase2(self):
+    def genomes2(self):
         test_genomes = ['minigenome1.fasta', 'minigenome2.fasta', 'minigenome3.fasta', 'minigenome4.fasta']
         self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
         self.subtype_options['ngenomes'] = 4
@@ -66,7 +65,7 @@ class SubtypeTests(unittest.TestCase):
     def testStx2Unknowns(self):
 
         self.init('stx2')
-        self.testcase1()
+        self.genomes1()
 
         subtype_pipeline(self.subtype_options, self.configObj)
 
@@ -86,7 +85,7 @@ class SubtypeTests(unittest.TestCase):
     def testStx2Knowns(self):
 
         self.init('stx2')
-        self.testcase2()
+        self.genomes2()
 
         subtype_pipeline(self.subtype_options, self.configObj)
 
