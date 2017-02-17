@@ -18,6 +18,10 @@ are also implicitly created anytime a new section starts.
    http://google.github.io/styleguide/pyguide.html
 """
 
+import argparse
+import logging
+
+from config import PhylotyperOptions
 from subprocess import check_output, CalledProcessError, STDOUT
 
 __author__ = "Matthew Whiteside"
@@ -98,4 +102,32 @@ class FastTreeWrapper(object):
 
         None
 
+
+logger = None
+
+if __name__ == "__main__":
+    """Translate sequences
+
+    """
+
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger('tree.fasttree')
+
+    # Parse command-line args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', help='Input fasta file')
+    parser.add_argument('output', help='Output newick file')
+
+
+    
+    options = parser.parse_args()
+
+    # Translate
+    with open(options.output, 'w') as outfh:
+        fasta = SeqIO.parse(options.input, 'fasta')
+        for rec in fasta:
+            sobj = Seq(str(rec.seq).replace('-',''), IUPAC.ambiguous_dna)
+            pobj = sobj.translate(table=11, stop_symbol='')
+
+            outfh.write('>{}\n{}\n'.format(rec.description, str(pobj)))
 

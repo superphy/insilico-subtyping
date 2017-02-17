@@ -30,7 +30,7 @@ class SeqDict(object):
 
     """
 
-    def __init__(self, n_loci=1):
+    def __init__(self, n_loci=1, format_name=True):
         """Constructor
 
         Args:
@@ -42,6 +42,8 @@ class SeqDict(object):
         self._genenum = 0
         self._hash_algorithm = 'md5'
         self._nloci = n_loci
+        self._unique_names = set()
+        self._format_names = format_name
 
 
     @property
@@ -76,7 +78,7 @@ class SeqDict(object):
             name = row[0]
             subt = row[1]
 
-            subtypes[name] = subt
+            subtypes[name] = subt.lower()
             
         if isinstance(fasta_files, str):
             # Create list
@@ -188,9 +190,18 @@ class SeqDict(object):
 
             self._genenum += 1
 
+            # Set up sequence name
+            this_name = self.format_name(name, subt)
+            if not self._format_names:
+                if name in self._unique_names:
+                    raise Exception("Non-unique name for distict sequences {}".format(name))
+                else:
+                    this_name = name
+                    self._unique_names.add(name)
+
             self.seqs[searchstr][keystr] = {
                 'subtype': subt,
-                'name': self.format_name(name, subt),
+                'name': this_name,
                 'accessions': [name]
             }
 

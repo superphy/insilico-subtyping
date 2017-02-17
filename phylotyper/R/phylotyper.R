@@ -373,15 +373,15 @@ phylotyper$plot.anc <- function(tree, fit, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 
-	plot(tree,label.offset=0.001,cex=0.7,type='phylo',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
+	plot(tree,label.offset=0.001,cex=0.8,type='fan',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
 		no.margin=TRUE)
 
 	nodelabels(pie=phylotyper$piecolors(fit$marginal.anc),
 		piecol=cols,
-		cex=0.25)
+		cex=0.6)
 	
-	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
-		y=0.9*par()$usr[4],prompt=FALSE,cex=0.8)
+	add.simmap.legend(colors=cols,x=0.01*par()$usr[2],
+		y=0.95*par()$usr[4],prompt=FALSE,cex=0.8)
 } 
 
 phylotyper$plotRR <- function(tree, fit, subtypes) {
@@ -459,10 +459,10 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 	probs = phylotyper$makePriors(tree, subtypes)$prior.matrix
-	probs[names(fit$marginal.anc),] = fit$marginal.anc
+	probs[rownames(fit$marginal.anc),] = fit$marginal.anc
 
-	plot(tree,label.offset=0.001,cex=0.7,type='fan',align.tip.label=TRUE,
-		tip.col=cols[subtypes[tree$tip.label]], main=paste('Posterior probability and associated subtree conditional likelihoods for tip',fit$tip))
+	plot(tree,label.offset=0.001,cex=0.7,type='phylo',align.tip.label=TRUE,
+		tip.col=cols[subtypes[tree$tip.label]], main=paste('Posterior probability and associated subtree conditional\nlikelihoods for tip',fit$tip))
 
 	tiplabels(pie=probs[tree$tip.label,],
 		piecol=cols,
@@ -471,8 +471,8 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	original.nodes = tree$node.label[tree$node.label != "Root"]
 	nstates = ncol(fit$conditional.likelihoods)
 	root.prior = rep(1/nstates, nstates)
-	probs = rbind(root.prior, fit$conditional.likelihoods[original.nodes,])
-	nodelabels(pie=phylotyper$piecolors(probs),
+	probs2 = rbind(root.prior, fit$conditional.likelihoods[original.nodes,])
+	nodelabels(pie=phylotyper$piecolors(probs2),
 		piecol=cols,
 		cex=0.4)
 	

@@ -216,8 +216,19 @@ class Phylotyper(object):
 
         # Check for weird subtypes
         rcode = '''
-        fixes = reassign.subtypes(tree, subtypes);
-        row.names(fixes)[as.character(fixes$new) != as.character(fixes$prev)]
+        suspect = tryCatch({
+                fixes = reassign.subtypes(tree, subtypes);
+                suspect = row.names(fixes)[as.character(fixes$new) != as.character(fixes$prev)]
+                return(suspect)
+            },
+            error= function(cond) {
+                message('Unable to run subtype assignment check.');
+                message('Error encountered: ');
+                message(cond)
+                return(NULL)
+            }
+        );
+        suspect
         '''
         suspect = robjects.r(rcode)
 
@@ -247,15 +258,21 @@ class Phylotyper(object):
         # Examine different transition matrix models
         rcode = '''
         models <- list('equal_rates'='ER')
-        if(length(levels(subtypes)) < 10) {
+        nsubs = length(levels(subtypes))
+        if(nsubs < 20) {
             models <- c(models, 'symmetric_rates'='SYM')
         }
         
-        rs = transition.rate.parameters(tree, subtypes)
-        models[['iterative_binning']] = rs$model
+        if(nsubs > 10) {
 
-        rs = transition.rate.parameters2(tree, subtypes)
-        models[['small_distance_binning']] = rs$model
+            if(nsubs < 150) {
+                rs = transition.rate.parameters(tree, subtypes)
+                models[['iterative_binning']] = rs$model
+            }
+            
+            rs = transition.rate.parameters2(tree, subtypes)
+            models[['small_distance_binning']] = rs$model
+        }
         '''
         robjects.r(rcode)
 
@@ -298,7 +315,7 @@ class Phylotyper(object):
         robjects.r(rcode)
         bestmodel = tuple(robjects.r('bestmodel'))[0]
         bestfscore = tuple(robjects.r('bestfscore'))[0]
-        print robjects.r('showdown')
+        
 
         self.logger.info("The rate matrix model with highest accuracy is {}. Its associated F1-score: {}".format(bestmodel, bestfscore))
 
@@ -311,6 +328,11 @@ class Phylotyper(object):
 
         # Save rate matrix
         rcode = 'Q = phylotyper$makeQ(showdown[[bestmodel]]$anc); saveRDS(Q, "{}")'.format(rate_matrix)
+        robjects.r(rcode)
+
+        # Save performance information for top model
+        performance_file = os.path.join(output_dir, 'performance_metrics.csv')
+        rcode = 'write.table(showdown[[bestmodel]]$results$metrics, file="{}", sep="\t", quote=FALSE)'.format(performance_file)
         robjects.r(rcode)
 
         # Return to the main directory

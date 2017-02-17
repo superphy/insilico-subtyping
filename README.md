@@ -125,6 +125,43 @@ genome DNA sequences as input:
     of subtype reference files. You can specify a file that is not the
     default file packaged with phylotyper.
 
+### Outputs:
+
+The output directory is defined in the command-line arguments. The
+results of the phylotyper run is given in the file:
+
+`<output_directory>/subtype_predictions.tsv`
+
+This tab-delimited result file contains the following columns:
+
+1.  `genome`: Genome name
+2.  `tree_label`: Unique label for a given gene copy in a genome
+3.  `subtype probability`: The marginal likelihood from the Phylotyper
+    analysis (or `identical` if an identical match was found in the
+    reference set)
+4.  `phylotyper_assignment`: The subtype assignment provided that the
+    probability is above the pre-defined cutoff
+5.  `loci`: A list of subtype genes found in the genome. Each list item
+    contains a two-part tuple: 1. lcl|genome|unique\_name followed by 2.
+    lcl|genome|contig:start-stop.
+
+Additional analysis files that are output include:
+
+1.  `<genome>_loci<nloci>_step2_alignment_input.fasta` Fasta-file
+    containing subtype gene found in input genome by BLAST step. There
+    can be multiple copies/alleles for a single gene loci (If there is
+    only one genome and one loci, the file will be called
+    '<input_filename>.locus1\`)
+2.  `<genome>_step3_alignment_trimming_summary.html` HTML output from
+    trimAI indicating trimmed columns in the alignment
+3.  `<genome>_step4_profile_alignment_output.fasta` Fasta-file
+    containing aligned input genes and reference genes. MAFFT is used
+    for the alignment.
+4.  `<genome>_step5_subtype_tree.newick` Newick-file containg
+    phylogenetic tree. FastTree is used to build the tree.
+5.  `<genome>_step5_posterior_probability_tree.png` Image file showing
+    the phylogenetic tree and marginal likelihoods for the unknown gene.
+
 Built-in subtype schemes
 ------------------------
 
@@ -136,10 +173,26 @@ gene sequences, the correct sequence type and number of loci are
 required.
 
 ~~~~ {include="available_subtypes.md"}
+- stx1
+..+ sequence type: nt
+..+ number of loci: 2
+..+ description: Escherichia coli Shiga-toxin 1 (Stx2) subtype
 - stx2
 ..+ sequence type: aa
 ..+ number of loci: 2
-..+ description: Escherichia coli Stx2 subtypes
+..+ description: Escherichia coli Shiga-toxin 2 (Stx2) subtype
+- eae
+..+ sequence type: nt
+..+ number of loci: 1
+..+ description: Escherichia coli Initimin (eae) subtype
+- wz
+..+ sequence type: nt
+..+ number of loci: 2
+..+ description: Escherichia coli O-serotype based on wzy and wzx genes
+- flic
+..+ sequence type: nt
+..+ number of loci: 1
+..+ description: Escherichia coli H-serotype based on fliC gene
 ~~~~
 
 Adding new subtype scheme to Phylotyper
@@ -151,8 +204,8 @@ file](#setting-up-phylotyper-config-file).
 New subtype schemes can be added to phylotyper. The reference inputs
 will be processed and saved in the locations specified in the
 YAML-format file: `subtypes_index.yaml`. Optionally, you can define a
-non-default subtype data directory by providing your own YAML file
-using `--index /path/to/index/file`.
+non-default subtype data directory by providing your own YAML file using
+`--index /path/to/index/file`.
 
 To create a new subtype for use in phylotyper:
 
@@ -163,12 +216,14 @@ To create a new subtype for use in phylotyper:
 1.  `new` - Sub-command for adding new subtype in phylotyper. Other
     sub-commands are `genome` for running phylotyper on genome input.
 2.  `subtype_scheme` - The name for the subtype scheme.
-3.  `subtype_assignment_file` - Subtypes for input loci sequences.
+3.  `subtype_assignment_file` - Subtypes for input loci sequences. This
+    is a tab-delimited file with genomes in column 1 and subtypes in
+    column 2.
 4.  `output_directory` - Results and graphics will be output to this
     directory. Files will be overwritten.
 5.  `reference_loci1.fasta` - Fasta DNA or amino-acid sequence input.
-    Multiple loci should be provided as separate files. Each entry in
-    each fasta file should have a subtype assignment in the
+    Multiple loci should be provided as separate files. Each genome in
+    the fasta files should have a subtype assignment in the
     `subtype_assignment_file`.
 
 ### Options:
@@ -183,10 +238,165 @@ To create a new subtype for use in phylotyper:
     default file packaged with phylotyper.
 4.  `--description` - A help description for the subtype scheme.
 
-If you would like to contribute a subtype scheme to the main repository, please contact us.
+If you would like to contribute a subtype scheme to the main repository,
+please contact us.
+
+### Input Formats for New Pipeline:
+
+Input sequence files are required to be in fasta format. If the subtype
+scheme involves multiple gene/loci, there should be one file per gene
+with all copies of the gene in the same file. The order of the gene
+files determines their order in the superalignment. A genome can have
+multiple copies of a gene/loci. To indicate a genome with multiple
+copies/alleles of the same gene, format the fasta header as follows:
+
+`>lcl|genome_identifier|allele_identifier`
+
+or
+
+`>genome_identifier|allele_identifier`
+
+The subtype file is a tab-delimited text file containing two colums:
+
+`genome_identifier<\tab>subtype`
 
 ABOUT PHYLOTYPER
 ================
+
+### Ancestral State Reconstruction
+
+### Steps in the Phylotyper pipeline
+
+1.  Identify subtype gene loci in input genomes using blastn or blastx
+    depending on subtype sequence type. For each gene loci found in the
+    input genomes:
+2.  Compare input gene against reference genes. If an identical
+    reference gene found, report subtype and terminate at this point. If
+    no identical sequences found, proceed with Phylotyper analysis.
+3.  Align input genes against a pre-aligned set of reference genes using
+    the tool MAFFT's `--add` option.
+4.  Automatically trim alignment using tool trimAI.
+5.  If multiple loci are involved, concatenate individual alignments
+    into superalignment.
+6.  Generate maximum likelihood phylogenetic tree of aligned genes with
+    FastTree.
+7.  Run phytools `rerootingMethod` using the phylogenetic tree and
+    assigned subtypes.
+8.  Identify the subtype with maximum marginal likelihood for the
+    unknown gene.
+
+### Adding new subtype schemes
+
+Phylotyper includes functionality to allow you to add your own subtype
+schemes. Schemes can be one or more loci (currently no limit defined,
+however, we have only tested with two loci). The sequences can be
+nucleotide or amino acid. The new subtype pipeline automatically
+generates and stores all required input files, so that future subtype
+prediction runs only have to reference a subtype name.
+
+#### Reference files
+
+Phylotyper reference files and their locations for available subtype
+schemes are defined in a YAML-format file. The default subtype file is
+`<package_name>/phylotyper/subtype_index.yaml`. This file can be
+specified using the `--index` option. The `subtype_index.yaml` file is
+automatically updated when new subtypes are created. In
+`subtype_index.yaml`, the `root` field specifies the parent data
+directory. If a relative path is provided, the data directory is a
+subdirectory of `<package_name>/phylotyper/`. The default is
+`<package_name>/phylotyper/data`. Each subtype scheme will have a
+subdirectory under this `root` data directory. The `subtypes` field in
+`subtype_index.yaml` is a list of all subtypes indexed by name. Under a
+subtype the following files/options will be defined:
+
+1.  alignment: the reference sequence alignment
+2.  desc: Verbal description of subtype scheme defined in `new`
+    arguments
+3.  lookup: JSON object containing all reference sequences
+4.  nloci: Number of loci in scheme
+5.  rate\_matrix: emperical transition matric for the Mk model
+6.  search\_database: BLAST database for searching genomes
+7.  seq: sequence type (nt|aa)
+8.  subtype: tab-delimited file listing genomes (column 1) and subtypes
+    (column 2)
+
+#### Multiple loci
+
+Multiple loci can be used in a Phylotyper subtype scheme. For example,
+schemes `stx1`, `stx2`, `wz` all use two genes. The individual loci will
+be BLAST'd and aligned independently. The individual loci alignments are
+concatenated to form a superalignment. The superalignment is used as
+input into the phylogenetic tree building step.
+
+#### Parameterization of the transition matrix
+
+Phylotyper offers flexibility in the parameterization of evolution model
+used in the ASR step. A component of the underlying ASR framework, is an
+Mk or markov model of subtype evolution, for which an emperical
+transition rate matrix is estimated from the data. The transition matrix
+is used to calculate the expected number of subtype state changes given
+a distance in the phylogenetic tree. Different model parameterizations
+can be defined for the transition rate matrix. The simplest
+parameterization available in Phylotyper is the equal rates model; all
+subtypes have the same forward and reverse rate. The most complex
+parameterization available in Phylotyper is the symmetric model, wherein
+each forward and reverse rate for a given pair of subtypes are assigned
+a separate parameter. Frequently, the number of subtypes makes the
+symmetric model too computationally prohibitive (it is unavailable for
+schemes with \>10 subtypes). To offer more flexible models in these
+situations with reduced numbers of free parameters, two custom
+parameterization approaches were developed. The custom approaches both
+use a binning strategy that attempts to identify sets of subtypes that
+would have similar rates and assign them a single parameter as a set.
+
+1.  Small-distance binning: The rationale is to select the closest
+    subtypes in the phylogenetic tree as free parameters. Subtypes with
+    large distances are assigned a common parameter. Maximum
+    inter-patristic distances are collected for all subtypes and
+    modelled as a normal mixture distribution. The smallest normal
+    distribution is selected (based on mean) and all pairs of subtypes
+    belonging to this distribution are set as a free parameters. Other
+    subtypes are assigned a common parameter.
+
+2.  Iterateive binning: The rationale is to approximate the transition
+    rates individually for each subtype pair, cluster subtypes by the
+    approximate rates and then assign each cluster a separate parameter.
+    Each subtype pair (forward and reverse directions) are set as a free
+    parameter while fixing all other parameters. The Mk model estimation
+    is run and transition rate is recorded. The collected transition
+    rates are clustered using `Mclust`. Each cluster is assigned a
+    separate parameter.
+
+Each of these model parameterizations; equal, symmetric and the two
+custom models are tested and evaluated in new subtype pipeline. The
+parameterization that has highest accuracy (based on a leave-one-out
+cross-validation analysis) is selected. In the case of ties, the model
+with the fewest parameters is given precidence (the symmetric model is
+not tested when the number of subtypes is over 10)
+
+### Evaluating new subtype schemes
+
+#### Check 1. Clades with relatively small inter-patristic distance have the same subtype
+
+In large cases, clades in the phylogenetic tree with distinct subtypes
+may indicate a subtype that is not correlated with the phylogeny. In
+limited cases, it might indicate annotation errors. Phylotyper computes
+an inter-patritristic distance threshold for a given subtype scheme. The
+threshold is equivalent to 0.4 probability that inter-patristic
+distances equal to or greater then threshold belong to the same-subtype
+distribution (basically collects all inter-patristic distances for nodes
+with the same subtype and then uses R's Mclust to model the
+distribution). Subtrees with a max inter-patristic distance less than
+this threshold that have distinct subtypes are flagged. You will be
+notified if this situation is detected. An updated subtype input file
+called `phylotyper_proposed_subtypes.csv` will be generated with
+proposed corrections and written to the output directory.
+
+#### Check 2. The predictive performance is above a minimum threshold
+
+All new subtype schemes are subject to a leave-one-out cross-validation
+analysis. You will be notified if the F1-score (a equally weighted
+average of precision and recall) is below 0.9.
 
 CONTACT
 =======
@@ -195,10 +405,3 @@ Matt Whiteside matthew.whiteside@phac-aspc.gc.ca
 
 TODO
 ====
-
-1.  Get tests working
-2.  Install stx1
-3.  Install eae
-4.  Install flic
-5.  Install wyz
-

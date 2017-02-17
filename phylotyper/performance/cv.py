@@ -47,9 +47,9 @@ def write(fastafile, queryfile, subjectfile, query):
 
         for f in fasta:
             if not f.id in query:
-                sfh.write(">{id}\n{seq}\n".format(id=f.description, seq=f.seq))
+                sfh.write(">{id}\n{seq}\n".format(id=f.description, seq=str(f.seq).replace('-','')))
             else:
-                qfh.write(">{id}\n{seq}\n".format(id=f.description, seq=f.seq))
+                qfh.write(">{id}\n{seq}\n".format(id=f.description, seq=str(f.seq).replace('-','')))
 
 
 def loo(config, options):
@@ -65,10 +65,10 @@ def loo(config, options):
     subtypes = load_subtypes(options)
 
     # Load genomes
-    genomes = []
+    genomes = set()
     fasta = SeqIO.parse(options.genes, 'fasta')
     for record in fasta:
-        genomes.append(record.id)
+        genomes.add(record.id)
         allele = parse_fasta_id(record.id)
         subt = subtypes[allele.genome]
     
@@ -130,16 +130,19 @@ def compute_stats(results):
     # Compute precision etc
 
     stats = []
+    beta = float(1)
 
     classes = set()
     n = len(results)
     for r in results:
-        classes.add(r[0])
-        classes.add(r[1])
-
-    print classes
+        if r[0]:
+            classes.add(r[0])
+        if r[1]:
+            classes.add(r[1])
 
     for c in classes:
+
+        print c
 
         tp, fp, fn = 0, 0, 0
         for r in results:
@@ -164,11 +167,23 @@ def compute_stats(results):
         fp = float(fp)
         fn = float(fn)
         n = tp+fn
-        precision = tp/(tp+fp)
-        recall = tp/n
-        beta = float(1)
-        denom = (beta**2*precision)+recall
-        fscore = (1+beta**2)*precision*recall/denom
+        p = tp+fp
+
+        if n == 1:
+            fp == 0
+            recall = 0
+        else:
+            recall = tp/n
+
+        if p == 0:
+            precision = 0
+            fscore = 0
+
+        else:
+            precision = tp/p
+            
+            denom = (beta**2*precision)+recall
+            fscore = (1+beta**2)*precision*recall/denom
     
         stats.append([c, tp, fp, fn, precision, recall, fscore, n])
 
@@ -177,9 +192,10 @@ def compute_stats(results):
         totals = [ sum(x) for x in zip(r[1:], totals) ]
     
     totals.insert(0, 'total')
-    totals[4] = float(totals[4]) / float(len(stats))
-    totals[5] = float(totals[5]) / float(len(stats))
-    totals[6] = float(totals[6]) / float(len(stats))
+    totals[4] = float(totals[1]) / (float(totals[1]) + float(totals[2]))
+    totals[5] = float(totals[1]) / (float(totals[1]) + float(totals[3]))
+    denom = (beta**2*totals[4])+totals[5]
+    totals[6] = (1+beta**2)*totals[4]*totals[5]/ denom
 
     stats.append(totals)
 

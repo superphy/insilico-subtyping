@@ -650,7 +650,7 @@ transition.rate.parameters2 <- function(tree, subtypes) {
 
 reassign.subtypes <- function(tree, subtypes) {
 # Sometimes subtypes are mislabelled. This method finds subtrees that have
-# max patristic distance less than a given threshold (indicating 0.5 probability
+# max patristic distance less than a given threshold (indicating 0.4 probability
 # distances equal to or greater then distance cutoff belong to intra-subtype distribution)
 # and reassigns all tips in subtree as the max represented subtype in that tree
 #

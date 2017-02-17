@@ -95,24 +95,27 @@ class Blaster(object):
         else:
             raise Exception('Invalid sequence_type argument {}'.format(sequence_type))
 
-        self._alignment_coverage = 0.95
-        self._percent_identity = 0.90
-        self._evalue = 1e-5
+        self._alignment_coverage = 0.5
+        self._percent_identity = 75
+        self._evalue = 1
 
         if self.seqtype == 'prot':
-            self._percent_identity = 0.80
+            self._percent_identity = 70
 
         # Default options
         self._blast_options = {
-            'evalue': self._evalue,
-            #'evalue': 1,
+            #'evalue': self._evalue,
+            'evalue': 10,
             'db': database,
             'outfmt': "\"6 qseqid sseqid pident qlen length mismatch gapopen evalue bitscore\""
         }
 
-        filt = 'dust' if self.seqtype == 'nucl' else 'seg'
+        # filt = 'dust' if self.seqtype == 'nucl' else 'seg'
+        # self._blast_specific_options = {
+        #     filt: 'no'
+        # }
         self._blast_specific_options = {
-            filt: 'no'
+        
         }
 
         self._makeblastdb_options = {

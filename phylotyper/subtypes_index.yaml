@@ -11,13 +11,40 @@ subtypes:
     search_database: eae/eae_search_database
     seq: nt
     subtype: eae/eae_subtypes.csv
+  flic:
+    alignment: [flic/flic_reference0.affn]
+    desc: Escherichia coli H-serotype based on fliC gene
+    lookup: flic/flic_dictionary.json
+    nloci: 1
+    rate_matrix: flic/flic_rate_matrix.rds
+    search_database: flic/flic_search_database
+    seq: nt
+    subtype: flic/flic_subtypes.csv
+  stx1:
+    alignment: [stx1/stx1_reference0.affn, stx1/stx1_reference1.affn]
+    desc: Escherichia coli Shiga-toxin 1 (Stx2) subtype
+    lookup: stx1/stx1_dictionary.json
+    nloci: 2
+    rate_matrix: stx1/stx1_rate_matrix.rds
+    search_database: stx1/stx1_search_database
+    seq: nt
+    subtype: stx1/stx1_subtypes.csv
   stx2:
     alignment: [stx2/stx2_reference0.affn, stx2/stx2_reference1.affn]
-    desc: Escherichia coli Stx2 subtypes
+    desc: Escherichia coli Shiga-toxin 2 (Stx2) subtype
     lookup: stx2/stx2_dictionary.json
     nloci: 2
     rate_matrix: stx2/stx2_rate_matrix.rds
     search_database: stx2/stx2_search_database
     seq: aa
     subtype: stx2/stx2_subtypes.csv
+  wz:
+    alignment: [wz/wz_reference0.affn, wz/wz_reference1.affn]
+    desc: Escherichia coli O-serotype based on wzy and wzx genes
+    lookup: wz/wz_dictionary.json
+    nloci: 2
+    rate_matrix: wz/wz_rate_matrix.rds
+    search_database: wz/wz_search_database
+    seq: nt
+    subtype: wz/wz_subtypes.csv
 

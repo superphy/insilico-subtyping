@@ -1,4 +1,4 @@
->9-KT591328.1__zeta-1
+>KT591328.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttactgctggtttaggattgtttttttatgttaatcagaattcatttgcaagt
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -47,7 +47,7 @@ gatgtattcgatacatggggggcagcaaataaatatgaacattatgagactcgtaacgcc
 atgatatcgtggataaaacaaacagatcaggatatgaggcagggagttgcaagtacatac
 gatctggttaagaaaaatccgct---------------tactaataaagtagatataaat
 aagcctaatgcttatgcaacttgcgtaaaataa
->7-AB334565.1__alpha-1
+>AB334565.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -96,7 +96,7 @@ aatgtctttaaagcatggggggctgcaaataaatatgaatattataagtctagtcagact
 ataatttcatgggtacaacaaacagctcaagatgtgaagagtggtgttgcaagtacatac
 gatttagttaaacaaaaccc------------------tctgaataatattaaggctagt
 gaatctaatgcttatgccacttgtgtaaaataa
->55-AJ876648.1__omicron-1
+>AJ876648.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaactgagttcagattctaaactattaactcaaaatgccgctcag
@@ -145,7 +145,7 @@ gatttatatgatgattggggggctgcaaataaatatcaacattatt---cccaggaatct
 ataactgcctggacattacaaactagtgagaataaagtgcaaggggttgcaagtacttac
 gatttggtaaggaaaaatccact---------------gatagataaagttgatatagca
 ggtaattatgcctatgcagtctgtgtgagataa
->29-KT591219.1__beta-1
+>KT591219.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -194,7 +194,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->12-KT591287.1__eta-2
+>KT591287.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -243,7 +243,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaacctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcgatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->52-KT591208.1__beta-1
+>KT591208.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -292,7 +292,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgacgaacca------------------gttgatcaatgttggagtaaac
 aaaaagaatgctttttctgtttgtgtaaaataa
->32-AB334561.1__gamma-1
+>AB334561.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -341,7 +341,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagagttctggagtatcaagcacttat
 aacctaataacacaaaaccc------------------tcttcctagggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->50-AF253560.1__beta-1
+>AF253560.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -390,7 +390,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaattca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->76-KT591317.1__omicron-1
+>KT591317.1
 atgattactcatggttgttatacccggacccggcataagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaactgagttcagattctaaactattaactcaaaatgccgctcag
@@ -439,7 +439,7 @@ gatttatatgatgattggggggctgcaaataaatatcaacattatt---cccaggaatct
 ataactgcctggacattacaaactagtaagaataaagtgcaaggggttgcaagtacttac
 gatttggtaagggaaaatccact---------------gatagataaagttgatatagca
 cgtaattatgcctatgcagtctgtgtgagataa
->13-KT591260.1__theta-2
+>KT591260.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -488,7 +488,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->34-KT591222.1__beta-1
+>KT591222.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -537,7 +537,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgagcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->14-KT591197.1__beta-1
+>KT591197.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -586,7 +586,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaattca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->77-KT591225.1__beta-1
+>KT591225.1
 atgattactcatggtttttatgaccggacccggcataagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcaggttcaaaactgttaactcaaaatgccgctcag
@@ -635,7 +635,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaactca
 ttgactgcttggattaaacaatcctcttctgaacagccatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgagcaatgttggagtaaac
 aaaaagaatgctttttctgtttgtgtaaaataa
->59-KT591226.1__beta-1
+>KT591226.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -684,7 +684,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaaccc------------------gttgatcaatgttggagtaaac
 aagaagaatgctttttctgtttgtgtaaaataa
->44-KT591288.1__eta-2
+>KT591288.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -733,7 +733,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaacctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcgatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->41-KT591267.1__alpha-1
+>KT591267.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -782,7 +782,7 @@ aatgtctttaaagcatggggggctgcaaataaatatgaatattataagtctagtcagact
 ataatttcatgggtacaacaaacagctcaagatgtgaagaatggtgttgcaagtacatac
 gatttagttaaacaaaaccc------------------tctgaataatattaaggctagt
 gaatctaatgcttatgccacttgtgtaaaataa
->101-AJ705052.1__pi-1
+>AJ705052.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -831,7 +831,7 @@ gatgtgtatagtaaatggggagcagccaatagttatgagaggtataaagataaaaataca
 atagcagcatggacacagcaaactgaggaagataaaaaagcaggttggactagtacattt
 gacatagttacgcaaaatgaaattcctagtaatggaagtaatagcaaggtcgacgtgaaa
 aaagctaacggttttgccgtctgtgtaagatga
->73-AF081185.1__gamma-1
+>AF081185.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -880,7 +880,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagagttctggagtatcaagcacttat
 aacctaataatacaaaaccc------------------tcttcctagggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->45-KT591261.1__gamma-1
+>KT591261.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -929,7 +929,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagaattctggagtatcaagcacttat
 aacctaataacacaaaaccc------------------tcttcctagggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->67-KT591289.1__eta-2
+>KT591289.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -978,7 +978,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaacctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcgatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->28-KT591246.1__theta-2
+>KT591246.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaacgttgctcag
@@ -1027,7 +1027,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->47-DQ523612.1__epsilon-1
+>DQ523612.1
 atgattactcatggtttttatacccggacccggtacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -1076,7 +1076,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgcggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aacgctaacgcttttgccgtctgtgtaagatga
->74-KT591213.1__beta-1
+>KT591213.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -1125,7 +1125,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->87-DQ523609.1__lambda-1
+>DQ523609.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1174,7 +1174,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaattatct
 ataacagcatggacgttgcaaactagtgatgatgtgaagaaaggggtcaccagtacttac
 gatttggtaaggaaaaacccaca---------------attaaataaagttaatataaac
 gacaataatgcttatgctgtctgtgtgaaataa
->60-KT591330.1__zeta-1
+>KT591330.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1223,7 +1223,7 @@ gatgtattcgatacatggggggcagcaaataaatataaacattatgagactcgtaacacc
 atgatatcgtggataaaacaaacagatcaggatatgagtgaaggagttgcaagtacatac
 gatctgattaaggaaaatccgct---------------tactaataaagtagatataaat
 aatcctaatgcttatgcaacttgcgtaaaataa
->27-KT591258.1__theta-2
+>KT591258.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -1272,7 +1272,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttaagctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->3-AF530553.1__iota-2
+>AF530553.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttaacgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaattgagttcagattctaaactattaactcaaaatgccgctcag
@@ -1321,7 +1321,7 @@ aaagtatatagtcaatggggacctgcaagtaaatatgaacattata---ctcaaaggact
 ataaacgcttggatacagcaaactgataaggataaaagagaaggcgtcgcaactacatat
 gatatcgtcactaataatat------------------ggtgcaaaatgtttcttcaaaa
 acgcctaacgcttatgcagtttgtgtaaaataa
->36-KT591291.1__eta-2
+>KT591291.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1370,7 +1370,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaacctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcgatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->21-KT591275.1__epsilon-2
+>KT591275.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1419,7 +1419,7 @@ gatgtgtataaccaatggggaccggccaatagttatgatggttataaaggtaaaaacaca
 ataacagcatggacacagcaaacagcagatgatatacctaaaggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaattaaggttaaggtcaacgtgtat
 gcagctaacgcttttgccgtttgtgtaaaataa
->15-KT591199.1__beta-1
+>KT591199.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -1468,7 +1468,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->62-KT591323.1__zeta-1
+>KT591323.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1517,7 +1517,7 @@ gatgtattcgatacatggggggcagcaaataaatatgaacattatgagactcgtaacacc
 atgatatcgtggataaaacaaacagatcaggatatgagtcagggagttgcaagtacatac
 gatctgattaagaaaaatccgct---------------tactaataaagtagatataaat
 aatcctaatgcttatgcaacttgcgtaaaataa
->37-KT591265.1__lambda-1
+>KT591265.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1566,7 +1566,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaatcatct
 ataacagcatggacgttgcaaaccagtgatgatgtgaagcaaggggtcaccagtacttac
 gatttggtaaggaaaaacccaca---------------attaaataaagttaatataaac
 gacaataatgcttatgctgtctgtgtgaaataa
->38-DQ523607.1__mu-1
+>DQ523607.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1615,7 +1615,7 @@ gacatctttaacgcatggggggcagcaaataaatatagccattataacactatgagctca
 ataacggcttggattaaacaaactgaaaaagataaagcatctggagtatcaagtacttat
 aacttaataacacaaaaccc------------------tcttcccggggttaacgtaaaa
 actccaaatgtctatgcggtttgtgtagaataa
->81-KT591228.1__beta-1
+>KT591228.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcaggttcaaaactgttaactcaaaatgccgctcag
@@ -1664,7 +1664,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgagcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->6-KT591266.1__lambda-1
+>KT591266.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1713,7 +1713,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaattatct
 ataacagcatggacgttgcaaactagtgatgatgtgaagaaaggggtcaccagtacatac
 gatttagtaaggaaaaacccaca---------------attaaataaagttaatataaac
 gacaataatgcttatgctgtctgtgtgaaataa
->4-KT591244.1__theta-2
+>KT591244.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaacgttgctcag
@@ -1762,7 +1762,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->64-KT591305.1__kappa-1
+>KT591305.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1811,7 +1811,7 @@ gacacatattctaaatggggtgcagcgaataaatattcttactattctggttctaattca
 ttgacagcttggattacacaatcctcttctgagttaccatcgggtgtatcaagtacatat
 gatttaatcacaacaaactc------------------tttgacaaatgttaagacaaca
 gataacaatgcctttgcagtctgtgtgaaataa
->99-AB334560.1__gamma-1
+>AB334560.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1860,7 +1860,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagagttctggagtatcaagcacttat
 aacctaataacacaaaaccc------------------tcttcctagggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->51-KT591313.1__mu-1
+>KT591313.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -1909,7 +1909,7 @@ gacatctttaacgcatggggggcagcaaataaatatggccattataacactatgagctca
 ataacggcttggattaaacaaactgaaaaagataaagcatctggagtatcaagtacttat
 aacttaataacacaaaaccc------------------tcttcccggggttaacgtaaaa
 actccaaatgtctatgcggtttgtgtagaataa
->8-KT591263.1__gamma-1
+>KT591263.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -1958,7 +1958,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagagttctggagtatcaagcacttat
 aacctaataacacaaaaccc------------------tcttcctggggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->71-KT591327.1__zeta-1
+>KT591327.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttactgctggtttaggattgtttttttatgttaatcagaattcatttgcaagt
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2007,7 +2007,7 @@ gatgtattcgatacatggggggcagcaaataaatatgaacattatgagactcgtaacgcc
 atgatatcgtggataaaacaaacagatcaggatatgaggcagggagttgcaagtacatac
 gatctggttaagaaaaatccgct---------------tactaataaagtagatataaat
 aagcctaatgcttatgcaacttgcgtaaaataa
->82-KT591333.1__beta-2
+>KT591333.1
 atgattactcatggttgttattcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaactcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaacttctgatagctatcag
@@ -2056,7 +2056,7 @@ aatatttattcttcgtggggggctgcgaataaatatccttattattctagctctaaatca
 ttgactacttggattaaacaatcctcttctgaactctcatcaggtgtatcaagtacatat
 gatttagttacgaagaacca------------------attgactaatgtgggagtaaaa
 aataaaaatgcttttgcagtttgtgtaaaataa
->23-KT591312.1__xi-1
+>KT591312.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaac
 ggcgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -2105,7 +2105,7 @@ gacgtgtataataaatggggagcggccaatagttatgaaggctataaaggtaaaaacaca
 ataacagcatggactcagcaaacagaggatgataaaactaaaggttggactagtacattt
 gacatagttactaaaaatgaaatccctagtaatggaagtaataataaggtcaatgtgaca
 gcagctaatgcctttgctgtctgtgtaagatga
->39-AJ705049.1__mu-1
+>AJ705049.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2154,7 +2154,7 @@ gacatctttaacgcatggggggcagcaaataaatatagccattataacactatgagctca
 ataacggcttggattaaacaaactgaaaaagataaagcatctggagtatcaagtacttat
 aacttaataacacaaaaccc------------------tcttcccggggttaacgtaaaa
 actccaaatgtctatgcggtttgtgtagaataa
->33-AJ748083.1__rho-1
+>AJ748083.1
 atgattacttatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaactattttaaactgagttcggattctaaactattaactcaaaataccgctcag
@@ -2203,7 +2203,7 @@ aacgtctttaatctctggggggctgcaaataactatagatattattctgccaaacaatct
 ataacagcatggattcaacaatctggttcagattctagcggtggagtgactacaacatat
 gatctgataaagaagaatcc------------------ccgacagaatgttgatgtgaaa
 agtcaaaatgtctattcggtttgcgttgaataa
->17-KT591285.1__epsilon-2
+>KT591285.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -2252,7 +2252,7 @@ gatgtgtataaccaatggggaccggccaatagttatgatggttataaaggtaaaaacaca
 ataacagcatggacacagcaaacagcagatgatatacctaaaggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaattaaggttaaggtcaacgtggat
 gcagctaacgcttttgccgtttgtgtaaaataa
->98-AJ705050.1__nu-1
+>AJ705050.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaattgagttcagattctaaactattaactcaaaatgccgctcag
@@ -2301,7 +2301,7 @@ gatgtattcgatacatggggggcggcaaataaatatgaatattataagactagcacaagc
 ataatatcgtggataaaacaaaccgatgatgatgtgaagaagggcgttgcaagcacatac
 gatctggttaagagaaatcctct---------------tactagttcagtaaaaacagac
 gctcgtaatgcttatgcaacttgcgtaaaataa
->11-AJ879899.1__eta-2
+>AJ879899.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2350,7 +2350,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaatctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcaatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->79-KT591297.1__iota-2
+>KT591297.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaattgagttcggattctaaactattaactcaaaatgccgctcag
@@ -2399,7 +2399,7 @@ aaagtatatagtcaatggggacctgcaagtaaatatgaacattata---ctcaaaggact
 ataaacgcttggatacagcaaactgataaggataaaagagaaggtgtcgcaactacatat
 gatatcgtcactaataatat------------------ggtgaaaaatgtttcttcaaaa
 acgcctaacgcttatgcagtttgtgtaaaataa
->31-KT591257.1__theta-2
+>KT591257.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -2448,7 +2448,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaacatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->86-AJ781125.1__sigma-1
+>AJ781125.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -2497,7 +2497,7 @@ gacatatttaattcatggggagcggcaaacaaatatggtcattatggttctatgaactca
 ataccggcctggattaaacaaaccgaaagtgataaaaattctggagtatcaaccacttat
 gatttaataagacaaaatcc------------------tcgttctgatgttaatgtagac
 actctaaatgtctatgccgtttgtgtagaataa
->78-KT591202.1__beta-1
+>KT591202.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -2546,7 +2546,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->42-KT591301.1__iota-1
+>KT591301.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2595,7 +2595,7 @@ aaattatatagtcaatgggggccagcaaataaatatagccattata---ctcaaggaacc
 ataaatgcttggatacagcaaacggagcaggataaaaaagacagcgtcgcaacgacatat
 gatatcgtcactgataatac------------------ggtaataaatgttgattcaaca
 gtggctaacgcttatgcagtttgcataaaataa
->69-KT591303.1__iota-1
+>KT591303.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2644,7 +2644,7 @@ aaattatatagtcaatggggaccagcaaataaatatagccattata---ctcaaggaacc
 ataaatgcttggatacagcaaacggagcaggataaaaaagacagcgtcgcaacgacatat
 gatatcgtcactgataatac------------------ggtaagaaatgttgattcaaca
 gtggctaacgcttatgcagtttgcataaaataa
->84-AF530557.1__lambda-1
+>AF530557.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -2693,7 +2693,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaagcatct
 ataacagcatggacgttgcaaactagtgatgatgtgaagaaaggggtcaccagtacttac
 gatttggtaaggaaaaacccaca---------------attaaataaagttaatataaac
 gacaataatgcttatgctgtctgtgtaaaataa
->72-DQ523613.1__rho-1
+>DQ523613.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaactattttaaactgagttcggattctaaactattaactcaaaataccgctcag
@@ -2742,7 +2742,7 @@ aacgtctttaatctctggggggctgcaaataactatagatattattctgccaaacaatct
 ataacagcatggattcaacaatctggttcagattctagcggtggagtgactacaacatat
 gatctgataaagaagaatcc------------------ccgacagaatgttgatgtgaaa
 agtcaaaatgtctattcggtttgcgttgaataa
->56-KT591272.1__epsilon-2
+>KT591272.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -2791,7 +2791,7 @@ gatgtgtataaccaatggggaccggccaatagttatgatggttataaaggtaaaaacaca
 ataacagcatggacacagcaaacagcagatgatatacctaaaggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaattaaggttaaggtcaacgtgcgt
 gcagctaacgcttttgccgtttgtgtaaaataa
->80-DQ523602.1__iota-1
+>DQ523602.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgagaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -2840,7 +2840,7 @@ aaattatatagtcaatggggaccagcaaataaatatagccattata---ctcaaggaacc
 ataaatgcttggatacagcaaacggagcaggataaaaaagacagcgtcgcaacgacatat
 gatatcgtcactgataatac------------------ggtaagaaatgttaattcaaca
 gtggctaacgcttatgcagtttgcataaaataa
->65-AF253561.1__theta-2
+>AF253561.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -2889,7 +2889,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->24-KT591255.1__theta-2
+>KT591255.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -2938,7 +2938,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->63-AF530555.1__alpha-2
+>AF530555.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -2987,7 +2987,7 @@ aatgtctttaacacatggggagcagcaaataaatatgaatattacaagtctcttctgact
 ataagctcttgggtacaacaaacaacagtggatatgaacagtggagttgcaagtacatac
 gatctagttagacaaaaccc------------------tcttaatggcgttgaaactaat
 actactaatgcctatgccacttgcgtaaaataa
->94-KT591216.1__beta-1
+>KT591216.1
 atgattactcatggtttttatgcccggacccggcataagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcaggttcaaaactgttaactcaaaatgccgctcag
@@ -3036,7 +3036,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagccatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgaacaatgttggagtatac
 aaaaagaatgctttttctgtttgtgtaaaataa
->96-KT591271.1__alpha-2
+>KT591271.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -3085,7 +3085,7 @@ aatgtctttaacacatggggagcagcaaataaatatgaatattacaagtctcttctgact
 ataagctcttgggtacaacaaacaacagtggatatgaacagtggagttgcaagtacatac
 gatctagttagacaaaaccc------------------tcttaatggcgttgaaactaat
 actactaatgcttatgccacttgtgtaaaataa
->48-KT591318.1__omicron-1
+>KT591318.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaactgagttcagattctaaactattaactcaaaatgccgctcag
@@ -3134,7 +3134,7 @@ gatttatatgatgattggggggctgcaaataaatatcaacattatt---cccaggaatct
 ataactgcctggacattacaaactagtgagaataaagtgcaaggggttgcaagtacttac
 gatttggtaagggaaaatccact---------------gatagataaagttgatatagca
 ggtaattatgcctatgcagtctgtgtgagataa
->30-DQ523604.1__eta-1
+>DQ523604.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -3183,7 +3183,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaatctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcaatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->70-KT591250.1__theta-2
+>KT591250.1
 atgattactcatggtttttatgcccggactcggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -3232,7 +3232,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgacaaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctctaaatgtctatgcagtttgtgtagaataa
->93-KT591238.1__theta-2
+>KT591238.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaactcatttgcaagc
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -3281,7 +3281,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatccggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->16-KT591240.1__theta-2
+>KT591240.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -3330,7 +3330,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgaagtca
 ataacagcttggattacacaaactgaagctgataaaagatcaggagtatcaacaacttat
 gacttaataacacaaaaccc------------------tcataaggatgttaagctagac
 gctccaaatgtctatgcagtttgtgtagaataa
->90-KT591262.1__lambda-1
+>KT591262.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -3379,7 +3379,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaatcatct
 ataacagcatggacgttgcaaaccagtgatgatgtgaagaaaggggtcaccagtacttac
 gatttggtaagggaaaacccaca---------------attaaataaagttaatatagac
 gacaataatgcttatgctgtctgtgtgaaataa
->97-KT591299.1__iota-1
+>KT591299.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -3428,7 +3428,7 @@ aaattatatagtcaatggggaccagcaaataaatatagccattata---ctcaaggaacc
 ataaatgcttggatacagcaaacggagcaggataaaaaagacagcgtcgcaacgacatat
 gatatcgtcactgataatac------------------ggtaagaaatgttgattcaaca
 gtggctaacgcttatgcagtttgcataaaataa
->66-KT591300.1__iota-2
+>KT591300.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattt
 gttatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaat
 ggtgaaaactattttaaattgagttcggattctaaactattaactcaaaatgccgctcag
@@ -3477,7 +3477,7 @@ aaagtatatagtcaatggggacctgcaagtaaatatgaacattata---ctcaaaggact
 ataaacgcttggatacagcaaactgataaggataaaagagaaggtgtcgcaactacatat
 gatatcgtcactaataatat------------------ggtgaaaaatgtttcttcaaaa
 acgcctaacgcttatgcagtttgtgtaaaataa
->25-KT591298.1__iota-1
+>KT591298.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -3526,7 +3526,7 @@ aaattatatagtcaatgggggccagcaaataaatatagccattata---ctcaaggaacc
 ataaatgcttggatacagcaaacggagcaggataaaaaagacagcgtcgcaacgacatat
 gatatcgtcactgataatac------------------ggtaataaatgttgattcaaca
 gtggctaacgcttatgcagtttgcataaaataa
->1-KT591264.1__gamma-1
+>KT591264.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -3575,7 +3575,7 @@ gatatttatgactcatggggggctgcaaataaatatagccattatagttctatgaactca
 ataactgcttggattaaacagacatctagtgagcagcgttctggagtatcaagcacttat
 aacctaataacacaaaaccc------------------tcttcctggggttaatgttaat
 actccaaatgtctatgcggtttgtgtagaataa
->2-KT591231.1__beta-1
+>KT591231.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcaggttcaaaactgttaactcaaaatgccgctcag
@@ -3624,7 +3624,7 @@ aatatctattcaacatggggtgctgcaaataaatatccttactattctggttctaaatca
 ttgactgcttggattaaacaatcctcttctgaacagtcatcaggtgtatcaagcacatat
 gatttggttacgaagaacca------------------gttgatcaatgttggagtaaac
 aataagaatgctttttctgtttgtgtaaaataa
->10-KT591242.1__theta-2
+>KT591242.1
 atgattactcatggtttttatgcccggacccggcacaagcataaactaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaacgttgctcag
@@ -3673,7 +3673,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->5-AB334563.1__theta-2
+>AB334563.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -3722,7 +3722,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaacatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->100-AF116899.1__epsilon-1
+>AF116899.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -3771,7 +3771,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgaggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->20-KT591253.1__theta-2
+>KT591253.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -3820,7 +3820,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataagaatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->91-KT591286.1__epsilon-2
+>KT591286.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -3869,7 +3869,7 @@ gatgtgtataaccaatggggaccggccaatagttatgatggttataaaggtaaaaacaca
 ataacagcatggacacagcaaacagcagatgatatacctaaaggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaattaaggttaaggtcaacgtgtat
 gcagctaacgcttttgccgtttgtgtaaaataa
->22-AF449417.1__zeta-1
+>AF449417.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -3918,7 +3918,7 @@ gatgtattcgatacatggggggcagcaaataaatataaacattatgagactcgtaacacc
 atgatatcgtggataaaacaaacagatcaggatatgagtcaaggagttgcaagtacatac
 gatctgattaaggaaaatccgct---------------tactaataaagtagatataaat
 aatcctaatgcttatgcaacttgcgtaaaataa
->85-AY186750.1__epsilon-1
+>AY186750.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -3967,7 +3967,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgaggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->89-AJ715409.1__lambda-1
+>AJ715409.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -4016,7 +4016,7 @@ acactgtataataaatggggagcagccaataactatcaacactata---ctcaatcatct
 ataacagcatggacgttgcaaaccagtgatgatgtgaagaaaggggtcaccagtacttac
 gatttggtaagggaaaacccaca---------------attaaataaagttaatatagac
 gacaataatgcttatgctgtctgtgtgaaataa
->68-DQ523611.1__kappa-1
+>DQ523611.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4065,7 +4065,7 @@ gacacatattctaaatggggagcagcgaataaatattcttactattctggttctaattca
 ttgacagcttgggttacacaatcctcttctgagttaccatcgggtgtatcaagtacatat
 gatttaatcacaacaaactc------------------tttgacaaatgttaagacaaca
 gataacaatgcctttgcagtctgtgtgaaataa
->43-DQ523610.1__xi-1
+>DQ523610.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaac
 ggcgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -4114,7 +4114,7 @@ gacgtgtataataaatggggagcggccaatagttatgaaggctataaaggtaaaaacaca
 ataacagcatggactcagcaaacagaggatgataaaactaaaggttggactagtacattt
 gacatagttactaaaaatgaaatccctagtaatggaagtaataataaggtcaatgtgaca
 gcagctaatgcctttgctgtctgtgtaagatga
->88-AJ271407.1__zeta-1
+>AJ271407.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttactgctggtttaggattgtttttttatgttaatcagaattcatttgcaagt
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4163,7 +4163,7 @@ gatgtattcgatacatggggggcagcaaataaatatgaacattatgagactcgtaacgcc
 atgatatcgtggataaaacaaacagatcaggatatgaggcagggagttgcaagtacatac
 gatctggttaagaaaaatccgct---------------tactaataaagtagatataaat
 aagcctaatgcttatgcaacttgcgtaaaataa
->19-KT591278.1__epsilon-1
+>KT591278.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -4212,7 +4212,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgtggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->75-KT591282.1__epsilon-1
+>KT591282.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -4261,7 +4261,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgaggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtcaacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->49-KT591280.1__epsilon-1
+>KT591280.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -4310,7 +4310,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgaggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->57-KT591332.1__beta-2
+>KT591332.1
 atgattactcatggttgttattcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaactcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4359,7 +4359,7 @@ aatatttattcttcgtggggggctgcgaataaatatccttattattctagctctaaatca
 ttgactacttggattaaacaatcctcttctgaactctcatcaggtgtatcaagtacatat
 gatttagttacgaagaacca------------------attgactaatgtgggagtaaaa
 aataaaaatgcttttgcagtttgtgtaaaataa
->40-AJ308550.1__eta-1
+>AJ308550.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4408,7 +4408,7 @@ gatgtgtataataagtggggcgctgccaatagttatgaaggttataaaggtaaaaataca
 ataacagcatggactcagcaaactgcggctgataaacaatctggttggactagtacattt
 gacatagttacaaaaaatgaaattcctaataatggaagtaatagtaaggtcaatgtgaac
 acagctaacgcttttgccgtctgtgtaagatga
->35-AJ308552.1__kappa-1
+>AJ308552.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4457,7 +4457,7 @@ gacacatattctaaatggggagcagcgaataaatattcttactattctggttctaattca
 ttgacagcttggattacacaatcctcttctgagttaccatcgggtgtatcaagtacatat
 gatttaatcacaacaaactc------------------tttgacaaatgttaagacaaca
 gataacaatgcctttgcagtctgtgtgaaataa
->95-AF449418.1__theta-2
+>AF449418.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -4506,7 +4506,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->18-KT591277.1__epsilon-1
+>KT591277.1
 atgattactcatggtttttatacccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaaccagaattcatttgcaaat
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgccgctcag
@@ -4555,7 +4555,7 @@ gatgtgtataataaatggggcgccgccaatagttatgaaggctataaaggtaaaaaaaca
 ataacagcatggacacagcaaactgaggatgataaacaaaaaggttggactagtacattt
 gacatagttacaaaaaatgaaatccctagtaatggcagtaatagtaaagtccacgtgaat
 aaagctaacgcttttgccgtctgtgtaagatga
->58-DQ523600.1__alpha-2
+>DQ523600.1
 atgattactcatggttgttatacccggacccggcacaagcataagctaaaaaaaacattg
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcatgatagctatcag
@@ -4604,7 +4604,7 @@ aatgtctttaacacatggggagcagcaaataaatatgaatattacaagtctcttctgact
 ataagctcttgggtacaacaaacaacagtggatatgaacagtggagttgcaagtacatac
 gatctagttagacaaaaccc------------------tcttaatggcgttgaaactaat
 actactaatgcttatgccacttgtgtaaaataa
->83-KT591321.1__pi-1
+>KT591321.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4653,7 +4653,7 @@ gatgtgtatagtaaatggggagcagccaatagttatgagaggtataaagataaaaataca
 atagcagcatggacacagcaaactgaggaagataaaaaagcaggttggactagtacattt
 gacatagttacgcaaaatgaaattcctagtaatggaagtaatagcaaggtcgacgtgaaa
 aaagctaacggttttgccgtctgtgtaagatga
->92-AY223510.1__zeta-1
+>AY223510.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttactgctggtttaggattgtttttttatgttaatcagaattcatttgcaagt
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4702,7 +4702,7 @@ gatgtattcgatacatggggggcagcaaataaatatgaacattataagactcgtaacgcc
 atgatatcgtggataaaacaaacagatcaggatatgaggcagggagttgcaagtacatac
 gatctggttaagaaaaatccgct---------------tactaataaagtagatataaat
 aagcctaatgcttatgcaacttgcgtaaaataa
->26-KT591269.1__alpha-1
+>KT591269.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4751,7 +4751,7 @@ aatgtctttaaagcatggggggctgcaaataaatatgaatattataagtctagtcagact
 ataatttcatgggtacaacaaacagctcaagatgtgaagagtggtgttgcaagtacatac
 gatttagttaaacaaaaccc------------------tctgaataatattaaggctagt
 gaatctaatgcttatgccacttgtgtaaaataa
->61-KT591308.1__kappa-1
+>KT591308.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattattttaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4800,7 +4800,7 @@ gacacatattctaaatggggagcagcgaataaatattcttactattctggttctaattca
 ttgacagcttggattacacaatcctcttctgagttaccatcgggtgtatcaagtacatat
 gatttaatcacaacaaactc------------------tttgacaaatgttaagacaaca
 gataacaatgcctttgcagtctgtgtgaaataa
->46-AJ875027.1__kappa-1
+>AJ875027.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattatttcaaattgggttcggattcaaaactgttaactcataatagctatcag
@@ -4849,7 +4849,7 @@ gacacatattctaaatggggagcagcgaataaatattcttactattctggttctaattca
 ttgacagcttggattacacaatcctcttctgagttaccatcgggtgtatcaagtacatat
 gatttaatcacaacaaactc------------------tttgacaaatgttaagacaaca
 gataacaatgcctttgcagtctgtgtgaaataa
->54-KT591241.1__theta-2
+>KT591241.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagcgctggtttaggattgtttttttatgttaaccagaactcatttgcaaac
 ggtgaaaattattttaaattgagttcagattcaaaactgttaactcaaaatgttgctcag
@@ -4898,7 +4898,7 @@ aacgtttataattcatgggggcctgcaaacggatatgaccattatcgttctatgcagtca
 ataacagcttggattacacaaactgaagctgataaaatatcaggagtatcaactacttat
 gacttaataacacaaaaccc------------------tcataaggatgttacgctaaac
 gctccaaatgtctatgcagtttgtgtagaataa
->53-DQ523603.1__kappa-1
+>DQ523603.1
 atgattactcatggtttttatgcccggacccggcacaagcataagctaaaaaaaacattt
 attatgcttagtgctggtttaggattgtttttttatgttaatcagaattcatttgcaaat
 ggtgaaaattatttcaaattgggttcggattcaaaactgttaactcataatagctatcag

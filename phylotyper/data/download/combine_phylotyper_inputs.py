@@ -49,7 +49,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Combine phylotyper inputs')
     parser.add_argument('fastafile', action="store")
     parser.add_argument('subtypefile',action="store")
-    parser.add_argument('lookupfile',action="store")
     parser.add_argument('inputs', default=[], nargs=argparse.REMAINDER)
     
     args = parser.parse_args()
@@ -63,7 +62,7 @@ if __name__ == "__main__":
         raise Exception(msg)
 
     logger.debug("Collapsing identical sequences")
-    seqdict = SeqDict()
+    seqdict = SeqDict(format_name=False)
     
     files = filesets(args.inputs, 2)
     for fs in files:
@@ -77,9 +76,6 @@ if __name__ == "__main__":
 
     # Output unique set
     seqdict.write(args.fastafile, args.subtypefile)
-
-    # Save lookup object
-    seqdict.store(args.lookupfile)
 
     subtype_counts = seqdict.subtype_occurences()
     logger.debug('Subtypes encountered:\n{}\n'.format(str(subtype_counts)))

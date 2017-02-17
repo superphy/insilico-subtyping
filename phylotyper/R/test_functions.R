@@ -59,7 +59,8 @@ loocv = function(tree, subtypes, scheme=5, model='ER') {
 	# Make result matrix
 	pp = data.frame(matrix(0,n,nstates))
 	colnames(pp) = colnames(priorM)
-	pp = cbind("tip"=names(subtypes),"true_value"=subtypes, pp)
+	tips = rownames(priorM)
+	pp = cbind("tip"=tips, "true_value"=as.character(subtypes[tips]), pp)
 	nc = ncol(pp)
 
 	# Flat prior
@@ -111,8 +112,8 @@ kfcv = function(tree, subtypes, scheme=5) {
 	ksize = floor(n/k)
 	cat("Cross-validation test set size: ",ksize,"\n")
 
-	if(ksize < 2)
-		stop("Test set too small for 10-fold cross validation. Test set size is less than 2.")
+	if(ksize < 5)
+		stop("Test set too small for 10-fold cross validation. Test set size is less than 5.")
 
 	# Make prior matrix
 	priorR = phylotyper$makePriors(tree, subtypes)
@@ -195,7 +196,7 @@ updateClassificationSums = function(true_class, predicted_class, count_matrix) {
 }
 
 
-simulationSummary = function(subtypes, pp, threshold=.9) {
+simulationSummary = function(subtypes, pp, threshold=.7) {
 	# Summarize performance of validation
 	# 
 	# 
@@ -307,6 +308,12 @@ simulationSummary = function(subtypes, pp, threshold=.9) {
 		}
 	}
 
+	# Relabel FN when n = 1.  There is no possibility of a true positive because the subtype is not
+	# in the training set, so its not really a FN
+	ncls = nrow(classification_results)
+	testset = classification_results[1:ncls,'tp'] + classification_results[1:ncls,'fn']
+	classification_results[testset == 1,'fn'] = 0
+
 	# Compute metrics from classication results
 	tots = apply(classification_results, 2, sum)
 	classification_results = rbind(classification_results, "totals"=tots)
@@ -323,8 +330,10 @@ simulationSummary = function(subtypes, pp, threshold=.9) {
 	# support
 	metrics[1:ncls,'support'] = classification_results[1:ncls,'tp'] + classification_results[1:ncls,'fn']
 
+	
 
-	# # Check accuracy of posterior probabilities
+
+	# Check accuracy of posterior probabilities
 
 	# # Record true state for each tip in each state column
 	# match.colsubtype = t(sapply(pp$true_value, function(x) x == colnames(ppvals)))

@@ -90,7 +90,7 @@ class SubtypeParser(object):
     def __init__(self, valid_subtypes,
         record_fields=['description'],
         feature_fields=['allele','gene','product','note'],
-        source_fields=['organism','strain'],
+        source_fields=['organism','strain','note'],
         annotation_fields=['source','organism']):
         """Constructor
         
@@ -219,7 +219,7 @@ class SubtypeParser(object):
 
 
 class DownloadUtils(object):
-    """Use Biopython's Eutils to retrieve gene sequences from NCBI
+    """Use Biopython's Eutils to retrieve gene information from NCBI
 
     """
 

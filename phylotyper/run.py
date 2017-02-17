@@ -182,7 +182,7 @@ def subtype_pipeline(options, config):
 
     refalnfiles = options['alignment']
     subtypefile = options['subtype']
-    options['result'] = os.path.join(options['output_directory'], 'subtype_predictions.csv')
+    options['result'] = os.path.join(options['output_directory'], 'subtype_predictions.tsv')
 
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
@@ -247,6 +247,7 @@ def subtype_pipeline(options, config):
 
                 # Predict subtypes & write to file
                 results = predict_subtypes(treefile, subtypefile, plotfile, options, config)
+                print results
                 if not tree_label in results:
                     raise Exception("Phylotyper failed to complete")
 
