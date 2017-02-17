@@ -16,10 +16,13 @@ setup(name='phylotyper',
 		'biopython',
 		'pyaml',
 		'rpy2',
+		'setuptools-git'
 	],
-	include_package_data = True,
+        install_package_data = True,
 	zip_safe = False,
-	packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "*.data", "*.data.*", "data.*", "data"]),
+	#packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "*.data", "*.data.*", "data.*", "data"]),
+        packages = find_packages(),
+        package_data = { 'phylotyper': ['data/*/*']},
 	test_suite = 'nose.collector',
 	tests_require = ['nose']
 )
