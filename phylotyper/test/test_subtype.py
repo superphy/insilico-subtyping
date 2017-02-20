@@ -25,7 +25,8 @@ class SubtypeTests(unittest.TestCase):
 
     def tearDown(self):
         # Remove previous directories created
-        shutil.rmtree(self.test_dir)
+        #shutil.rmtree(self.test_dir)
+        pass
 
 
     def init(self, scheme):
@@ -62,6 +63,30 @@ class SubtypeTests(unittest.TestCase):
         self.subtype_options['ngenomes'] = 4
 
 
+    def thegenome(self):
+        test_genomes = ['test_stx2_genome2.fasta']
+        self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
+        self.subtype_options['ngenomes'] = 1
+
+
+    def theothergenome(self):
+        test_genomes = ['test_eae_genome1.fasta']
+        self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
+        self.subtype_options['ngenomes'] = 1
+
+
+    def theotherothergenome(self):
+        test_genomes = ['test_eae_genome2.fasta']
+        self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
+        self.subtype_options['ngenomes'] = 1
+
+
+    def theflicgenome(self):
+        test_genomes = ['test_flic_genome1.fasta']
+        self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
+        self.subtype_options['ngenomes'] = 1
+
+
     def testStx2Unknowns(self):
 
         self.init('stx2')
@@ -70,7 +95,7 @@ class SubtypeTests(unittest.TestCase):
         subtype_pipeline(self.subtype_options, self.configObj)
 
         # Check predictions
-        with open(os.path.join(self.test_dir, 'subtype_predictions.csv'), 'rb') as csvfile:
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
             csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
             csvreader.next() # Header
             row1 = csvreader.next()
@@ -82,6 +107,143 @@ class SubtypeTests(unittest.TestCase):
         self.assertTrue(all([row1[4] == 'non-significant/undetermined', row2[4] == 'c', in_range1, above_value2]))
 
 
+    def testStx2(self):
+
+        self.init('stx2')
+        self.thegenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        above_value = True if float(row[3]) > .95 else False
+        self.assertTrue(all([row[4] == 'c', above_value]))
+
+
+    def testStx1(self):
+
+        self.init('stx1')
+        self.thegenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        above_value = True if float(row[3]) > .85 else False
+        self.assertTrue(all([row[2] == 'a', above_value]))
+
+
+    def testEaeMissing(self):
+
+        self.init('eae')
+        self.thegenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        self.assertTrue(row[4] == 'Subtype loci not found in genome')
+
+
+    def testEaeIdentical(self):
+
+        self.init('eae')
+        self.theothergenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        self.assertTrue(all([bool(re.search(r'^identical', row[3])), row[2] == 'epsilon-1']))
+
+
+    def testEae(self):
+
+        self.init('eae')
+        self.theotherothergenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+            print row
+
+        above_value = True if float(row[3]) > .95 else False
+        self.assertTrue(all([row[2] == 'epsilon-1', above_value]))
+
+
+    def testFlicIdentical(self):
+
+        self.init('flic')
+        self.thegenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+            print row
+
+        self.assertTrue(all([bool(re.search(r'^identical', row[3])), row[2] == 'h8']))
+
+
+    def testFlic(self):
+
+        self.init('flic')
+        self.theflicgenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        above_value = True if float(row[3]) > .95 else False
+        self.assertTrue(all([row[2] == 'h12', above_value]))
+
+
+    def testWz(self):
+
+        self.init('wz')
+        self.thegenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+            row = csvreader.next()
+
+        above_value = True if float(row[3]) > .85 else False
+        self.assertTrue(all([row[2] == 'a', above_value]))
+
+
+
     def testStx2Knowns(self):
 
         self.init('stx2')
@@ -91,7 +253,7 @@ class SubtypeTests(unittest.TestCase):
 
         # Check predictions
         assignments = {}
-        with open(os.path.join(self.test_dir, 'subtype_predictions.csv'), 'rb') as csvfile:
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
             csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
             csvreader.next() # Header
             for row in csvreader:

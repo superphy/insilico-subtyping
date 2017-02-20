@@ -217,7 +217,6 @@ class LociSearch(object):
 
             self._sequence_lengths[desc] = int(length)
 
-
         None
 
 
@@ -232,6 +231,9 @@ class LociSearch(object):
 
         Raises Exception if blast search fails
 
+        Returns tuple with:
+            fasta_prefix, number of hits
+
         """
 
         loci = {}
@@ -242,7 +244,6 @@ class LociSearch(object):
 
         if len(output) != self.nloci:
             raise Exception('Missing output file. Need {} files for each loci.'.format(self.nloci))
-
 
         if not fasta_prefix:
             # If an output fasta header ID prefix is not provided
@@ -265,7 +266,7 @@ class LociSearch(object):
             opts = self._blast_options
             opts['query'] = genome
             opts['out'] = tmpfh.name
-
+           
             cmd = "{blastcmd} -evalue {evalue} -outfmt {outfmt} -db {db} -query {query} -out {out}".format(
                 blastcmd=self._blast_exe, **opts)
             if self._blast_specific_options:
@@ -283,7 +284,7 @@ class LociSearch(object):
             
             with open(tmpfh.name, 'r') as blast_handle:
                 blast_records = NCBIXML.parse(blast_handle)
-
+               
                 # Iterate through results
                 for blast_record in blast_records:
                     for alignment in blast_record.alignments:
@@ -358,6 +359,7 @@ class LociSearch(object):
                     mode = 'a'
 
                 locus = 0
+                nhits = 0
                 for ls in loci_sets:
                     genome_copy = 1
                     outp = output[locus]
@@ -366,7 +368,11 @@ class LociSearch(object):
                             outfh.write("\n>{}pt_allele{} {}\n{}".format(fasta_prefix, genome_copy, h, s))
                             genome_copy += 1
 
+                    nhits += 1
                     locus += 1
+
+
+        return (fasta_prefix, nhits)
 
 
     def locad(self, contig, start, stop):

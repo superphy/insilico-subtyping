@@ -7,7 +7,7 @@ Script for running various phylotyper functions
 Examples:
     To run subtyping routine on Stx1 genes:
 
-        $ python main.py subtype ../phylotyper_example.ini ecoli_stx1 test/ecoli_stx1.ffn output/test/
+        $ python -m phylotyper subtype stx1 test/ecoli_stx1.ffn 
 
 """
 
@@ -187,21 +187,38 @@ def subtype_pipeline(options, config):
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
-    if genome_search:
-        # Identify loci in input genomes
-        seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
-        detector = LociSearch(config, options['search_database'], None, seqtype, options['nloci'])
-
-        for genome in options['genomes']:
-            detector.search(genome, options['input'], append=True)
 
     # Predict subtypes
     with open(options['result'], 'w') as resfile:
         assignments = csv.DictWriter(resfile, fieldnames=results_header(), delimiter='\t', quoting=csv.QUOTE_MINIMAL)
         assignments.writeheader()
 
+        loci_found = 0
+        if genome_search:
+            # Identify loci in input genomes
+            seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
+            detector = LociSearch(config, options['search_database'], None, seqtype, options['nloci'])
+
+            for genome in options['genomes']:
+                genome_label, nhits = detector.search(genome, options['input'], append=True)
+
+                if nhits == 0:
+                     assignments.writerow({
+                        'genome': genome_label,
+                        'tree_label': 'not applicable',
+                        'subtype': 'not applicable',
+                        'probability': 'not applicable',
+                        'phylotyper_assignment': 'Subtype loci not found in genome',
+                        'loci': 'not applicable'
+                    })
+                else:
+                    loci_found += nhits
+              
+
         # Check if sequences match known subtyped sequences
-        remaining = identical_sequences(options, assignments)
+        remaining = []
+        if loci_found > 0:
+            remaining = identical_sequences(options, assignments)
 
         # Run phylotyper on remaining untyped input sequences
         for genome in remaining:
@@ -222,16 +239,12 @@ def subtype_pipeline(options, config):
                 if len(remaining[genome]) == 1:
                     tree_label = genome
 
-                # Only one gene for one genome, don't need to split up input
-                if options['ngenomes'] == 1 and len(remaining[genome]) == 1: 
-                        infiles = options['input']
-                else:
-                    for s in alleleset.seqlist():
-                        infile = os.path.join(options['output_directory'], "{}_loci{}_step2_alignment_input.fasta".format(filename, loci))
-                        loci += 1
-                        with open(infile, 'w') as outfh:
-                            outfh.write('>{}\n{}\n'.format(tree_label, s))
-                        infiles.append(infile)
+                for s in alleleset.seqlist():
+                    infile = os.path.join(options['output_directory'], "{}_loci{}_step2_alignment_input.fasta".format(filename, loci))
+                    loci += 1
+                    with open(infile, 'w') as outfh:
+                        outfh.write('>{}\n{}\n'.format(tree_label, s))
+                    infiles.append(infile)
 
                 trimfile = os.path.join(options['output_directory'], "{}_step3_alignment_trimming_summary.html".format(filename))
                 alnfile = os.path.join(options['output_directory'], "{}_step4_profile_alignment_output.fasta".format(filename))
@@ -248,6 +261,7 @@ def subtype_pipeline(options, config):
                 # Predict subtypes & write to file
                 results = predict_subtypes(treefile, subtypefile, plotfile, options, config)
                 print results
+                
                 if not tree_label in results:
                     raise Exception("Phylotyper failed to complete")
 
