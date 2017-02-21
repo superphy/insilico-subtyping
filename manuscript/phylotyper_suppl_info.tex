@@ -1,11 +1,14 @@
-\documentclass[12pt,letterpaper]{article}
+\documentclass[10pt,letterpaper]{article}
 %\usepackage[T1]{fontenc}
 %\usepackage[utf8]{inputenc}
 \usepackage{ragged2e,booktabs,multirow}
 \usepackage{caption,capt-of}
 \usepackage{graphicx}
+\usepackage{array}
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thefigure}{S\arabic{figure}}
+
+\newcolumntype{M}[1]{>{\begin{varwidth}[t]{#1}}l<{\end{varwidth}}}
 
 \RequirePackage[LY1]{fontenc}
 
@@ -33,6 +36,8 @@
 %\maketitle
  
 \tableofcontents
+
+\clearpage
 
 \section{Supplementary Figures}
 
@@ -72,19 +77,20 @@ wz & O-serotype based on the wzy and wzx genes & {\it E. coli} & 2\\\bottomrule
 Table S2 contains performance metrics from a leave-one-out cross-validation analysis comparing Phylotyper and a top-BLAST hit approach.  The analysis examines the four \textit{E. coli} schemes available in Phylotyper. In this multi-class analysis, precision, recall and F$_{1}$ score are calculated for each individual class provided that at least one instance of the class is in the training set.  The individual class positive and negatives are summed to calculate an overall precision, recall and F$_{1}$ score for the scheme.
 
 \begin{minipage}{\linewidth}
+\setlength{\tabcolsep}{4pt}
 \captionof{table}{Leave-One-Out Cross Validation Results}
 \medskip
-\begin{tabular}{@{\extracolsep{2pt}}lllllll@{}}
+\begin{tabular}{@{\extracolsep{4pt}}llll>{\centering}m{1.6cm}lll@{}}
 \toprule 
-\multirow{2}{*}{Scheme} & \multicolumn{3}{c}{Phylotyper} & \multicolumn{3}{c}{Sequence-similarity}\\
-\cline{2-4}\cline{5-7}
-& Precision & Recall & F$_{1}$ Score & Precision & Recall & F$_{1}$ Score \\
+\multirow{2}{*}{Scheme} & \multicolumn{4}{c}{Phylotyper} & \multicolumn{3}{c}{Sequence-similarity}\\
+\cline{2-5}\cline{6-8}
+& Precision & Recall & F$_{1}$ Score & Run-time (s) $^{1}$ & Precision & Recall & F$_{1}$ Score \\
 \midrule
-{\it E. coli} Stx1 & 1.00 & 0.94 & 0.97 & 0.94 & 0.94 & 0.94\\
-{\it E. coli} Stx2 & 1.00 & 0.99 & 0.99 & 0.93 & 0.93 & 0.93\\
-{\it E. coli} Intimin & 1.00 & 0.98 & 0.99 & 0.99 & 0.98 & 0.99\\
-{\it E. coli} H-serotype & 0.99 & 0.98 & 0.98 & 0.96 & 0.85 & 0.90\\
-{\it E. coli} O-serotype & 1.00 & 0.61 & 0.75 & 1.00 & 0.36 & 0.53\\\bottomrule
+{\it E. coli} Stx1 & 1.00 & 0.94 & 0.97 & 6 & 0.94 & 0.94 & 0.94\\
+{\it E. coli} Stx2 & 1.00 & 0.99 & 0.99 & 32 & 0.93 & 0.93 & 0.93\\
+{\it E. coli} Intimin & 1.00 & 0.98 & 0.99 & 17 & 0.99 & 0.98 & 0.99\\
+{\it E. coli} H-serotype & 0.99 & 0.98 & 0.98 & 16 & 0.96 & 0.85 & 0.90\\
+{\it E. coli} O-serotype & 1.00 & 0.61 & 0.75 & 278 & 1.00 & 0.36 & 0.53\\\bottomrule
 \end{tabular}\par
 \bigskip
 Formula:
@@ -94,6 +100,9 @@ Formula:
 \item $F_{1}~score = 2*Precision*Recall/(Precision + Recall)$
 \end{enumerate}
 $TP = True~Positive,~~FP = False~Positive,~~FN = False~Negative$
+\par
+\bigskip
+$^{1}$ Run-time is for an {\it Escherichia coli} genome containing a non-identical subtype gene which triggers the full phylotyper pipeline.
 
 \end{minipage}
 

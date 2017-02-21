@@ -73,8 +73,8 @@ Outlined below are the steps and tools used in the Phylotyper pipeline:
 \item If multiple loci are involved, concatenate individual alignments into superalignment.
 \item Generate maximum likelihood phylogenetic tree of aligned genes with FastTree \citep{Price2010}.
 \item Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes \citep{Revell2011}.
-\item Identify the subtype with maximum marginal likelihood for the unknown genes and report to user.
-Users are provided with an image of the phylogenetic tree overlaid with the likelihood values (e.g. Figure~1\vphantom{\ref{fig:01}}). {Is it possible to print out the type directly, without looking at the tree?}
+\item Identify the subtype with maximum marginal likelihood for the unknown genes and report to user in text output file.
+Users are also provided with an image of the phylogenetic tree overlaid with the likelihood values (e.g. Figure~1\vphantom{\ref{fig:01}}).
 \end{enumerate}
 
 \begin{figure}[!tpb]%figure1
@@ -101,7 +101,7 @@ Checks are built-in to the new subtype pipeline to ensure the assumptions of the
 
 To assess the performance of the phylogenetic-based method used in Phylotyper and compare it to a sequence similarity-based approach, we ran a leave-one-out cross validation analysis.
 For this assessment, we developed a mock sequence-similarity based tool that assigns putative subtypes using BLAST.
-The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than in a top-BLAST hit approach (see Supplementary Table S2 for performance metrics). {Is there room for some mention of time required / batch capability?}
+The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than in a top-BLAST hit approach (see Supplementary Table S2 for performance metrics and run-times).
 
 \section{Discussion}
 
