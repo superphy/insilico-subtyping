@@ -335,7 +335,7 @@ class SubtypeIndexTests(unittest.TestCase):
             touch(os.path.join(self.root_dir, f))
 
         # Blast files
-        touch(os.path.join(self.root_dir, pre_options['search_database']+'.psq'))
+        touch(os.path.join(self.root_dir, pre_options['search_database']+'.nsq'))
 
         post = SubtypeConfig(self.yamlfile)
         post_options = post.get_subtype_config(scheme)

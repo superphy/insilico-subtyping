@@ -69,6 +69,12 @@ class SubtypeTests(unittest.TestCase):
         self.subtype_options['ngenomes'] = 1
 
 
+    def thatgenome(self):
+        test_genomes = ['ecoli_mgy_modified.fasta']
+        self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
+        self.subtype_options['ngenomes'] = 1
+
+
     def theothergenome(self):
         test_genomes = ['test_eae_genome1.fasta']
         self.subtype_options['genomes'] = [os.path.join(self.data_dir, f) for f in test_genomes]
@@ -186,8 +192,6 @@ class SubtypeTests(unittest.TestCase):
             csvreader.next() # Header
             row = csvreader.next()
 
-            print row
-
         above_value = True if float(row[3]) > .95 else False
         self.assertTrue(all([row[2] == 'epsilon-1', above_value]))
 
@@ -226,7 +230,7 @@ class SubtypeTests(unittest.TestCase):
         self.assertTrue(all([row[2] == 'h12', above_value]))
 
 
-    def testWz(self):
+    def testWzMulti(self):
 
         self.init('wz')
         self.thegenome()
@@ -237,11 +241,27 @@ class SubtypeTests(unittest.TestCase):
         with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
             csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
             csvreader.next() # Header
+            
+            tests = [float(row[3]) > .8 and row[2] == 'o22' for row in csvreader.next()]
+            self.assertTrue(all(tests))
+
+
+    def testWz(self):
+
+        self.init('wz')
+        self.thatgenome()
+
+        subtype_pipeline(self.subtype_options, self.configObj)
+
+        # Check predictions
+        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
+            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
+            csvreader.next() # Header
+
             row = csvreader.next()
-
-        above_value = True if float(row[3]) > .85 else False
-        self.assertTrue(all([row[2] == 'a', above_value]))
-
+            
+            above_value = True if float(row[3]) > .95 else False
+            self.assertTrue(all([row[2] == 'o16', above_value]))
 
 
     def testStx2Knowns(self):
