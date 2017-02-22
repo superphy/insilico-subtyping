@@ -28,12 +28,10 @@ Phylotyper requires the following external programs:
 Phylotyper was built and tested with python 2.7. To install Phylotyper
 using python virtual environments:
 
--   `virtualenv -p python2.7 phylotyper` replacing `phylotyper` with the
-    directory name you want to use for phylotyper. Use this directory in
-    subsequent steps.
--   `phylotyper/bin/activate`. Activate the virtual enviroment.
--   `git clone https://github.com/superphy/insilico-subtyping.git .`.
-    Clone the phylotyper git repository into the directory.
+-   `mkdir phylotyper; git clone https://github.com/superphy/insilico-subtyping.git phylotyper`.
+    Clone the phylotyper git repository into the directory. replacing `phylotyper` with the directory name you want to use for phylotyper. Use this directory in subsequent steps.
+-   `virtualenv -p python2.7 phylotyper`. Install virtual environment.
+-   `source phylotyper/bin/activate`. Activate the virtual enviroment.
 -   `cd phylotyper/`. Move into the phylotyper directory.
 -   `python setup.py install`. Install dependencies and create
     `phylotyper` executable.
