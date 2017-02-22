@@ -1,54 +1,28 @@
 \begin{thebibliography}{}
 
-\bibitem[Camacho {\em et~al.}(2009)Camacho, Coulouris, Avagyan, Ma,
-  Papadopoulos, Bealer, and Madden]{Camacho2009}
-Camacho, C., Coulouris, G., Avagyan, V., Ma, N., Papadopoulos, J., Bealer, K.,
-  and Madden, T.~L. (2009).
+\bibitem[Camacho {\em et~al.}(2009)Camacho {\em et~al.}]{Camacho2009}
+Camacho, C. {\em et~al.} (2009).
 \newblock {BLAST}$+$: architecture and applications.
 \newblock {\em {BMC} Bioinformatics\/}, {\bf 10}(1), 421.
 
-\bibitem[Capella-Gutierrez {\em et~al.}(2009)Capella-Gutierrez, Silla-Martinez,
-  and Gabaldon]{CapellaGutierrez2009}
-Capella-Gutierrez, S., Silla-Martinez, J.~M., and Gabaldon, T. (2009).
-\newblock {trimAl}: a tool for automated alignment trimming in large-scale
-  phylogenetic analyses.
-\newblock {\em Bioinformatics\/}, {\bf 25}(15), 1972--1973.
-
-\bibitem[Carrillo {\em et~al.}(2016)Carrillo, Koziol, Mathews, Goji, Lambert,
-  Huszczynski, Gauthier, Amoako, and Blais]{CARRILLO2016}
-Carrillo, C.~D., Koziol, A.~G., Mathews, A., Goji, N., Lambert, D.,
-  Huszczynski, G., Gauthier, M., Amoako, K., and Blais, B.~W. (2016).
+\bibitem[Carrillo {\em et~al.}(2016)Carrillo {\em et~al.}]{CARRILLO2016}
+Carrillo, C.~D. {\em et~al.} (2016).
 \newblock Comparative evaluation of genomic and laboratory approaches for
   determination of shiga toxin subtypes in escherichia coli.
 \newblock {\em Journal of Food Protection\/}, {\bf 79}(12), 2078--2085.
 
-\bibitem[DebRoy {\em et~al.}(2016)DebRoy, Fratamico, Yan, Baranzoni, Liu,
-  Needleman, Tebbs, O{\textquotesingle}Connell, Allred, Swimley, Mwangi, Kapur,
-  Garay, Roberts, and Katani]{DebRoy2016}
-DebRoy, C., Fratamico, P.~M., Yan, X., Baranzoni, G., Liu, Y., Needleman,
-  D.~S., Tebbs, R., O{\textquotesingle}Connell, C.~D., Allred, A., Swimley, M.,
-  Mwangi, M., Kapur, V., Garay, J. A.~R., Roberts, E.~L., and Katani, R.
-  (2016).
+\bibitem[DebRoy {\em et~al.}(2016)DebRoy {\em et~al.}]{DebRoy2016}
+DebRoy, C. {\em et~al.} (2016).
 \newblock Comparison of o-antigen gene clusters of all o-serogroups of
   escherichia coli and proposal for adopting a new nomenclature for o-typing.
 \newblock {\em {PLOS} {ONE}\/}, {\bf 11}(1), e0147434.
 
-\bibitem[Ingle {\em et~al.}(2016)Ingle, Holt, Levine, Kuzevski, Valcanis,
-  Robins-Browne, Tauschek, Inouye, and Stinear]{Ingle2016}
-Ingle, D.~J., Holt, K.~E., Levine, M.~M., Kuzevski, A., Valcanis, M.,
-  Robins-Browne, R.~M., Tauschek, M., Inouye, M., and Stinear, T. (2016).
+\bibitem[Ingle {\em et~al.}(2016)Ingle {\em et~al.}]{Ingle2016}
+Ingle, D.~J. {\em et~al.} (2016).
 \newblock In silico serotyping of e. coli from short read data identifies
   limited novel o-loci but extensive diversity of o:h serotype combinations
   within and between pathogenic lineages.
 \newblock {\em Microbial Genomics\/}, {\bf 2}(7).
-
-\bibitem[Inouye {\em et~al.}(2014)Inouye, Dashnow, Raven, Schultz, Pope,
-  Tomita, Zobel, and Holt]{Inouye2014}
-Inouye, M., Dashnow, H., Raven, L.-A., Schultz, M.~B., Pope, B.~J., Tomita, T.,
-  Zobel, J., and Holt, K.~E. (2014).
-\newblock {SRST}2: Rapid genomic surveillance for public health and hospital
-  microbiology labs.
-\newblock {\em Genome Medicine\/}, {\bf 6}(11).
 
 \bibitem[Jenkins(2015)Jenkins]{Jenkins2015}
 Jenkins, C. (2015).
@@ -56,10 +30,8 @@ Jenkins, C. (2015).
   coli{\textemdash}it{\textquotesingle}s time for a change!
 \newblock {\em Journal of Clinical Microbiology\/}, {\bf 53}(8), 2402--2403.
 
-\bibitem[Joensen {\em et~al.}(2015)Joensen, Tetzschner, Iguchi, Aarestrup, and
-  Scheutz]{Joensen2015}
-Joensen, K.~G., Tetzschner, A. M.~M., Iguchi, A., Aarestrup, F.~M., and
-  Scheutz, F. (2015).
+\bibitem[Joensen {\em et~al.}(2015)Joensen {\em et~al.}]{Joensen2015}
+Joensen, K.~G. {\em et~al.} (2015).
 \newblock Rapid and {EasyIn} {SilicoSerotyping} of escherichia coli isolates by
   use of whole-genome sequencing data.
 \newblock {\em Journal of Clinical Microbiology\/}, {\bf 53}(8), 2410--2426.
@@ -70,17 +42,8 @@ Katoh, K. and Standley, D.~M. (2013).
   in performance and usability.
 \newblock {\em Molecular Biology and Evolution\/}, {\bf 30}(4), 772--780.
 
-\bibitem[Lindsey {\em et~al.}(2016)Lindsey, Pouseele, Chen, Strockbine, and
-  Carleton]{Lindsey2016}
-Lindsey, R.~L., Pouseele, H., Chen, J.~C., Strockbine, N.~A., and Carleton,
-  H.~A. (2016).
-\newblock Implementation of whole genome sequencing ({WGS}) for identification
-  and characterization of shiga toxin-producing escherichia coli ({STEC}) in
-  the {United States}.
-\newblock {\em Frontiers in Microbiology\/}, {\bf 7}.
-
-\bibitem[Price {\em et~al.}(2010)Price, Dehal, and Arkin]{Price2010}
-Price, M.~N., Dehal, P.~S., and Arkin, A.~P. (2010).
+\bibitem[Price {\em et~al.}(2010)Price {\em et~al.}]{Price2010}
+Price, M.~N. {\em et~al.} (2010).
 \newblock {FastTree} 2 {\textendash} approximately maximum-likelihood trees for
   large alignments.
 \newblock {\em {PLoS} {ONE}\/}, {\bf 5}(3), e9490.

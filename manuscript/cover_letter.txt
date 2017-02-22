@@ -1,0 +1,31 @@
+Department of Enteric Diseases
+National Microbiology Laboratory at Lethbridge
+Public Health Agency of Canada
+225089 Township Road 9-1
+Lethbridge, AB, Canada T1J 3Z4
+
+February 21, 2017
+
+Bioinformatics
+Oxford University Press
+
+
+Dear Editor,
+
+I would like to submit my enclosed manuscript: "Phylotyper: In silico predictor of molecular subtypes from gene sequences" for exclusive consideration of publication as an Application Note in Bioinformatics.
+
+The core of the Phylotyper software is a tool that estimates discrete-valued states for a genome using a phylogenetic tree as a predictive framework.  Phylotyper builds a phylogenetic tree that contains genomes with known state values and a limited number unannotated genomes. The unannotated genomes are assigned a state value and prediction score that is extrapolated from its ancestors in the tree using a phylogenetic method called ancestral state reconstruction.  
+
+Our motivation for building Phylotyper was to develop a program that can accurately recapitulate strain subtypes from genomic data. Molecular subtypes, which are measured using traditional laboratory procedures, have been used in the fields of microbiology and public health as a proxy for bacterial phenotypes or classes of bacteria. With the advancements in DNA sequencing technology, there is a shift in these fields toward whole-genome sequencing approaches for analysing microbial populations. This transition requires tools that can recreate from genomic sequence data the molecular subtype designations that have been and continue to be widely used. Accuracy is critical for this task. The first tools developed employed a direct sequence transfer approach; copying annotations from the reference sequence with the highest level of sequence similarity to the query sequence. Phylotyper, as part of its estimation procedure, develops a model of the phylogenetic distribution of the subtype. This new approach makes the Phylotyper tool highly robust and accurate. It can identify novel subtypes and also anomalies in the subtype schemes; a feature that has not been achieved with the undiscriminating direct sequence comparison approach.
+
+Phylotyper brings robust state prediction to the application of estimating subtypes from sequence data. Phylotyper comes packaged with selected subtype schemes. It is, however, designed to be widely useful and has the ability for users to easily add, test and run their own schemes.
+
+Thank you for your consideration of this manuscript.
+
+
+Sincerely,
+
+
+Dr. Matthew Whiteside
+
+
