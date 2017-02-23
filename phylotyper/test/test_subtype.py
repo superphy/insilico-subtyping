@@ -230,22 +230,6 @@ class SubtypeTests(unittest.TestCase):
         self.assertTrue(all([row[2] == 'h12', above_value]))
 
 
-    def testWzMulti(self):
-
-        self.init('wz')
-        self.thegenome()
-
-        subtype_pipeline(self.subtype_options, self.configObj)
-
-        # Check predictions
-        with open(os.path.join(self.test_dir, 'subtype_predictions.tsv'), 'rb') as csvfile:
-            csvreader = csv.reader(filter(lambda row: row[0]!='#', csvfile), delimiter='\t')
-            csvreader.next() # Header
-            
-            tests = [float(row[3]) > .8 and row[2] == 'o22' for row in csvreader.next()]
-            self.assertTrue(all(tests))
-
-
     def testWz(self):
 
         self.init('wz')
