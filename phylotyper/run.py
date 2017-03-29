@@ -175,8 +175,14 @@ def subtype_pipeline(options, config):
         # found in the blast search
         locifiles = []
         for i in xrange(options['nloci']):
-            file_name = 'search_results'
-            locifiles.append(os.path.join(options['output_directory'], '{}.locus{}'.format(file_name, i)))
+            file_name = os.path.join(options['output_directory'], 'search_results.locus{}'.format(i))
+            locifiles.append( file_name )
+            # Overwrite existing files
+            try:
+                os.remove(file_name)
+            except OSError:
+                pass
+                
         options['input'] = locifiles
         genome_search = True
 
