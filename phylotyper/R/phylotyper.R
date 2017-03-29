@@ -476,7 +476,7 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 		piecol=cols,
 		cex=0.4)
 	
-	add.simmap.legend(colors=cols,x=0.9*par()$usr[2],
+	add.simmap.legend(colors=cols,x=0.1*par()$usr[2],
 		y=0.9*par()$usr[4],prompt=FALSE)
 
 }
