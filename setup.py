@@ -20,7 +20,7 @@ setup(name='phylotyper',
     install_package_data = True,
     zip_safe = False,
     packages = find_packages(),
-    package_data = { 'phylotyper': ['data/*/*', 'subtypes_index.yaml']},
+    package_data = { 'phylotyper': ['data/*/*', 'R/*', 'subtypes_index.yaml']},
     test_suite = 'nose.collector',
     tests_require = ['nose']
 )
