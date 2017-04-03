@@ -88,6 +88,61 @@ loocv = function(tree, subtypes, scheme=5, model='ER') {
 	return(pp)
 }
 
+lsocv = function(tree, subtypes, scheme=5, model='ER') {
+	# Estimate false positive rates that occur when entire
+	# subtype is removed from training set and used as input 
+	# Method sets tip prior to flat/unassigned and runs
+	# esimtation procedure to get posterior probability for
+	# unassigned tip
+	#
+	# Args:
+	#  tree: phylo object containing subtype tree
+	#  subtypes: factor list of subtype assignments. List names
+	#    must match tip names in tree
+	#
+	# Returns:
+	# 	data.frame of posterior probabilities 
+	#
+
+	n = length(subtypes)
+
+	# Make prior matrix
+	priorR = phylotyper$makePriors(tree, subtypes)
+	priorM = priorR$prior.matrix
+	nstates = ncol(priorM)
+
+	# Make result matrix
+	pp = data.frame(matrix(0,n,nstates))
+	colnames(pp) = colnames(priorM)
+	tips = rownames(priorM)
+	pp = cbind("tip"=tips, "true_value"=as.character(subtypes[tips]), pp)
+	nc = ncol(pp)
+
+	# Flat prior
+	flat = matrix(1/nstates,1,nstates)
+	Q <- NULL
+
+	for(i in 1:n) {
+
+		tip = as.character(pp$tip[i])
+		testprior = priorM
+		testprior[i,] = flat
+
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip, model=model, fixedQ=Q)
+		#print(testfit$result$Q)
+
+		if(is.null(Q)) {
+			Q<-testfit$result$Q
+		}
+
+		pp[i,3:nc] = testfit$tip.pp[tip, ]
+
+		#cat("Completed test iteration",i,"...\n")
+	}
+
+	return(pp)
+}
+
 
 kfcv = function(tree, subtypes, scheme=5) {
 	# Estimate prediction accuracy by predicting subtypes 

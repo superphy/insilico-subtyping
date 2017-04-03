@@ -162,7 +162,7 @@ class LociSearch(object):
             try:
                 check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
             except CalledProcessError as e:
-                msg = "LociSearch failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+                msg = "LociSearch command <{}> failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
                 raise Exception(msg)
 
         
