@@ -56,13 +56,13 @@ class AlleleID(namedtuple('AlleleID', ['genome', 'allele'])):
 
 # Factory for BlastRow class
 # Stores outfmt 6 blast results
-class BlastRow(namedtuple('BlastRow', ['qseqid', 'sseqid', 'pident',
+class BlastRow(namedtuple('BlastRow', ['sprop', 'qseqid', 'sseqid', 'pident',
     'qlen', 'length', 'mismatch', 'gapopen', 'evalue', 'bitscore'])):
     __slots__ = ()
-    def __new__(cls, qseqid='Working', sseqid=None, pident=0, qlen=0, length=0, 
+    def __new__(cls, sprop=None, qseqid='Working', sseqid=None, pident=0, qlen=0, length=0, 
         mismatch=0, gapopen=0, evalue=1, bitscore=0):
         # add default values
-        return super(BlastRow, cls).__new__(cls, qseqid, sseqid, float(pident), int(qlen), int(length), 
+        return super(BlastRow, cls).__new__(cls, sprop, qseqid, sseqid, float(pident), int(qlen), int(length), 
             int(mismatch), int(gapopen), float(evalue), float(bitscore))
 
 
@@ -95,12 +95,12 @@ class Blaster(object):
         else:
             raise Exception('Invalid sequence_type argument {}'.format(sequence_type))
 
-        self._alignment_coverage = 0.5
-        self._percent_identity = 75
+        self._alignment_coverage = 0.6
+        self._percent_identity = 85
         self._evalue = 1
 
         if self.seqtype == 'prot':
-            self._percent_identity = 70
+            self._percent_identity = 60
 
         # Default options
         self._blast_options = {
@@ -236,10 +236,11 @@ class Blaster(object):
 
             self.logger.debug('Parsing Blast output')
             
+            # Record top hits for each query
             tophit = BlastRow()
             for row in csv.reader(open(tmpfh.name,'r'), delimiter='\t'):
 
-                blastresult = BlastRow(*row)
+                blastresult = BlastRow(self.decode(row[1]), *row)
 
                 if blastresult.bitscore > tophit.bitscore:
                     tophit = blastresult
@@ -257,3 +258,45 @@ class Blaster(object):
                 return None, None
                
     
+    def multisearch(self, input):
+        """Run Blast with multiple genes/genomes as input
+
+        Args:
+            input (str): Filepath to input fasta sequence
+
+        Raises Exception if blast search fails
+
+        """
+
+        with tempfile.NamedTemporaryFile() as tmpfh:
+            opts = self._blast_options
+            opts['query'] = input
+            opts['out'] = tmpfh.name
+
+            cmd = "{blastcmd} -evalue {evalue} -outfmt {outfmt} -db {db} -query {query} -out {out}".format(
+                blastcmd=self._blast_exe, **opts)
+            if self._blast_specific_options:
+                cmd += ' '+' '.join(['-'+k+' '+v for k,v in self._blast_specific_options.items()])
+
+            self.logger.debug('Running Blast')
+            self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
+            try:
+                check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+            except CalledProcessError as e:
+                msg = "Blaster failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+                raise Exception(msg)
+
+            self.logger.debug('Parsing Blast output')
+            
+            hits = {}
+            for row in csv.reader(open(tmpfh.name,'r'), delimiter='\t'):
+
+                blastresult = BlastRow(self.decode(row[1]), *row)
+                if blastresult.qseqid in hits:
+                    hits[blastresult.qseqid].append(blastresult)
+                else:
+                    hits[blastresult.qseqid] = [blastresult]
+
+
+            return hits
+               

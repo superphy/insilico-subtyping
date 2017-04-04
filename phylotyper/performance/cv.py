@@ -17,6 +17,7 @@ import csv
 import inspect
 import logging
 import os
+import random
 import shutil
 import sys
 import tempfile
@@ -62,7 +63,7 @@ def loo(config, options):
     """
 
     # Load subtypes
-    subtypes = load_subtypes(options)
+    subtypes = load_subtypes(options)[0]
 
     # Load genomes
     genomes = set()
@@ -83,7 +84,7 @@ def loo(config, options):
         allele = parse_fasta_id(g)
         truevalue = subtypes[allele.genome]
 
-        dirname = tempfile.mkdtemp()
+        dirname = tempfile.mkdtemp(prefix='ptcv')
         logger.debug('Temp directory: {}'.format(dirname))
 
         dbfile = os.path.join(dirname, 'blastdb')
@@ -124,6 +125,176 @@ def loo(config, options):
     for f in failed_blasts:
         logger.info(f)
 
+
+def kfcv(config, options, k=10):
+    """K-folds Cross Validation
+
+    Args:
+        config (PhylotyperConfig): Instance of PhylotyperConfig object
+        options (namedtuple): Command-line arguments
+        k (int): Number of partitions for training set
+
+    """
+
+    # Load subtypes
+    subtypes, subtype_classes = load_subtypes(options)
+
+    # Load genomes
+    genomes = set()
+    fasta = SeqIO.parse(options.genes, 'fasta')
+    for record in fasta:
+        genomes.add(record.id)
+        allele = parse_fasta_id(record.id)
+        subt = subtypes[allele.genome]
+    
+        if not subt:
+            raise Exception("No subtype for genome {}".format(allele.genome))
+
+    # Result objects
+    results = { k: [] for k in subtype_classes }
+    ng = len(genomes)
+    niter = 100
+    
+    kfold = ng // k
+
+    if kfold < 5:
+        raise Exception("Training set too small")
+    
+    for i in xrange(niter):
+
+        testg = random.sample(genomes, kfold)
+
+        dirname = tempfile.mkdtemp(prefix='ptcv')
+        logger.debug('Temp directory: {}'.format(dirname))
+
+        dbfile = os.path.join(dirname, 'blastdb')
+        subjectfile = os.path.join(dirname, 'subject.fasta')
+        queryfile = os.path.join(dirname, 'query.fasta')
+
+        # Test input
+        write(options.genes, queryfile, subjectfile, testg)
+
+        # Make blast db
+        blastyper = Blaster(config, dbfile, 'nucl')
+        blastyper.make_db(subjectfile, options.subtype)
+
+        # Run test
+        hits = blastyper.multisearch(queryfile)
+        
+        # Append results
+        for g in testg:
+            allele = parse_fasta_id(g)
+            truevalue = subtypes[allele.genome]
+
+            if g in hits:
+                
+                for h in hits[g]:
+                    label = 0
+                    if truevalue == h.sprop:
+                        label = 1
+
+                    results[truevalue].append([h.pident, label])
+
+            else:
+                # Blast returned no results,
+                # so get a FN right out of the gates
+                results[truevalue].append([0, 1])
+                logger.debug('No BLAST result for {}'.format(g))
+
+        logger.debug('Iteration {}'.format(i))
+
+
+    outputfile = os.path.join(options.results, 'performance_results.csv')
+    with open(outputfile, 'w') as csvfile:
+        csvwriter =  csv.writer(csvfile, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+        
+        for st in results:
+            scores = [ r[0] for r in results[st] ]
+            labels = [ r[1] for r in results[st] ]
+            csvwriter.writerow(st)
+            csvwriter.writerow(scores)
+            csvwriter.writerow(labels)
+    
+
+def lco(config, options):
+    """Leave-Class-Out Cross Validation
+
+    Args:
+        config (PhylotyperConfig): Instance of PhylotyperConfig object
+        options (namedtuple): Command-line arguments
+
+    """
+
+    # Load subtypes
+    subtypes, subtype_classes = load_subtypes(options)
+
+    # Load genomes
+    genomes = set()
+    fasta = SeqIO.parse(options.genes, 'fasta')
+    for record in fasta:
+        genomes.add(record.id)
+        allele = parse_fasta_id(record.id)
+        subt = subtypes[allele.genome]
+    
+        if not subt:
+            raise Exception("No subtype for genome {}".format(allele.genome))
+
+    # Leave each subtype class out
+    results = []
+    n = 0
+    failed_blasts = []
+
+    for c in subtype_classes:
+
+        testg = []
+        for g in genomes:
+            allele = parse_fasta_id(g)
+            truevalue = subtypes[allele.genome]
+
+            if truevalue == c:
+                testg.append(g)
+        
+
+        dirname = tempfile.mkdtemp()
+        logger.debug('Temp directory: {}'.format(dirname))
+
+        dbfile = os.path.join(dirname, 'blastdb')
+        subjectfile = os.path.join(dirname, 'subject.fasta')
+        queryfile = os.path.join(dirname, 'query.fasta')
+
+        # Test input
+        write(options.genes, queryfile, subjectfile, testg)
+
+        # Make blast db
+        blastyper = Blaster(config, dbfile, 'nucl')
+        blastyper.make_db(subjectfile, options.subtype)
+
+        # Run test
+        result, tophit = blastyper.search(queryfile)
+        logger.info('Subtype prediction for {} is {}'.format(g, result))
+
+        results.append((truevalue, result))
+        
+        if result:
+            if not result == truevalue:
+                failed_blasts.append(tophit)
+
+        shutil.rmtree(dirname)
+        n += 1
+
+    stats = compute_stats(results)
+
+    outputfile = os.path.join(options.results, 'performance_results.csv')
+    with open(outputfile, 'w') as csvfile:
+        csvwriter =  csv.writer(csvfile, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerow(['class', 'tp', 'fp', 'fn', 'precision', 'recall', 'fscore', 'support'])
+
+        for s in stats:
+            csvwriter.writerow(s)
+
+    logger.info('FAILED RESULTS:')
+    for f in failed_blasts:
+        logger.info(f)
 
 
 def compute_stats(results):
@@ -202,21 +373,20 @@ def compute_stats(results):
     return stats
 
 
-
-
-
 def load_subtypes(options):
     # Load subtypes
 
     subtypes = {}
+    classes = set()
 
     for row in csv.reader(open(options.subtype,'r'), delimiter='\t'):
         name = row[0]
         subt = row[1]
 
         subtypes[name] = subt
+        classes.add(subt)
 
-    return subtypes
+    return (subtypes, classes)
 
         
 
@@ -228,7 +398,7 @@ if __name__ == "__main__":
 
     """
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
    
     # Parse command-line args
     # Phylotyper functions are broken up into commands
@@ -236,13 +406,29 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='commands')
 
-    # New subtype command
+    # Leave one out command
     loo_parser = subparsers.add_parser('loo', help='Leave-one-out cross-validation')
     loo_parser.add_argument('genes', action='store', help='Fasta input')
     loo_parser.add_argument('subtype', action='store', help='Subtypes for fasta input')
     loo_parser.add_argument('results', action='store', help='Directory for evaluation result files')
     loo_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     loo_parser.set_defaults(which='loo')
+
+    # Leave subtype out command
+    lco_parser = subparsers.add_parser('lco', help='Leave-class-out cross-validation')
+    lco_parser.add_argument('genes', action='store', help='Fasta input')
+    lco_parser.add_argument('subtype', action='store', help='Subtypes for fasta input')
+    lco_parser.add_argument('results', action='store', help='Directory for evaluation result files')
+    lco_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    lco_parser.set_defaults(which='lco')
+
+    # KFCV command
+    kfcv_parser = subparsers.add_parser('kfcv', help='Leave-class-out cross-validation')
+    kfcv_parser.add_argument('genes', action='store', help='Fasta input')
+    kfcv_parser.add_argument('subtype', action='store', help='Subtypes for fasta input')
+    kfcv_parser.add_argument('results', action='store', help='Directory for evaluation result files')
+    kfcv_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    kfcv_parser.set_defaults(which='kfcv')
 
     options = parser.parse_args()
 
@@ -280,6 +466,52 @@ if __name__ == "__main__":
         options.results = outdir
         
         loo(config, options)
+
+    elif options.which == 'kfcv':
+        # Run K-folds CV
+
+        # Check arguments
+
+        # Check input files exists
+        if not os.path.isfile(options.genes):
+            msg = 'Invalid/missing genes file argument.'
+            raise Exception(msg)
+           
+        # Check subtype file exists
+        if not os.path.isfile(options.subtype):
+            msg = 'Invalid/missing subtype file argument.'
+            raise Exception(msg)
+
+        # Check output directory exists, if not create it if possible
+        if not os.path.exists(options.results):
+            os.makedirs(options.results)
+        outdir = os.path.abspath(options.results)
+        options.results = outdir
+        
+        kfcv(config, options)
+
+    elif options.which == 'lco':
+        # Run Leave-Class-Out CV
+
+        # Check arguments
+
+        # Check input files exists
+        if not os.path.isfile(options.genes):
+            msg = 'Invalid/missing genes file argument.'
+            raise Exception(msg)
+           
+        # Check subtype file exists
+        if not os.path.isfile(options.subtype):
+            msg = 'Invalid/missing subtype file argument.'
+            raise Exception(msg)
+
+        # Check output directory exists, if not create it if possible
+        if not os.path.exists(options.results):
+            os.makedirs(options.results)
+        outdir = os.path.abspath(options.results)
+        options.results = outdir
+        
+        lco(config, options)
 
     else:
         raise Exception("Unrecognized command")

@@ -88,7 +88,7 @@ loocv = function(tree, subtypes, scheme=5, model='ER') {
 	return(pp)
 }
 
-lsocv = function(tree, subtypes, scheme=5, model='ER') {
+lsocv = function(tree, subtypes, scheme=5, model='ER', threshold=.7) {
 	# Estimate false positive rates that occur when entire
 	# subtype is removed from training set and used as input 
 	# Method sets tip prior to flat/unassigned and runs
@@ -99,52 +99,50 @@ lsocv = function(tree, subtypes, scheme=5, model='ER') {
 	#  tree: phylo object containing subtype tree
 	#  subtypes: factor list of subtype assignments. List names
 	#    must match tip names in tree
+	#  scheme: Integer. See phylotyper$runSubtypeProcedure for list
+	#  model: Transition matrix model ('ER','SYM', or parameter matrix)
+	#  threshold: posterior probability cutoff for assigning subtype class
 	#
 	# Returns:
 	# 	data.frame of posterior probabilities 
 	#
 
-	n = length(subtypes)
-
 	# Make prior matrix
 	priorR = phylotyper$makePriors(tree, subtypes)
 	priorM = priorR$prior.matrix
-	nstates = ncol(priorM)
+	states = colnames(priorM)
+	nstates = length(states)
 
 	# Make result matrix
-	pp = data.frame(matrix(0,n,nstates))
-	colnames(pp) = colnames(priorM)
-	tips = rownames(priorM)
-	pp = cbind("tip"=tips, "true_value"=as.character(subtypes[tips]), pp)
-	nc = ncol(pp)
-
+	pp = data.frame(matrix(0,nstates,2))
+	rownames(pp) = states
+	colnames(pp) = c('fp','n')
+	
 	# Flat prior
-	flat = matrix(1/nstates,1,nstates)
+	flat = matrix(1/(nstates-1),1,(nstates-1))
 	Q <- NULL
 
-	for(i in 1:n) {
+	for(i in 1:nstates) {
 
-		tip = as.character(pp$tip[i])
-		testprior = priorM
-		testprior[i,] = flat
+		state = as.character(states[i])
+		testprior = priorM[,-i]
+		testers = which(apply(testprior, 1, sum) == 0)
+		testprior[testers,] = flat
+		tipnames = names(testers)
+		
+		stopifnot(all(tipnames %in% tree$tip.label))
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tip, model=model, fixedQ=Q)
-		#print(testfit$result$Q)
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tipnames, model=model, fixedQ=Q)
+		pp[state,'fp'] = sum(testfit$tip.pp[tipnames, ] >= threshold)
+		pp[state, 'n'] = length(testers)
 
-		if(is.null(Q)) {
-			Q<-testfit$result$Q
-		}
-
-		pp[i,3:nc] = testfit$tip.pp[tip, ]
-
-		#cat("Completed test iteration",i,"...\n")
 	}
 
 	return(pp)
 }
 
 
-kfcv = function(tree, subtypes, scheme=5) {
+kfcv = function(tree, subtypes, scheme=5, model='ER') {
 	# Estimate prediction accuracy by predicting subtypes 
 	# for each tip using k-fold cross validation. 
 	# Method sets tip priors to flat/unassigned and runs
@@ -155,9 +153,11 @@ kfcv = function(tree, subtypes, scheme=5) {
 	#  tree: phylo object containing subtype tree
 	#  subtypes: factor list of subtype assignments. List names
 	#    must match tip names in tree
+	#  scheme: Integer. See phylotyper$runSubtypeProcedure for list
+	#  model: Transition matrix model ('ER','SYM', or parameter matrix)
 	#
 	# Returns:
-	# 	posterior  
+	# 	 
 	#
 
 	# Compute k-fold size
@@ -176,41 +176,45 @@ kfcv = function(tree, subtypes, scheme=5) {
 	nstates = ncol(priorM)
 
 	# Make result matrix
-	pp = data.frame(matrix(0,ksize*iter,nstates))
-	colnames(pp) = colnames(priorM)
-	pp = cbind("iteration"=c(0),
-		"tip"=factor(c("NA"), levels=c("NA",names(subtypes))),
-		"true_value"=factor(c("NA"), levels=c("NA",levels(subtypes))),
-		pp)
-	nc = ncol(pp)
+	subtype_classes = levels(subtypes)
+	results = list()
+	results$predictions = vector("list", length(subtype_classes))
+	results$labels = vector("list", length(subtype_classes))
+	names(results$predictions) <- subtype_classes
+	names(results$labels) <- subtype_classes
 
 	# Flat prior
 	flat = matrix(1/nstates,1,nstates)
-	row = 1
-
+	
 	for(i in 1:iter) {
-
-		row = (ksize * (i-1)) + 1
-		lastrow = row+ksize-1
 
 		testset = sample(1:n, ksize)
 
 		tips = names(subtypes)[testset]
 		true_values = as.character(subtypes[testset])
 		testprior = priorM
-		testprior[testset,] = flat
+		testprior[tips,] = flat
+		
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tips, model=model)
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tips)
+		scores = testfit$tip.pp[tips, ]
+		print(scores)
+		
+		for(j in 1:length(true_values)) {
+			actual = true_values[j]
 
-		pp[row:lastrow, 1] = i
-		pp[row:lastrow, 2] = tips
-		pp[row:lastrow, 3] = true_values
-		pp[row:lastrow, 4:nc] = testfit$tip.pp[tips, ]
+			for(c in colnames(scores)) {
+				results$predictions[[c]] <- c(results$predictions[[c]], scores[j,c])
+				results$labels[[c]] <- c(results$labels[[c]], if(c == actual) 1 else 0)
+			}
+		
+		}
 
-		cat("Completed test iteration",i,",",row,",",lastrow,"...\n")
+		cat("Completed test iteration",i,"...\n")
+		break;
 	}
 
-	return(pp)
+	return(results)
 }
 
 
@@ -386,8 +390,6 @@ simulationSummary = function(subtypes, pp, threshold=.7) {
 	metrics[1:ncls,'support'] = classification_results[1:ncls,'tp'] + classification_results[1:ncls,'fn']
 
 	
-
-
 	# Check accuracy of posterior probabilities
 
 	# # Record true state for each tip in each state column

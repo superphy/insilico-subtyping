@@ -560,6 +560,8 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 		stop("Not a valid tip node in tree")
 	}
 
+	tipnames = tree$tip.label[nn]
+
 	# Start with first target tip
 	nn1 = nn[1]
 	nn = nn[-1]
@@ -589,16 +591,16 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	}
 	if(length(nn) > 0) {
 		XX<-t(sapply(nn,ff))
-		XX<-rbind(YY$lik.anc[1,],XX)
+		XX<-rbind(YY$lik.anc[1,], XX)
 	}
 	else {
 		XX <- YY$lik.anc[1,,drop=FALSE]
 	}
-	rownames(XX)<-uncertain
+	rownames(XX)<-tipnames
 	liks <- YY$lik.anc
 	rownames(liks) <- 1:tt$Nnode+n
 
-	return(list(loglik=YY$logLik,Q=Q,marginal.anc=XX,conditional.likelihoods=liks,rerootedTree=tt,tip=uncertain[1]))
+	return(list(loglik=YY$logLik,Q=Q,marginal.anc=XX,conditional.likelihoods=liks,rerootedTree=tt,tips=uncertain))
 }
 
 phylotyper$makeQ <- function(YY) {
