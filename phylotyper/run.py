@@ -575,7 +575,6 @@ def main():
     genome_parser.add_argument('output', action='store', help='Directory for subtype predictions')
     genome_parser.add_argument('inputs', nargs='+', help='Fasta input for genomes')
     genome_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
-    genome_parser.add_argument('--aa', action='store_true', help='Amino acid sequences')
     genome_parser.add_argument('--noplots', action='store_true', help='Do not generate tree image file')
     genome_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     genome_parser.set_defaults(which='genome')

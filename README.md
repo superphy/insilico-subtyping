@@ -10,6 +10,58 @@ tree.
 
 https://github.com/superphy/insilico-subtyping
 
+CONTENTS
+========
+
+1. [Examples](#examples)
+1. [Installation](#installation)
+1. [Running Phylotyper](#running-phylotyper)
+    1. [Setting up Phylotyper config file](#setting-up-phylotyper-config-file)
+    1. [Running Phylotyper using built-in subtype scheme](#running-phylotyper-using-built-in-subtype-scheme)
+    1. [Built-in subtype schemes](#built-in-subtype-schemes)
+    1. [Adding new subtype scheme to Phylotyper](#adding-new-subtype-scheme-to-phylotyper)
+1. [About Phylotyper](#about-phylotyper)
+1. [Contact](#contact)
+
+EXAMPLES
+========
+
+After [installing](#installation) phylotyper and its dependencies, here is a quick example to demonstrate its usage:
+
+1. Inform phylotyper of the locations for the dependencies by setting up a [INI config file](https://raw.githubusercontent.com/superphy/insilico-subtyping/master/phylotyper_example.ini)
+
+Details [here](#setting-up-phylotyper-config-file).
+
+2. Predict a subtype for one of the amino acid schemes packaged in phylotyper:
+
+    `phylotyper genome stx2 example_data/output/ example_data/genome.fasta \`
+    `--config yourconfigfile.ini`
+
+See `example_data/output/` for the results. Find the full list of available schemes and their sequence types [here](#built-in-subtype-schemes). Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLTYPER_CONFIG` instead of the `--config` option.
+
+3. Add your own DNA subtype scheme called `myexample`:
+
+    `phylotyper new myexample phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output/ \`
+    `phylotyper/example_data/dna_example_genes.fasta --config yourconfigfile.ini`
+
+4. Use this new DNA subtype scheme to predict subtypes:
+
+    `PHYLOTYPER_CONFIG=yourconfigfile.ini phylotyper genome myexample example_data/output/ example_data/genome.fasta`
+
+See `example_data/output/` for the results. Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLTYPER_CONFIG` instead of the `--config` option.
+
+5. Add your own multi-loci amino acid subtype scheme called `myexample2`:
+
+    `phylotyper new myexample2 phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output/ \`
+    `phylotyper/example_data/aa_example_genes_loci1.fasta phylotyper/example_data/aa_example_genes_loci2.fasta --aa \`
+    `--config yourconfigfile.ini`
+
+6. Use this new amino-acid subtype scheme to predict subtypes:
+
+    `phylotyper genome myexample2 example_data/output/ example_data/genome.fasta --config yourconfigfile.ini`
+
+See `example_data/output/` for the results.
+
 INSTALLATION
 ============
 
@@ -29,7 +81,9 @@ Phylotyper was built and tested with python 2.7. To install Phylotyper
 using python virtual environments:
 
 -   `mkdir phylotyper; git clone https://github.com/superphy/insilico-subtyping.git phylotyper`.
-    Clone the phylotyper git repository into the directory replacing `phylotyper` with the directory name you want to use for phylotyper. Use this directory in subsequent steps.
+    Clone the phylotyper git repository into the directory replacing
+    `phylotyper` with the directory name you want to use for phylotyper.
+    Use this directory in subsequent steps.
 -   `virtualenv -p python2.7 phylotyper`. Install virtual environment.
 -   `source phylotyper/bin/activate`. Activate the virtual enviroment.
 -   `cd phylotyper/`. Move into the phylotyper directory.

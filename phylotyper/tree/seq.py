@@ -462,6 +462,7 @@ class LociConcat(object):
 
                 # Record allele for this genome
                 sequences[genome].add(i, str(record.seq), str(record.description))
+                print('Added: {} in position {}'.format(str(record.description), i))
 
             for name in uniq:
                 if uniq[name] != i:
@@ -582,6 +583,7 @@ class TypingSequence(object):
         self.positions = {}
         self.nloci = 0
         self.typing_sequences = [[]]
+        self.combinations = []
        
 
     def __iter__(self):
@@ -614,6 +616,9 @@ class TypingSequence(object):
         newallele = Allele(alleleid, sequence, header)
         self.alleles.append(newallele)
 
+        print(self.typing_sequences)
+        print(self.combinations)
+
         if not isinstance(loci, str):
             loci = str(loci)
 
@@ -625,26 +630,59 @@ class TypingSequence(object):
             for ts in self.typing_sequences:
                 ts.append(alleleid)
 
+            if self.nloci < len(self.combinations):
+                self.combinations[self.nloci].append(alleleid)
+            else:
+                self.combinations.append([alleleid])
+
             self.nloci += 1
+            print('extending ts')
 
         else:
             # Add allele to existing loci
-            # Splits typing sequence into multiple
-            # versions; one for each allele
-
             pos = self.positions[loci]
             newseqs = []
 
-            for ts in self.typing_sequences:
-                # make copy and change allele
-                copy = self._copy(ts)
-                copy[pos] = alleleid
-                newseqs.append(copy)
+            # Generate all combinations
+            for c in xrange(len(self.combinations)):
+                print(c)
+                print(newseqs)
+                if c == pos:
+                    if newseqs:
+                        for s in newseqs:
+                            copy = self._copy(s)
+                            print(copy)
+                            print(c)
+                            copy[c] = alleleid
+                            newseqs.append(copy)
+                    else:
+                        newseqs.append([alleleid])
+
+                else:
+                    for a in self.combinations[c]:
+                        if newseqs:
+                            for s in newseqs:
+                                copy = self._copy(s)
+                                copy[c] = a
+                                newseqs.append(copy)
+                        else:
+                            newseqs.append([a])
+                            
+            print('Adding variations:')
+            print(newseqs)
+            # for ts in self.typing_sequences:
+            #     # make copy and change allele
+            #     copy = self._copy(ts)
+                
+            #     newseqs.append(copy)
 
             # Save new typing sequences with alternate
             # allele
             self.typing_sequences.extend(newseqs)
+            print(self.typing_sequences)
 
+
+        print(len(self.typing_sequences))
 
     def _copy(self, ts):
         # Make a copy of a typing sequence

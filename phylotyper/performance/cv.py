@@ -152,6 +152,7 @@ def kfcv(config, options, k=10):
 
     # Result objects
     results = { k: [] for k in subtype_classes }
+    maxresults = []
     ng = len(genomes)
     niter = 100
     
@@ -188,25 +189,45 @@ def kfcv(config, options, k=10):
 
             if g in hits:
                 
+                besthit = None
                 for h in hits[g]:
+
+                    if besthit:
+                        if h.bitscore > besthit.bitscore:
+                            besthit = h
+                    else:
+                        besthit = h
+
                     label = 0
                     if truevalue == h.sprop:
                         label = 1
 
                     results[truevalue].append([h.pident, label])
 
+                label = 0
+                if truevalue == besthit.sprop:
+                    label = 1
+                maxresults.append([besthit.pident, label])
+
             else:
                 # Blast returned no results,
                 # so get a FN right out of the gates
                 results[truevalue].append([0, 1])
+                maxresults.append([0, 1])
                 logger.debug('No BLAST result for {}'.format(g))
 
+        i+=1
         logger.debug('Iteration {}'.format(i))
 
 
-    outputfile = os.path.join(options.results, 'performance_results.csv')
+    outputfile = os.path.join(options.results, 'performance_result_tbh_kfcv.csv')
     with open(outputfile, 'w') as csvfile:
         csvwriter =  csv.writer(csvfile, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+
+        scores = [ r[0] for r in maxresults ]
+        labels = [ r[1] for r in maxresults ]
+        csvwriter.writerow(scores)
+        csvwriter.writerow(labels)
         
         for st in results:
             scores = [ r[0] for r in results[st] ]
@@ -214,9 +235,10 @@ def kfcv(config, options, k=10):
             csvwriter.writerow(st)
             csvwriter.writerow(scores)
             csvwriter.writerow(labels)
+
     
 
-def lco(config, options):
+def lco(config, options, pident_cutoff=90.0):
     """Leave-Class-Out Cross Validation
 
     Args:
@@ -241,10 +263,11 @@ def lco(config, options):
 
     # Leave each subtype class out
     results = []
-    n = 0
-    failed_blasts = []
+
+    print subtype_classes
 
     for c in subtype_classes:
+        logger.debug('Running {}'.format(c))
 
         testg = []
         for g in genomes:
@@ -253,9 +276,9 @@ def lco(config, options):
 
             if truevalue == c:
                 testg.append(g)
-        
+        logger.debug('Test set: {}'.format(testg))
 
-        dirname = tempfile.mkdtemp()
+        dirname = tempfile.mkdtemp(prefix='ptcv')
         logger.debug('Temp directory: {}'.format(dirname))
 
         dbfile = os.path.join(dirname, 'blastdb')
@@ -270,31 +293,38 @@ def lco(config, options):
         blastyper.make_db(subjectfile, options.subtype)
 
         # Run test
-        result, tophit = blastyper.search(queryfile)
-        logger.info('Subtype prediction for {} is {}'.format(g, result))
+        hits = blastyper.multisearch(queryfile)
 
-        results.append((truevalue, result))
-        
-        if result:
-            if not result == truevalue:
-                failed_blasts.append(tophit)
+        fp=0
+        for g in testg:
+            allele = parse_fasta_id(g)
+            truevalue = subtypes[allele.genome]
 
-        shutil.rmtree(dirname)
-        n += 1
+            if g in hits:
+            
+                besthit = None
+                for h in hits[g]:
+                    if besthit:
+                        if h.bitscore > besthit.bitscore:
+                            besthit = h
+                    else:
+                        besthit = h
 
-    stats = compute_stats(results)
+                print besthit
+                if besthit.pident > pident_cutoff:
+                    fp +=1
 
-    outputfile = os.path.join(options.results, 'performance_results.csv')
+        results.append([c, fp, len(testg)])
+
+    logger.debug('Iteration {}'.format(c))
+
+    outputfile = os.path.join(options.results, 'performance_result_tbh_lco.csv')
     with open(outputfile, 'w') as csvfile:
         csvwriter =  csv.writer(csvfile, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerow(['class', 'tp', 'fp', 'fn', 'precision', 'recall', 'fscore', 'support'])
-
-        for s in stats:
-            csvwriter.writerow(s)
-
-    logger.info('FAILED RESULTS:')
-    for f in failed_blasts:
-        logger.info(f)
+        
+        for r in results:
+            csvwriter.writerow(r)
+        
 
 
 def compute_stats(results):

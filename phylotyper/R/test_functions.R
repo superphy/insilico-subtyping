@@ -180,8 +180,9 @@ kfcv = function(tree, subtypes, scheme=5, model='ER') {
 	results = list()
 	results$predictions = vector("list", length(subtype_classes))
 	results$labels = vector("list", length(subtype_classes))
-	names(results$predictions) <- subtype_classes
-	names(results$labels) <- subtype_classes
+	names(results$predictions) <- c(subtype_classes)
+	names(results$labels) <- c(subtype_classes)
+	pickmax.results = list(predictions=NULL, labels=NULL)
 
 	# Flat prior
 	flat = matrix(1/nstates,1,nstates)
@@ -207,14 +208,19 @@ kfcv = function(tree, subtypes, scheme=5, model='ER') {
 				results$predictions[[c]] <- c(results$predictions[[c]], scores[j,c])
 				results$labels[[c]] <- c(results$labels[[c]], if(c == actual) 1 else 0)
 			}
-		
+
+			mx = which.max(scores[j,])
+			c = colnames(scores)[mx]
+			score = scores[j,mx]
+			
+			pickmax.results$predictions = c(pickmax.results$predictions, score)
+			pickmax.results$labels = c(pickmax.results$labels, if(c == actual) 1 else 0)
 		}
 
 		cat("Completed test iteration",i,"...\n")
-		break;
 	}
 
-	return(results)
+	return(list(all=results,max=pickmax.results))
 }
 
 

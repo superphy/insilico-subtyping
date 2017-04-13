@@ -157,7 +157,7 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	
 	# Install libraries from CRAN
 	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust",
-		"robustbase", "fitdistrplus", "igraph")
+		"robustbase", "fitdistrplus", "igraph", "ROCR")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
@@ -231,6 +231,8 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 	return(res)
 }
 
+phylotyper$getPalette <- colorRampPalette(brewer.pal(8, "Set1"))
+
 phylotyper$mypalette <- function(subtypes) {
 	# Generate a set of colors representing subtypes
 	#
@@ -248,16 +250,15 @@ phylotyper$mypalette <- function(subtypes) {
 	
 	states = levels(subtypes)
 	n = length(states)
-	cols = rainbow(n, s=0.6,v=1)
+	cols = phylotyper$getPalette(n)
 
 	if(n > length(cols)) {
 		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")
 	}
 
-	pal = cols[sample(1:n,n)]
-	names(pal) = states
-
-	pal = c(pal,'other'="#D3D3D3")
+	#pal = cols[sample(1:n,n)]
+	names(cols) = states
+	pal = c(cols,'other'="#D3D3D3")
 
 	return(pal)
 }
