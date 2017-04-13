@@ -1,6 +1,7 @@
-\documentclass[10pt,letterpaper]{article}
+\documentclass[11pt,letterpaper]{article}
 %\usepackage[T1]{fontenc}
 %\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
 \usepackage{ragged2e,booktabs,multirow}
 \usepackage{caption,capt-of}
 \usepackage{graphicx}
@@ -55,7 +56,10 @@
 
 \subsection{Supplementary Table S1}
 
+~
+
 \begin{minipage}{\linewidth}
+\centering
 \captionof{table}{Subtype Schemes in Phylotyper}
 \medskip
 \begin{tabular}{@{}llll@{}}\toprule Name &
@@ -66,19 +70,21 @@ eae & Intimin subtype & {\it E. coli} & 1\\
 flic & H-serotype based on flagellin gene; fliC & {\it E. coli} & 1\\
 wz & O-serotype based on the wzy and wzx genes & {\it E. coli} & 2\\\bottomrule
 \end{tabular}\par
-\bigskip
 
 \end{minipage}
 
-\bigskip
+\clearpage
 
 \subsection{Supplementary Table S2}
 
 Table S2 contains performance metrics from a leave-one-out cross-validation analysis comparing Phylotyper and a top-BLAST hit approach.  The analysis examines the four \textit{E. coli} schemes available in Phylotyper. In this multi-class analysis, precision, recall and F$_{1}$ score are calculated for each individual class provided that at least one instance of the class is in the training set.  The individual class positive and negatives are summed to calculate an overall precision, recall and F$_{1}$ score for the scheme.
 
+%\captionsetup{justification=RaggedRight}
+
 \begin{minipage}{\linewidth}
+\centering
 \setlength{\tabcolsep}{4pt}
-\captionof{table}{Leave-One-Out Cross Validation Results}
+\captionof{table}[justification=RaggedRight]{Leave-One-Out Cross Validation Results}
 \medskip
 \begin{tabular}{@{\extracolsep{4pt}}llll>{\centering}m{1.6cm}lll@{}}
 \toprule 
@@ -93,6 +99,7 @@ Table S2 contains performance metrics from a leave-one-out cross-validation anal
 {\it E. coli} O-serotype & 1.00 & 0.61 & 0.75 & 67 & 1.00 & 0.36 & 0.53\\\bottomrule
 \end{tabular}\par
 \bigskip
+\raggedright
 Formula:
 \begin{enumerate}
 \item $Precision = TP / (TP + FP)$
