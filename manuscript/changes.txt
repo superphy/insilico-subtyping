@@ -1,0 +1,1 @@
+Changed title to correct the range of subtype methods suitable for use with Phylotyper
