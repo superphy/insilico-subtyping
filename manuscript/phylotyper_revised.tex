@@ -85,8 +85,13 @@ It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.
 
 Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotyping  (Supplementary Table~1).
-However, the Phylotyper software aslo has the capability to add new subtype schemes. 
+However, the Phylotyper software also has the capability to add new subtype schemes. 
 Creating a new subtype scheme will save the required reference files, allowing newly added schemes to be easily re-run from Phylotyper.
+Performance of the Phylotyper method is dependent on the quality of the subtype scheme.
+Region phylogeny is predictive of the subtype
+Linkage disequalibrium
+homologous genes
+Correct alignment and construction of phylogeny
 Checks are built-in to the new subtype pipeline to ensure the assumptions of the Phylotyper approach are not violated.  
 
 \section{Results}
@@ -103,8 +108,15 @@ It can, however, be applied to most molecular subtype schemes and Phylotyper inc
 
 Performance testing showed that Phylotyper is more robust than an approach based solely on sequence similarity.
 Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences.
-By estimating the phylogenetic distribution of each subtype, Phylotyper can more easily identify a novel subtype or accurately classify a novel sequence allele.
-The phylogenetic framework in Phylotyper provides a statistical likelihood for interpreting novel alleles.
+By estimating the phylogenetic distribution of each subtype, Phylotyper is less likely to make type 1 error when encountering a novel subtype. Our empircal testing confirmed this behavior. 
+The rate of false positive classifications when we withheld an entire subtype from the training set and used as it the test set was significantly lower than with a straight-forward 
+
+ as one of the subtypes in the database. To validate
+
+
+
+or accurately classify a novel sequence allele.
+The phylogenetic framework in Phylotyper provides a statistical likelihood for interpreting results.
 In comparison, the performance of a sequence similarity approach is highly dependent on the reference database.
 This type of approach, there is no inherient mechanism to identify novel alleles.
 
