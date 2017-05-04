@@ -231,8 +231,6 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 	return(res)
 }
 
-phylotyper$getPalette <- colorRampPalette(brewer.pal(8, "Set1"))
-
 phylotyper$mypalette <- function(subtypes) {
 	# Generate a set of colors representing subtypes
 	#
@@ -250,7 +248,8 @@ phylotyper$mypalette <- function(subtypes) {
 	
 	states = levels(subtypes)
 	n = length(states)
-	cols = phylotyper$getPalette(n)
+	getPallete <- colorRampPalette(brewer.pal(8, "Set1"))
+	cols = getPalette(n)
 
 	if(n > length(cols)) {
 		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")

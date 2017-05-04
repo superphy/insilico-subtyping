@@ -74,7 +74,7 @@ plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror",
 plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
 legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
 
-# Compute PPV / TPR for max scheme
+# Plot PPV / TPR
 mx.pred = prediction(res$max$prediction, res$max$label)
 plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Phylotyper posterior probability cutoff')
 plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Phylotyper posterior probability cutoff')
