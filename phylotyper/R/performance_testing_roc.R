@@ -62,28 +62,34 @@ rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
 
 # Run cross-validation
-res = kfcv(tree, subtypes, scheme=5, model=modelname)
+res = tryCatch(kfcv(tree, subtypes, scheme=5, model=modelname), error=function(cond) { message(cond); return(NA) })
 
-# Compute FPR / TPR vs cutoff
-pred = prediction(res$all$prediction, res$all$label)
-fpr = performance(pred, 'fpr')
-tpr = performance(pred, 'tpr')
+if(!is.na(res)) {
+	# Compute FPR / TPR vs cutoff
+	pred = prediction(res$all$prediction, res$all$label)
+	fpr = performance(pred, 'fpr')
+	tpr = performance(pred, 'tpr')
 
-plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror", 
-	ylab='Average rate across subtypes', xlab='Phylotyper posterior probability cutoff')
-plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
-legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
+	plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror", 
+		ylab='Average rate across subtypes', xlab='Phylotyper posterior probability cutoff')
+	plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
+	legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
 
-# Plot PPV / TPR
-mx.pred = prediction(res$max$prediction, res$max$label)
-plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Phylotyper posterior probability cutoff')
-plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Phylotyper posterior probability cutoff')
-plot(performance(mx.pred, 'f'), col='red', ylab='F1-Statistic', xlab='Phylotyper posterior probability cutoff')
-	
+	# Plot PPV / TPR
+	mx.pred = prediction(res$max$prediction, res$max$label)
+	plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Phylotyper posterior probability cutoff')
+	plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Phylotyper posterior probability cutoff')
+	plot(performance(mx.pred, 'f'), col='red', ylab='F1-Statistic', xlab='Phylotyper posterior probability cutoff')
+}
+
 # Compute the averate FPR when entire subtype is removed
-fp = lsocv(tree, subtypes, scheme=5, model=modelname, threshold=0.85)
+fp = tryCatch(lsocv(tree, subtypes, scheme=5, model=modelname, threshold=0.85), error=function(cond) { message(cond); return(NA) })
 
-lso.fpr = mean(fp[,1]/fp[,2])
+if(!is.na(fp)) {
+	lso.fpr = mean(fp[,1]/fp[,2])
+	print(lso.fpr)
+}
+
 
 
 
