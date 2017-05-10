@@ -84,11 +84,11 @@ The identified loci are then sent to the Phylotyper subtype prediction module.
 It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.
 
-Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotyping  (Supplementary Table~1).
+Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotype O- and H-types  (Supplementary Table~1).
 However, the Phylotyper software also has the capability to add new subtype schemes. 
 Creating a new subtype scheme will save the required reference files, allowing newly added schemes to be easily re-run from Phylotyper.
 Performance of the Phylotyper method is dependent on the quality of the subtype scheme.
-Region phylogeny is predictive of the subtype
+Region / phylogeny is predictive of the subtype
 Linkage disequalibrium
 homologous genes
 Correct alignment and construction of phylogeny
@@ -96,9 +96,29 @@ Checks are built-in to the new subtype pipeline to ensure the assumptions of the
 
 \section{Results}
 
-To compare the performance of Phylotyper to a sequence similarity-based approach, we ran a leave-one-out cross validation analysis.
-For this assessment, we developed a mock sequence-similarity based tool that assigns putative subtypes using BLAST.
-The leave-one-out analysis examined the four subtype schemes available in Phylotyper. The results of the analysis indicated that the precision of the Phylotyper method is consistently higher than a top-BLAST hit approach (Supplementary Table S2).
+Phylotyper marks a progression from the sequence-similarity approach widely used in \it{in silico} subtyping strategies.
+It's performance extends beyond allele matching, to perform accurate inference of subtypes for input gene sequences that not in the training data or reference database.
+To compare Phylotyper to a sequence similarity-based approach, we ran two validations that looked at how both methods perform when confronted with 1) gene sequence or 2) subtype class not present in the training set.
+The first validation was a leave-one-out cross-validation test that iterated through each gene in the training set, retraining the prediction tools on a training set which excludes the selected test gene, and then confirming if the retrained predictor could recover the subtype of the test gene.
+This validation tests how the predictors perform when run on a distinct sequence that is not in the training set.
+The second validation examined how the predictors respond when presented with a gene that has a subtype not found in the reference set.
+In this validation, each subtype was iterated over and all genes that are assigned the subtype were removed from the training set.
+In each iteration, we recorded the number of false-positive subtype assignments when the test sequences were used as input.
+The correct response for the predictors was to return a negative result, since the subtype does not exist in the training set.
+For these assessments, we developed a sequence-similarity based tool that assigns putative subtypes using BLAST.
+Details for the BLAST tool and how the assessment was conducted are available in supplementary methods section.
+The assessment examined the five subtype schemes available in Phylotyper: Stx1, Stx2, Eae, H-type (FliC), O-type (Wzy \& Wzx).
+When tasked with assigning a novel gene sequence (i.e. one that is not in the training set) in the leave-one-out validation, Phylotyper consistently had higher precision than a top-BLAST hit approach.
+The average precision in Phylotyper was 0.99 versus 0.96 in the top-BLAST hit approach(result details are available in Supplementary Table S2).
+In order to achieve this level of precision, the BLAST approach often had lower recall rates; it had an average recall of 0.81 compared to 0.90 with Phylotyper
+Similarily, when entire subtype classes were withheld from the training set, Phylotyper had consistenly lower false positive rates for all subtypes schemes tested; the average precision in this challenging test case was 0.11.
+In the BLAST approach, the average precision was 0.30.
+
+A separate assessment for the V-typer tool; a Stx subtype predictor, was run using selected Stx gene sequences from the experimentally-verified Phylotyper training set.
+The test Stx genes had sufficent surrounding DNA sequence to support \it{in silico} PCR.
+In total, 24 Stx gene sequences were tested with the V-typer tool and V-typer returned results for 7, all correct.
+Phylotyper can correctly predict the subtype for all these genes.
+Based on this level of recall, it appears the conditions in the Stx subtype setting are challenging for simulated PCR.
 
 \section{Discussion}
 
@@ -106,7 +126,12 @@ From assembled WGS data, Phylotyper can assign unclassifed strains a molecular s
 Currently the Phylotyper software offers subtyping schemes for \textit{E. coli}.
 It can, however, be applied to most molecular subtype schemes and Phylotyper includes functionality to build new schemes.
 
+Early developers of a serotype predictor for E. coli. This tool uses BLAST.
 Performance testing showed that Phylotyper is more robust than an approach based solely on sequence similarity.
+The goal of this tool is allele matching, and dependence on reference training set is critical to performance.
+To implement allele matching is relatively straight-forward, although some subtyping tools operate with input data such as short reads that require careful analysis.
+EcOH uses SRST tool to align and match short reads from ... to known annotated sequences. Again the focus is on matching rather than inference.
+
 Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences.
 By estimating the phylogenetic distribution of each subtype, Phylotyper is less likely to make type 1 error when encountering a novel subtype. Our empircal testing confirmed this behavior. 
 The rate of false positive classifications when we withheld an entire subtype from the training set and used as it the test set was significantly lower than with a straight-forward 

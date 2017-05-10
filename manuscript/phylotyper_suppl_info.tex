@@ -40,6 +40,34 @@
 
 \clearpage
 
+\section{Supplementary Methods}
+
+\subsection{Performance Analysis}
+
+\subsubsection{BLAST-based method}
+
+BLAST 
+
+\subsubsection{Selecting Percent Identity Cutoff for BLAST Approach}
+
+Following \citep{Jenkins2015}, percent identity in the BLAST alignments is used as a cutoff. Subtype classifications are transfered from the top BLAST match provided the alignment percent identity is above the cutoff. The cutoff impacts performance in one of two ways: too low and non-equivalent subtype alleles may be matched with the query (e.g. type I error), too high and valid subtype allele BLAST hits are filtered out (e.g. type II error). To select the ideal cutoff that balances these competing sources of error, a cross-validation simulation was run to estimate false discovery and true positive rates across varying percent identity cutoffs. A 10-fold cross-validation was performed; 10\% of the training set was randomly selected. The remaining 90\% was used to build the reference BLAST database. The 10\% test set was then searched against this database using BLAST and positive and negative results were recorded. This step was repeated 100 times and the F1-score, which is a weighted average of the precision and recall, was calculated. Precision is defined as: 
+
+$Precision = TP / (TP + FP)$
+
+and recall as:
+
+$Recall = TP / (TP + FN)$
+
+These values are then combined to produce an F-score as follows:
+
+$2 * ( precision * recall ) / ( precision + recall )$
+
+The F-score; a binary classifer metric, was recorded individually for each subtype and then averaged to create a single performance metric for this multi-class predictor.  F-score was computed for increasing percent identities, and the percent identity corresponding to the maximum F-score was selected as the cutoff.
+
+\subsubsection{Performance Assessment}
+
+Two separate analyses 
+
 \section{Supplementary Figures}
 
 \subsection{Supplementary Figure S1}
