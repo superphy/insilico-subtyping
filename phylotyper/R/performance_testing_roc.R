@@ -57,37 +57,70 @@ if( file.access(subtypefile) == -1) {
 	stop(sprintf("Specified subtype file ( %s ) does not exist", treefile))
 }
 
+if(! modelname %in% c('ER','SYM','GROUP','ITER')) {
+	stop(sprintf("Invalid model ( %s )", modelname))
+}
+
 # Load tree
 rs = loadSubtype(treefile,subtypefile)
 tree = rs$tree; subtypes = rs$subtypes
 
-# Run cross-validation
-res = tryCatch(kfcv(tree, subtypes, scheme=5, model=modelname), error=function(cond) { message(cond); return(NA) })
+model <- NULL
+if(modelname == 'GROUP') {
+	rs = transition.rate.parameters(tree, subtypes)
+	model = rs$model
+} else if(modelname == 'ITER') {
+	rs = transition.rate.parameters2(tree, subtypes)
+	model = rs$model
+} else {
+	model = modelname
+}
 
-if(!is.na(res)) {
+print(model)
+
+# Run cross-validation
+res = tryCatch(kfcv(tree, subtypes, scheme=5, model=model), error=function(cond) { message(cond); return(NA) })
+
+if(length(res) > 1 && !is.na(res)) {
 	# Compute FPR / TPR vs cutoff
 	pred = prediction(res$all$prediction, res$all$label)
 	fpr = performance(pred, 'fpr')
 	tpr = performance(pred, 'tpr')
 
+	png(file=file.path(output_dir, 'roc.png'),
+		width = 720,
+		height = 720
+	)
 	plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror", 
 		ylab='Average rate across subtypes', xlab='Phylotyper posterior probability cutoff')
 	plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
 	legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
+	dev.off()
 
 	# Plot PPV / TPR
+	png(file=file.path(output_dir, 'ppv.png'),
+		width=6,
+		height=12,
+		units='in',
+		res=144
+	)
+	par(mfrow=c(3,1))
+	par(mar=rep(3,4))
 	mx.pred = prediction(res$max$prediction, res$max$label)
-	plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Phylotyper posterior probability cutoff')
-	plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Phylotyper posterior probability cutoff')
+	plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision')
+	plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall')
 	plot(performance(mx.pred, 'f'), col='red', ylab='F1-Statistic', xlab='Phylotyper posterior probability cutoff')
+	dev.off()
 }
 
 # Compute the averate FPR when entire subtype is removed
-fp = tryCatch(lsocv(tree, subtypes, scheme=5, model=modelname, threshold=0.85), error=function(cond) { message(cond); return(NA) })
+fp = tryCatch(lsocv(tree, subtypes, scheme=5, model=model, threshold=0.85), error=function(cond) { message(cond); return(NA) })
 
-if(!is.na(fp)) {
+if(length(fp) > 1) {
 	lso.fpr = mean(fp[,1]/fp[,2])
-	print(lso.fpr)
+	cat('\n')
+	cat(c('FPR:',lso.fpr))
+	cat('\n')
 }
 
 

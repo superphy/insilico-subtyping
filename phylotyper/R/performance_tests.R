@@ -67,24 +67,27 @@ cat("Computing posterior probabilites for all internal nodes\n")
 
 priorR = phylotyper$makePriors(tree, subtypes)
 priorM = priorR$prior.matrix
-fit <- rerootingMethod(tree, priorM, model='ER', tips=FALSE)
+fit <- rerootingMethod(tree, priorM, model='SYM', tips=FALSE)
 
-# source('phylotyper.R')
-# file = 'posterior_probability_tree'
-# #dim = phylotyper$plotDim(tree)
-# r = 300
-# w = 3.38 * r
-# graphics.off()
-# # png(filename=file.path(output_dir, paste(file, '.png', sep='')),
-# #     width=dim[['x']],height=dim[['y']],res=dim[['res']]
-# # )
-# setEPS()
-# postscript(file.path(output_dir, paste(file, '.eps', sep='')),
-# 	width=3.38,height=4,pointsize=6)
-# # tiff(filename=file.path(output_dir, paste(file, '.tiff', sep='')),
-# # 	width=w, height=w*1.25, res=r, pointsize=6, units='px', compression='zip')
-# phylotyper$plot.anc(tree,fit,subtypes)
-# graphics.off()
+
+
+source('phylotyper.R')
+file = 'posterior_probability_tree_small'
+#file = 'posterior_probability_tree_large'
+dim = phylotyper$plotDim(tree)
+r = 300
+w = 3.38 * r
+graphics.off()
+# png(filename=file.path(output_dir, paste(file, '.png', sep='')),
+#     width=dim[['x']],height=dim[['y']],res=dim[['res']]
+# )
+setEPS()
+postscript(file.path(output_dir, paste(file, '.eps', sep='')),
+	width=3.38,height=4,pointsize=6)
+# tiff(filename=file.path(output_dir, paste(file, '.tiff', sep='')),
+# 	width=w, height=w*1.25, res=r, pointsize=6, units='px', compression='zip')
+phylotyper$plot.anc(tree,fit,subtypes)
+graphics.off()
 
 
 
@@ -99,7 +102,7 @@ for(validation in cvs) {
 	pp = do.call(validation, list(tree=tree, subtypes=subtypes, scheme=est.scheme))
 
 	# Summarize performance
-	results = simulationSummary(subtypes, pp, threshold=.75)
+	results = simulationSummary(subtypes, pp, threshold=.85)
 
 	# Write performance metrics to file
 	file = 'performance_metrics'

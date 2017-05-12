@@ -285,7 +285,7 @@ class Phylotyper(object):
             pp = loocv(tree=tree, subtypes=subtypes, scheme=est.scheme, model=mod)
 
             # Summarize performance
-            results = simulationSummary(subtypes, pp, threshold=0.9)
+            results = simulationSummary(subtypes, pp, threshold=0.85)
 
             # Save a copy of the fit
             fit <- fitMk(tree, subtypes, model=mod)

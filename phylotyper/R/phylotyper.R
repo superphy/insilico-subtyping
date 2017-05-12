@@ -248,9 +248,8 @@ phylotyper$mypalette <- function(subtypes) {
 	
 	states = levels(subtypes)
 	n = length(states)
-	getPallete <- colorRampPalette(brewer.pal(8, "Set1"))
-	cols = getPalette(n)
-
+	cols <- colorRampPalette(brewer.pal(8, "Set1"))(n)
+	
 	if(n > length(cols)) {
 		stop("Number of subtypes exceeds available colors in palette. Please defined your own color palette.")
 	}
@@ -373,7 +372,7 @@ phylotyper$plot.anc <- function(tree, fit, subtypes) {
 
 	cols = phylotyper$mypalette(subtypes)
 
-	plot(tree,label.offset=0.001,cex=0.8,type='fan',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
+	plot(tree,label.offset=0.001,cex=0.8,type='phylo',align.tip.label=TRUE,tip.col=cols[subtypes[tree$tip.label]],
 		no.margin=TRUE)
 
 	nodelabels(pie=phylotyper$piecolors(fit$marginal.anc),

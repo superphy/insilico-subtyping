@@ -238,7 +238,7 @@ def kfcv(config, options, k=10):
 
     
 
-def lco(config, options, pident_cutoff=90.0):
+def lco(config, options, pident_cutoff=97.0):
     """Leave-Class-Out Cross Validation
 
     Args:

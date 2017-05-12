@@ -48,65 +48,94 @@ output_dir = opts$out
 
 
 # Check arguments
-if( file.access(treefile) == -1) {
-	stop(sprintf("Specified tree file ( %s ) does not exist", treefile))
+if( file.access(lcofile) == -1) {
+	stop(sprintf("Specified Leave-class-out results file ( %s ) does not exist", lcofile))
 }
 
-if( file.access(subtypefile) == -1) {
-	stop(sprintf("Specified subtype file ( %s ) does not exist", treefile))
+if( kfcvfile != 'NONE') {
+	if( file.access(kfcvfile) == -1) {
+		stop(sprintf("Specified K-folds cross-validation results file ( %s ) does not exist", kfcvfile))
+	}
 }
 
-# Load data
+
+# Read % identity vs postives
+if(kfcvfile != 'NONE') {
+	con  <- file(kfcvfile, open = "r")
+	line <- readLines(con, n = 1, warn = FALSE)
+	mxpredictions <- as.numeric(strsplit(line, "\t")[[1]])
+	line <- readLines(con, n = 1, warn = FALSE)
+	mxlabels <- as.numeric(strsplit(line, "\t")[[1]])
+
+	results <- list(predictions=NULL, labels=NULL)
+
+	while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0) {
+
+		subtype <- line
+		line2 <- readLines(con, n = 1, warn = FALSE)
+		predictions <- (strsplit(line2, "\t"))
+	    predictions <- c(as.numeric(predictions[[1]]), 0) # Add a superfluous TN to prevent NaN in FPR calculations
+	                                                      # i.e. something with 0% percent identity should get a negative assignment
+	    line3 <- readLines(con, n = 1, warn = FALSE)
+		labels <- (strsplit(line3, "\t"))
+	    labels <- c(as.numeric(labels[[1]]),0)
+
+	    results$predictions[[subtype]] = predictions
+	    results$labels[[subtype]] = labels
+
+	} 
+
+	close(con)
+
+	# Compute FPR / TPR vs cutoff
+	pred = prediction(results$predictions, results$labels)
+	fpr = performance(pred, 'fpr')
+	tpr = performance(pred, 'tpr')
+
+	# png(file=file.path(output_dir, 'roc_tbh.png'),
+	# 	width = 720,
+	# 	height = 720
+	# )
+
+	# plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror", 
+	# 	ylab='Average rate across subtypes', xlab='Phylotyper posterior probability cutoff')
+	# plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
+	# legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
+
+	# dev.off()
+
+	# Compute PPV / TPR for max scheme
+	mx.pred = prediction(mxpredictions, mxlabels)
+
+	png(file=file.path(output_dir, 'ppv_tbh.png'),
+		width=6,
+		height=12,
+		units='in',
+		res=144
+	)
+	par(mfrow=c(3,1))
+	par(mar=rep(3,4))
+
+	plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Percent Identify in BLAST hit')
+	plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Percent Identify in BLAST hit')
+	plot(performance(mx.pred, 'f'), col='red', ylab='F1-Statistic', xlab='Percent Identify in BLAST hit')
+
+	dev.off()
+}
+	
+# Compute the averate FPR when entire subtype is removed
 
 # Read the max classifier results
 fp = read.table(lcofile, sep='\t', as.is=TRUE, row.names=1, col.names=c('subtype','fp','n'), header=FALSE)
 
-# Read % identity vs postives
-con  <- file(kfcvfile, open = "r")
-line <- readLines(con, n = 1, warn = FALSE)
-mxpredictions <- as.numeric(strsplit(line, "\t")[[1]])
-line <- readLines(con, n = 1, warn = FALSE)
-mxlabels <- as.numeric(strsplit(line, "\t")[[1]])
-
-results <- list(predictions=NULL, labels=NULL)
-
-while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0) {
-
-	subtype <- line
-	line2 <- readLines(con, n = 1, warn = FALSE)
-	predictions <- (strsplit(line2, "\t"))
-    predictions <- c(as.numeric(predictions[[1]]), 0) # Add a superfluous TN to prevent NaN in FPR calculations
-                                                      # i.e. something with 0% percent identity should get a negative assignment
-    line3 <- readLines(con, n = 1, warn = FALSE)
-	labels <- (strsplit(line3, "\t"))
-    labels <- c(as.numeric(labels[[1]]),0)
-
-    results$predictions[[subtype]] = predictions
-    results$labels[[subtype]] = labels
-
-} 
-
-close(con)
-
-
-# Compute FPR / TPR vs cutoff
-pred = prediction(results$predictions, results$labels)
-fpr = performance(pred, 'fpr')
-tpr = performance(pred, 'tpr')
-
-plot(fpr, avg='vertical', lwd=1, col='red', spread.estimate="stderror", 
-	ylab='Average rate across subtypes', xlab='Phylotyper posterior probability cutoff')
-plot(tpr, avg='vertical', lwd=1, col='blue', spread.estimate="stderror", add=TRUE)
-legend(0.6,0.6,c('FPR','TPR'),col=c('red','blue'),lwd=1)
-
-# Compute PPV / TPR for max scheme
-mx.pred = prediction(mxpredictions, mxlabels)
-plot(performance(mx.pred, 'ppv'), col='red', ylab='Precision', xlab='Percent Identify in BLAST hit')
-plot(performance(mx.pred, 'tpr'), col='red', ylab='Recall', xlab='Percent Identify in BLAST hit')
-plot(performance(mx.pred, 'f'), col='red', ylab='F1-Statistic', xlab='Percent Identify in BLAST hit')
-	
 # Compute the averate FPR when entire subtype is removed
-lso.fpr = mean(fp[,1]/fp[,2])
+if(length(fp) > 1) {
+	lso.fpr = mean(fp[,1]/fp[,2])
+	cat('\n')
+	cat(c('FPR:',lso.fpr))
+	cat('\n')
+}
+
 
 
 

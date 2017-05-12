@@ -132,12 +132,20 @@ lsocv = function(tree, subtypes, scheme=5, model='ER', threshold=.7) {
 		
 		stopifnot(all(tipnames %in% tree$tip.label))
 
-		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tipnames, model=model, fixedQ=Q)
+		# Hide columns/rows if model is matrix
+		if(!is.character(model)) {
+			testmodel = model[-which(rownames(model) %in% state),]
+			testmodel = testmodel[,-which(colnames(model) %in% state)]
+		} else{
+			testmodel = model
+		}
+
+		testfit = phylotyper$runSubtypeProcedure(tree, testprior, scheme, tips=tipnames, model=testmodel, fixedQ=Q)
 		pp[state,'fp'] = sum(testfit$tip.pp[tipnames, ] >= threshold)
 		pp[state, 'n'] = length(testers)
 
 	}
-
+	
 	return(pp)
 }
 
@@ -163,7 +171,7 @@ kfcv = function(tree, subtypes, scheme=5, model='ER') {
 	# Compute k-fold size
 	n = length(subtypes)
 	iter = 100
-	k = 10
+	k = 5
 	ksize = floor(n/k)
 	cat("Cross-validation test set size: ",ksize,"\n")
 
@@ -261,7 +269,7 @@ updateClassificationSums = function(true_class, predicted_class, count_matrix) {
 }
 
 
-simulationSummary = function(subtypes, pp, threshold=.7) {
+simulationSummary = function(subtypes, pp, threshold=.85) {
 	# Summarize performance of validation
 	# 
 	# 
