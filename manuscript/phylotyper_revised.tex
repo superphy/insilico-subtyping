@@ -40,14 +40,27 @@ online.}
 Whole-genome sequencing (WGS) is transforming the public health field by providing an efficient method for surveying bacterial populations.
 The speed, discriminatory power and broad utility of WGS can improve surveillance and outbreak analysis.
 Adoption of WGS in public health, however, requires transitioning of historical data with the new methods \citep{Jenkins2015}.
-One of the workhorse methods in public health is molecular subtyping (such as serotyping).
+One of the workhorse methods in public health is subtyping.
+Subtyping methods can broadly categorized as phenotype-based or DNA-based.
+Phenotype-based subtypes are, for example, interrogated by biochemical tests (biotyping), detection of surface antigens (serotyping) or susceptibility to bacteriophage (phagetyping) \citep{Wiedmann2002}.
+Alternatively DNA-based subtyping examines and classifies bacteria based on genetic content.
+DNA-based subtypes use a variety of methods from PCR to Pulse Field Gel Electrophoresis to DNA sequencing to assign groups to bacteria \citep{Wiedmann2002}.
 As a surveillance tool, subtypes provide a clearcut designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens.
 A WGS-based approach to subtyping would have several benefits over current subtype systems; it would be faster, have improved discrimination and would be cheaper and easier to maintain\citep{Jenkins2015}.
 Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data \citep{Joensen2015,Ingle2016,CARRILLO2016}.
+To predict from WGS data, these tools target subtypes (Phenotype-based or DNA-based) that can be linked to a specific region or gene in the genome.
+These tools have not been applied to subtyping methods that already directly use DNA sequence data to assign subtype such as Multi-Locus Sequnce Typing. 
+No inference or extrapolation is needed to integrate a direct DNA sequence-based method, like MLST, into a WGS system.
+An example of a subtype system that has been adpated for WGS is serotyping in \textit{Escherichia coli}.
+The sequence of O-antigen processing genes in \textit{E. coli} is used to predict O group serotype in \citep{Joensen2015,Ingle2016}.
+Another example, is the Shiga toxin subtype (Stx); a DNA-based subtying scheme generated using PCR.
+The tool in \citep{CARRILLO2016} predicts Stx subtype by simulating PCR in silico.
 
-Phylotyper is a novel \textit{in silico} predictor of subtypes from sequence data. 
-Phylotyper is unique in that it builds a phylogenetic tree consisting of reference sequences with known subtype and the unknown query sequences to help inform subtype prediction. 
-Using phylogenetic ancestral state reconstruction to assign the likelihood of each subtype to the tree branch points, Phylotyper assigns an unknown query sequence a subtype based on the extrapolated value from its ancestors in the tree.
+Phylotyper is a novel \textit{in silico} predictor of subtypes from sequence data.
+Similar to \citep{Joensen2015,Ingle2016,CARRILLO2016}, it also works on subtypes that can be predicted from specific, pre-selected gene or genomic region sequences.
+Phylotyper is unique in that it builds a phylogenetic tree consisting of reference sequences with known subtype and the unknown query sequences to help inform subtype prediction.
+Using phylogenetic ancestral state reconstruction to assign the likelihood of each subtype to the tree branch points, Phylotyper then assigns an unknown query sequence a subtype based on the extrapolated value from its ancestors in the tree.
+
 
 \section{Implementation}
 
@@ -62,13 +75,15 @@ In the context of Phylotyper, the marginal likelihood provides a confidence valu
 
 Phylotyper is developed in python and R. 
 The steps in the Phylotyper pipeline are: 
-(1) Identify subtype gene loci in input genomes using BLAST \citep{Camacho2009}. Hits that do not align over 95\% or have under 90\% sequence identity with reference sequence are discarded.
+(1) Identify subtype gene loci in input genomes using BLAST \citep{Camacho2009}. Hits that do not align over 95\% or have under 90\% sequence identity with reference sequence are discarded. Users are notified if no loci are found in genome.
 (2) Align input genes against a pre-aligned set of reference genes using MAFFT's \texttt{--add} feature \citep{Katoh2013}.
 (3) If multiple loci are involved, concatenate individual alignments into superalignment.
 (4) Generate maximum likelihood phylogenetic tree of aligned genes with FastTree \citep{Price2010}.
 (5) Run phytools \texttt{rerootingMethod} using the phylogenetic tree and assigned subtypes \citep{Revell2011}.
 (6) Identify the subtype with maximum marginal likelihood for the unknown genes and report to user in text output file.
 Users are also provided with an image of the phylogenetic tree overlaid with the likelihood values (e.g. Figure~1\vphantom{\ref{fig:01}}).
+
+Detailed descriptions on how to run Phylotyper and the underlying methods are provided here: \url{https://github.com/superphy/insilico-subtyping}.
 
 \begin{figure}[!tpb]%figure1
 \centerline{\includegraphics{fig01.eps}}
@@ -88,19 +103,17 @@ Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are av
 However, the Phylotyper software also has the capability to add new subtype schemes. 
 Creating a new subtype scheme will save the required reference files, allowing newly added schemes to be easily re-run from Phylotyper.
 To add a new subtype scheme for use in Phylotyper, users require a training set of homologous sequences with assigned subtype whose phylogenetic grouping is predictive of the subtype.
-Phylotyper assumes that the provided training sequence are 1) homologous, specifically, they are suitable for alignment and phylogenetic reconstruction 2) the sequence phylogeny is correlated with the subtype distribution and 3) the set is representative of the range of sequences that make up a subtype.
+Phylotyper assumes that the provided training sequences are 1) homologous, specifically, they are suitable for alignment and phylogenetic reconstruction 2) the sequence phylogeny is correlated with the subtype distribution and 3) the set is representative of the range of sequences that make up a subtype.
 Where possible, checks are built-in to the \texttt{new} pipeline to ensure the assumptions of the Phylotyper approach are not violated.
-Specifically, each new subtype is subject to two tests in the \texttt{new} pipeline.
-Results are reported to the user.
-The first test checks the the distribution of inter-patristic phylogenetic distances between the instances of the same subtype is both smaller and distinct from non-identical subtypes.
+Specifically, each new subtype is subject to two tests in the \texttt{new} pipeline and results are reported to the user.
+The first test checks that the distribution of inter-patristic phylogenetic distances between the instances of the same subtype is both smaller and distinct from non-identical subtypes.
 This test can identify isolated cases of potentially mislabelled subtype genes that are tightly clustered with other subtypes.
-A second check computes the accuracy measure; F-score, through a leave-one-out cross-validation.
-This validation uses each sequence in the training set as a test input (the test sequence is removed from the tree and then used as input).
-Results are recorded. 
-Metrics like precision, recall and F-score rapidly erode as the phylogenetic grouping is decoupled from the subtypes.
-These checks will verify that the sequences phylogenetic grouping is predictive of the subtype subtype.
-There is no check that can verify the training set covers all subtypes; this is left up to the user.
-However, as we show in the Results section, Phylotyper is comparatively more robust than other methods as it generates fewer Type-I errors when encountering novel alleles or subtypes not present in the training set.
+A second check computes the accuracy measure, F-score, through a leave-one-out cross-validation; a procedure which uses each sequence in the training set as a test input to estimate positive and negative prediction rates (Supplementary Methods).
+The performance metrics: recall and F-score rapidly decrease as the correspondence of training set phylogeny and subtype distribution decreases (Supplementary Figure)
+These checks will verify that the training set sequences' phylogenetic grouping is predictive of the subtype.
+There is no check that can confirm the training set covers all subtypes in a particular scheme; it is important that the user monitor and update schemes as gaps are identified.
+Phylotyper is designed to return a \texttt{non-significant/undetermined} result when encountering a unknown subtype that has no representative in the training set.
+Phylotyper is comparatively more robust than other methods as it generates fewer Type-I errors when encountering novel alleles or subtypes not present in the training set (see Results section for details).
 
 To grow the Phylotyper resource, we encourage users to contact us with their new subtype schemes or updates to schemes (\url{https://github.com/superphy/insilico-subtyping}). 
 We will continue to expand the Phylotyper resource by adding and updating high-quality subtype schemes in the Phylotyper repository.
@@ -129,7 +142,7 @@ In total, 24 Stx gene sequences were tested with the V-typer tool and V-typer re
 Phylotyper can correctly predict the subtype for all these genes.
 Based on this level of recall, it appears conditions in the Stx subtype setting are challenging for simulated PCR.
 
-All new or updated subtype schemes added in Phylotyper are subject to a leave-one-out cross-validation test as described earlier.  
+All new or updated subtype schemes added in Phylotyper are subject to a leave-one-out cross-validation test.
 The test is part of the \texttt{add} pipeline and is used to estimate the F-score of the subtype scheme. 
 The F-score reflects that predictive capability of the subtype scheme. 
 If the associated phylogeny for training set gene sequences are not correlated with the subtype distribution, this will be reflected in the F-score. 

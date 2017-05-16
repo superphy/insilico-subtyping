@@ -42,6 +42,15 @@
 
 \section{Supplementary Methods}
 
+\subsection{Phylotyper Verifications Performed on New Subtype Schemes}
+
+Phylotyper conducts two tests for submitted new subtype schemes. The purpose of the first check is to identify isolated cases of distinct subtypes that are clustered together in the phylogenetic tree. In large-scale cases, descendent clades in the phylogenetic tree with multiple distinct subtypes may indicate a subtype that is not correlated with the phylogeny. In limited cases, it might indicate annotation errors. Phylotyper computes an inter-patritristic distances for all leaves in the subtype phylogenetic tree for the given subtype scheme. It then computes a threshold is equivalent to 0.4 probability that inter-patristic distances equal to or greater then threshold belong to the same-subtype distribution. To estimate the distributions, all inter-patristic distances for nodes with the same subtype and all distances for nodes with different subtypes are fit with R's Mclust package. Subtrees with a max inter-patristic distance less than this threshold that have distinct subtypes are flagged. Users will be notified and an updated subtype scheme will be generated with proposed corrections when this situation is detected.
+
+
+All new subtype schemes are subject to a leave-one-out cross-validation analysis. You will be notified if the F1-score (a equally weighted average of precision and recall) is below 0.9.
+
+
+
 \subsection{BLAST-based method}
 
 For comparison purposes, we developed a generalized sequence-similarity predictor of subtypes using BLAST. Following \citep{Jenkins2015}, a training set of sequences with annotated subtypes is used to build a BLAST database (the training sets are from the the Phylotyper repository). To predict a subtype, query sequences are searched against the training BLAST database and the top hit is recorded. If the top hit's alignment with the query has at least 60\% coverage with the reference sequence and is above the percent identity cutoff, then the subtype of the top hit is returned as the predicted subtype of the query sequence. The cutoff impacts performance in one of two ways: too low and non-equivalent subtype alleles may be matched with the query (e.g. type I error), too high and valid subtype allele BLAST hits are filtered out (e.g. type II error). To select the ideal cutoff that balances these competing sources of error, a cross-validation simulation was run to estimate false discovery and true positive rates across varying percent identity cutoffs. A 10-fold cross-validation was performed; 10\% of the training set was randomly selected. The remaining 90\% was used to build the reference BLAST database. The 10\% test set was then searched against this database using BLAST and positive and negative results were recorded. This step was repeated 100 times and the F1-score, which is a weighted average of the precision and recall, was calculated. Precision is defined as: 

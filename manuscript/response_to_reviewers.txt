@@ -101,6 +101,8 @@ The Phylotyper approach is not likely not applicable to core-genome or whole-gen
 
 Subtypes that are directly identified from the genome sequence do not require Phylotyper's additional prediction step. In MLST, the combination each unique allele sequence defines the type.  Potentially, and this is perhaps what the reviewer is refering to, a specific region of the genome that is smaller than the sequence regions used in an MLST, exists that can be used as a proxy to predict MLST subtype. The benefit in this case, is that the entire genome would not need to be sequenced (or multiple alleles interogated) in order to predict MLST type. There is precedent for this type of approach.  The spa and coa genes in Staphylococcus aureus are used as gene markers to infer phylogenetic and population variation.  The spa and coa types have noted concordance with MLST typing. While this is in interesting potential new application for Phylotyper, it is outside the scope of what we originally designed Phylotyper for.
 
+Horizontal gene transfer or recombination would only impact the result of Phylotyper in situations were linkage disequlibrium can occur. If the sequences used to build the subtype scheme produce gene products that determine the subtype, such as the O-antigen processing genes for E. coli being used to predict O-group serotypes, then the prediction would directly be linked to underlying genome. If however a proxy sequence is used, HGT could impact. We have recommended to users building subtype schemes they focus on
+
 Minor:
 1) Typo in line 49: also not aslo
 2) Line 51 mentioned assumptions for building new subtype pipeline.  It'll be good to explain that or if space is an issue, point to the portion of the manual that explains these assumptions
