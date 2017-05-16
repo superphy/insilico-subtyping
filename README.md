@@ -428,18 +428,11 @@ not tested when the number of subtypes is over 10)
 
 ### Evaluating new subtype schemes
 
+Phylotyper conducts two tests for subtypes schemes submitted to the `new` pipeline.
+
 #### Check 1. Clades with relatively small inter-patristic distance have the same subtype
 
-In large cases, clades in the phylogenetic tree with distinct subtypes
-may indicate a subtype that is not correlated with the phylogeny. In
-limited cases, it might indicate annotation errors. Phylotyper computes
-an inter-patritristic distance threshold for a given subtype scheme. The
-threshold is equivalent to 0.4 probability that inter-patristic
-distances equal to or greater then threshold belong to the same-subtype
-distribution (basically collects all inter-patristic distances for nodes
-with the same subtype and then uses R's Mclust to model the
-distribution). Subtrees with a max inter-patristic distance less than
-this threshold that have distinct subtypes are flagged. You will be
+The purpose of the first check is to identify isolated cases of distinct subtypes that are clustered together in the phylogenetic tree. In large-scale cases, descendent clades in the phylogenetic tree with multiple distinct subtypes may indicate a subtype that is not correlated with the phylogeny. In limited cases, it might indicate annotation errors. Phylotyper computes an inter-patritristic distances for all leaves in the subtype phylogenetic tree for the given subtype scheme. It then computes a threshold is equivalent to 0.4 probability that inter-patristic distances equal to or greater then threshold belong to the same-subtype distribution. To estimate the distributions, all inter-patristic distances for nodes with the same subtype and all distances for nodes with different subtypes are fit with R's Mclust package. Subtrees with a max inter-patristic distance less than this threshold that have distinct subtypes are flagged. You will be
 notified if this situation is detected. An updated subtype input file
 called `phylotyper_proposed_subtypes.csv` will be generated with
 proposed corrections and written to the output directory.
