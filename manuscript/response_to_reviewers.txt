@@ -1,5 +1,7 @@
 response_to_reviewers.txt
 
+Firstly, we would like to thank the reviewers for their thoughtful comments. We have made subtantual changes to the results and discussion sections as well as to the Phylotyper code that we hope address your suggestions for the Phylotyper manuscript.  We have responded to each individual comment below:
+
 ----------------------------------------
 
 Here are the comments of the reviewers:
@@ -17,17 +19,17 @@ I have two minor comments that are more "food for thought" than required revisio
 Although the GitHub page is well laid out and easy enough to follow, please consider including some sort of example to follow along with. As a newcomer to the application it took me a little while to figure out how to get everything exactly right for an initial run. I think a very small example to follow and run that is located early in the GitHub instructions would really help to just get things going.
 
 *Response:
-We agree with the reviewer's suggestion that a working example provided for new users will enhance the adoption and usability of Phylotyper.  We have added an "Example" section to the README.md file (which is also used as the landing page for Phylotyper's GitHub repository: https://github.com/superphy/insilico-subtyping/) along with example data that demonstrates how to 1) predict subtypes for schemes already packaged in Phylotyper and 2) how to add and run user-defined subtype schemes.
+We agree with the reviewer's suggestion that a working example for new users will enhance the adoption and usability of Phylotyper.  We have added an "Example" section to the README.md file (which is also the landing page for Phylotyper's GitHub repository: https://github.com/superphy/insilico-subtyping/#examples) along with example data that demonstrates how to 1) predict subtypes for schemes already packaged in Phylotyper and 2) how to add and run user-defined subtype schemes.
 
 There lies a slight issue in the "user generated sub-type schemes" in that the results that you get with Phylotyper are highly dependant on the quality of the sub-type scheme provided. Since this tool will likely be used in outbreak situations and analyses, do you have any plans to address the quality of the sub-type scheme that was used? Do you plan on having a section in the GitHub page that allows users to send new sub-type schemes for validation and posting?
 
 *Response*:
-The reviewer is correct that Phylotyper's performance is dependent on the input reference sequences used to build the subtype predictor. To mitigate poor prediction from unsuitable or inaccurate inputs, we have included in the build pipeline for the local user-submitted subtype feature a series of checks to automatically test the performance of any submitted subtype scheme. These tests 1) verify that the phylogeny of the provided sequences places the same subtypes into phylogenetic groups and 2) that the subtype can be accurately predicted with the given input sequences by running a leave-one-out cross-valiation. The phylogenetic test empirically determines the distribution of inter-patristic distance between the sequences in the tree with the same subtypes. It uses the distribution to identify subtree groupings that place different subtypes in the same clade that are expected to be the same. Users are notified if any unexpected subtype assignments are detected in the input. In our experience, this test was effective at identifying a limited number of anomylous subtype assignments, for example, incorrectly annotated sequences in the larger subtype scheme. In the cross-validation test, each input reference sequence is withheld from the training set and used to test the predictor.  Users are notified if the subtype scheme has a F1-score below 0.9 from the cross-validation test. We found that this test identified subtypes schemes that have poor predictive power due to the subtype being weakly phylogenetically correlated with the input sequences or subtypes being underrepresented in the training set.
+The reviewer is correct that Phylotyper's performance is dependent on the input reference sequences used to build the subtype predictor. To mitigate poor prediction from unsuitable or inaccurate inputs, we included in the build pipeline for the local user-submitted subtype feature a series of checks to automatically test the performance of any submitted subtype scheme. These tests 1) verify that the phylogeny of the provided sequences places the same subtypes into phylogenetic groups and 2) that the subtype can be accurately predicted with the given input sequences by running a leave-one-out cross-valiation. The phylogenetic test empirically determines the distribution of inter-patristic distance between the sequences in the tree with the same subtypes. It uses the distribution to identify subtree groupings that place different subtypes in the same clade that are expected to be the same. Users are notified if any unexpected subtype assignments are detected in the input. In our experience, this test was effective at identifying a limited number of anomylous subtype assignments, for example, incorrectly annotated sequences in the larger subtype scheme. In the cross-validation test, each input reference sequence is withheld from the training set and used to test the predictor.  Users are notified if the subtype scheme has a F1-score below 0.9 from the cross-validation test. We found that this test identified subtypes schemes that have poor predictive power due to the subtype being weakly phylogenetically correlated with the input sequences or subtypes being underrepresented in the training set.
 While these checks identify major breakdowns in the requirements for an accurate subtype predictor, we note there is no check to identify missing data, specifically, missing subtypes or key subtypes gene sequences that define the range of the subtype sequence space. For any current general subtype predictor (i.e. not predictors that replicate PCR in silico, for instance), performance is dependent on the reference input set. In dealing with missing data, we demonstrate that Phylotyper is significantly more robust than a direct sequence similarity-based predictor. It is less likely to generate a type-I error when encountering a subtype not found in the training set. The Phylotyper method estimates the uncertainty associated with a subtype prediction. When test sequences that are phylogenetically distant from known reference sequences or in a region of the phylogenetic tree that is rapidly evolving, the Phylotyper score will reflect the degree of uncertaintity. Most often the sequence for a novel or missing subtype will be relatively phylogenetically distant from the other subtype sequences in the tree and its Phylotyper uncertaintity score will reflect this. Only in cases where the novel/missing subtype is closely phylogenetically related to an existing subtype in the training set, will Phylotyper generate a false positive prediction. This property of Phylotyper makes it more robust when working with incomplete training data.
 
 To enhance the users understanding of the checks that are provided in the build feature and the potential blindspots in creating their own subtype predictors with Phylotyper, we have greatly expanded the methods section and the README provided with the software. The added content describes the two checks, how they work and what they detect. In the README we also offer some guidelines about the inputs needed for an effective subtype predictor. We also included in the manuscript a new analysis that demonstrates how Phylotyper versus a BLAST-based predictor performs when an entire subtype class is removed from the trainging set and used as test input. This analysis and results have been added to the Results and Discussions sections.
 
-The reviewer suggests having a means for users to submit subtype for evaluation and posting to a shared repository. We agree that this would be a helpful system. It will allow microbiologist specialists to submit and improve subtype schemes and increase the 
+The reviewer suggests having a means for users to submit subtypes for evaluation and posting to a shared repository. We agree that this would be a helpful system. It will allow microbiologist specialists to submit and improve subtype schemes and increase the 
 We have added a section to the GitHub page, subtype scheme will be checked by us and added to the repository or as a separate download.
 
 
@@ -41,15 +43,32 @@ Whiteside et al present here a novel python package for the prediction of bacter
 
 Major comments:
 Introduction:
-1.      The authors should elaborate on the "current subtype systems" for readers that would not be familiar with clinical microbiology standards. 
+1.      The authors should elaborate on the "current subtype systems" for readers that would not be familiar with clinical microbiology standards.
+
+*Response*:
+We added a high-level description of mechanisms currently in use to perform subtyping, namely phenotype- and DNA-based methods, with specific examples in each category. We feel this will give the readers an understanding of the breadth of subtyping methods. We also describe the characteristics of the subtypes that have been adapted for in silico prediction using WGS data. Our intention was to convey the wide range of subtyping approaches, and how certain subtyping  can be considated and recapitulated with WGS data.
 
 Implementation:
 2.      Phylotyper currently only has a scheme for Escherichia coli, which limits its use, and the interest resides in the possibility to build schemes for other bacteria. Therefore, it would be useful for the reader to have more information regarding how to build a new scheme in the contribution, and for example which existing resources of typing schemes could be used for main pathogens.
 
+*Response*:
+A detailed step-by-step account of how to run Phylotyper's automated build pipeline is provided in the Phylotyper package instructions. We added a reference and link to these instructions in the Implementation section. We also added to the Implmentation section a description of the requirements in Phylotyper for new subtype schemes as well as the checks that the pipeline automatically performs to validate subtypes schemes created by users. In the Discussion section, we elaborate on the ideal sequence regions that should be targeted by users when developing a WGS-based predictor of subtypes with Phylotyper.  Also in the Discussion seciton, we name some current examples of subtyping schemes in other pathogens outside of E. coli that can be predicted with Phylotyper. We did not systematically go through all main pathogens to identify the subtyping schemes that can predicted with Phylotyper. As we state in our revised Discussion, the subtype schemes that can be linked biologically to a specific genome sequence region are the best candidates for WGS-based predictors. To compile a complete list of these type of subtypes requires domain knowledge in the pathogen (Our lab works with E. coli, hence the the initial focus in Phylotyper's resources on E. coli). We did identify and mention select examples in diverse pathogens to show that Phylotyper is not limited to E. coli. Phylotyper can work with any suitable subtype; identifying a suitable subtype, however, requires knowledge of the subtype and its underlying biological mechanism. To help expand Phylotyper to other pathogens, we added a request in the manuscript and on the Phylotyper website for Microbiologists to send us either subtype schemes or additions/corrections to existing subtype schemes.  Subtype schemes that we recieve we will be packaged into the Phylotyper repository for download and general use. 
+
+
 3.      Please provide more details regarding the “assumptions of the Phylotyper approach” and how/why they would be violated when building new subtype schemes.
+
+*Response*: 
+The Phylotyper assumptions, and its mechanisms to detect possible violations, are now outlined in the Implementation section. The revised Implementat covers the basis of the assumptions, how they can be violated, and two built-in mechanisms we developed to alert users of possible violations.
 
 Results:
 4.      Whiteside et al compare here their tool with another BLAST based approach that they have developed for the comparison, and not methods published by other groups. The description of the method used for both the BLAST method and the cross validation is imprecise and would benefit from more being more detailed within the main article rather than in the supplementary material. Moreover, a comparison - at least theoretical - with other existing tools would strengthen the uniqueness of Phylotyper highlighted in the discussion.
+
+*Response*:
+Our main goal in the performance assessment was to compare how the prediction methods generalize to an independent dataset. There may exists differences in the reference training sets that underpin the tools, and these differences may mask the true performance of the method.  We wanted to evalute the predictive capability of the methods themselves. SeroTypeFinder is provided as a web service. The software for SeroTypeFinder has not been made publicly available. Without access to the software, we cannot manipulate the training and test datasets to perform cross-validation analysis. The EcOH tool works directly on unassembled small reads and not assembled genome sequences. A direct comparison of the performance with these tools with Phylotyper is not possible. The intention of using a general BLAST-based approach is demonstrate the benefit of Hidden State Prediction with a phylogenetic tree over approaches that directly match input sequences against a reference database. BLAST, as used in our assessment with a percent identity and coverage cutoff, is the basis of the SeroTypeFinder tool. We used a more stringent cutoff however. OUur simulations indicated that most subtype alleles had higher alignment metrics than the reported to be used in SeroTypeFinder. EcOH employs a more sophisticated algorithm for matching alleles in order to filter out spurious small reads that might align by chance. At its core, it is still matching alleles and does not develop a model of allele sequence evolution to define boundaries on subtype sequences. We feel that our comparison to the generalized BLAST-based method does make a valid case for HSP in subtype prediction.
+
+We added a direct comparison of Phylotyper to Vtyper for Stx genes. The performance results are summerized in the Results section and further details are provided in Supplementary Information. We were cautious in making the test set; all test genes were required to have sufficient upstream and downstream sequence to for the in silico PCR approach to work. Phylotyper has no such constraint. 
+
+
 
 Discussion:
 5.      There is no data to support the claim that Phylotyper easily identifies novel subtype. Did the author try to remove all alleles of one subtype and compute the predictions to see if/how phylotyper creates a consistent subtype? Also, when a new subtype is identified, does Phylotyper includes it in his typing scheme automatically? What would be the recommended tests/further analysis recommended to researchers using Phylotyper in the case a new subtype is identified?
@@ -57,17 +76,34 @@ Discussion:
 
 Minor comments:
 1.      The abstract mentions a python package only whereas the text in the implementation mentions python and R. Please revise where necessary.
+
+*Response*:
+Fixed.
+
 2.      “The main input into Phylotyper is assembled genome sequences”. Please mention the format type (apparently fasta).
+
+*Response*:
+Fixed.
+
 3.      “… in addition to Stx include intimin and serotyping” Please revise the sentence.
+
 4.      Replace aslo by also
+
+*Response*:
+Fixed.
+
 5.      Revise the sentence “This type of approach, there is…”.
 
 Figure 1.
 6.      Please check the label that is cut on the side of the figure. Also, what does the letter at the end of each label correspond to - the expected subtype whereas the predicted subtype is color coded? Please better describe in the legend. Or remove if this is redundant information.
 7.      The colors used by Phylotyper could be improved to increase readability of the output for the allele labels. There are several good packages to select colors within R or python.
+*Response*:
+Switched to discriminatory palette "Set1" in R's RColorBrewer package. Phylotyper uses 
 
 Sup. Figure 1.
 8.      Please plot the legend so that it does not overall the labels
+*Response*:
+Change made
 9.      Labels are too close and therefore difficult to read if there were several query allele as an input.
 
 Supplementary table S2:

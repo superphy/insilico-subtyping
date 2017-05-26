@@ -28,7 +28,7 @@ Phylotyper is a novel solution for \textit{in silico} subtype prediction from ge
 Designed for incorporation into WGS pipelines, it is a general prediction tool that can be applied to most molecular subtype schemes.
 Phylotyper uses phylogeny to model the evolution of the subtype and infer subtypes for unannotated sequences.
 The phylogenic framework in Phylotyper improves accuracy, provides useful contextual feedback, and is more capable of identifying novel subtypes over approaches based solely on sequence similarity.\\
-\textbf{Availability and Implementation:} Phylotyper is a python package. It is available from: \url{https://github.com/superphy/insilico-subtyping}.\\
+\textbf{Availability and Implementation:} Phylotyper is a python and R package. It is available from: \url{https://github.com/superphy/insilico-subtyping}.\\
 \textbf{Contact:} \href{matthew.whiteside@phac-aspc.gc.ca}{matthew.whiteside@phac-aspc.gc.ca}\\
 \textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}
 online.}
@@ -48,13 +48,13 @@ DNA-based subtypes use a variety of methods from PCR to Pulse Field Gel Electrop
 As a surveillance tool, subtypes provide a clearcut designation that is typically used to distinguish taxonomic groups and infer phenotypes, for example, pathogens from non-pathogens.
 A WGS-based approach to subtyping would have several benefits over current subtype systems; it would be faster, have improved discrimination and would be cheaper and easier to maintain\citep{Jenkins2015}.
 Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data \citep{Joensen2015,Ingle2016,CARRILLO2016}.
-To predict from WGS data, these tools target subtypes (Phenotype-based or DNA-based) that can be linked to a specific region or gene in the genome.
-These tools have not been applied to subtyping methods that already directly use DNA sequence data to assign subtype such as Multi-Locus Sequnce Typing. 
+To predict from WGS data, these tools have targeted subtypes (either Phenotype-based or DNA-based systems) that can be casually linked to a specific region or gene in the genome.
+\textit{In silico} subtyping has not been applied to subtyping methods that already directly use the DNA sequence to assign subtype such as Multi-Locus Sequnce Typing (MLST). 
 No inference or extrapolation is needed to integrate a direct DNA sequence-based method, like MLST, into a WGS system.
 An example of a subtype system that has been adpated for WGS is serotyping in \textit{Escherichia coli}.
-The sequence of O-antigen processing genes in \textit{E. coli} is used to predict O group serotype in \citep{Joensen2015,Ingle2016}.
+The sequence of O-antigen processing genes in \textit{E. coli} is used to predict O-antigen group serotype in \citep{Joensen2015,Ingle2016}.
 Another example, is the Shiga toxin subtype (Stx); a DNA-based subtying scheme generated using PCR.
-The tool in \citep{CARRILLO2016} predicts Stx subtype by simulating PCR in silico.
+The tool in \citep{CARRILLO2016} predicts Stx subtype by simulating PCR \textit{in silico}.
 
 Phylotyper is a novel \textit{in silico} predictor of subtypes from sequence data.
 Similar to \citep{Joensen2015,Ingle2016,CARRILLO2016}, it also works on subtypes that can be predicted from specific, pre-selected gene or genomic region sequences.
@@ -75,7 +75,7 @@ In the context of Phylotyper, the marginal likelihood provides a confidence valu
 
 Phylotyper is developed in python and R. 
 The steps in the Phylotyper pipeline are: 
-(1) Identify subtype gene loci in input genomes using BLAST \citep{Camacho2009}. Hits that do not align over 95\% or have under 90\% sequence identity with reference sequence are discarded. Users are notified if no loci are found in genome.
+(1) Identify subtype gene loci in input genomes using BLAST \citep{Camacho2009}. Inputs are in fasta format. Hits that do not align over 95\% or have under 90\% sequence identity with reference sequence are discarded. Users are notified if no loci are found in genome.
 (2) Align input genes against a pre-aligned set of reference genes using MAFFT's \texttt{--add} feature \citep{Katoh2013}.
 (3) If multiple loci are involved, concatenate individual alignments into superalignment.
 (4) Generate maximum likelihood phylogenetic tree of aligned genes with FastTree \citep{Price2010}.
@@ -93,14 +93,14 @@ The full Stx2 tree is displayed in Supplementary Figure S1.}\label{fig:01}
 \end{figure}
 
 Phylotyper was designed to be incorporated into a WGS workflow.  
-The main input into Phylotyper is assembled genome sequences.  
+The main input into Phylotyper is assembled genome sequences (in fasta format).  
 Putative loci needed for the subtype scheme are identified in the input genomes using BLAST \citep{Camacho2009}.
 The identified loci are then sent to the Phylotyper subtype prediction module.
 It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.
 
 Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotype O- and H-types  (Supplementary Table~1).
-However, the Phylotyper software also has the capability to add new subtype schemes. 
+However, the Phylotyper software also has the capability to add new subtype schemes (instructions are provided here: \url{https://github.com/superphy/insilico-subtyping}). 
 Creating a new subtype scheme will save the required reference files, allowing newly added schemes to be easily re-run from Phylotyper.
 To add a new subtype scheme for use in Phylotyper, users require a training set of homologous sequences with assigned subtype whose phylogenetic grouping is predictive of the subtype.
 Phylotyper assumes that the provided training sequences are 1) homologous, specifically, they are suitable for alignment and phylogenetic reconstruction 2) the sequence phylogeny is correlated with the subtype distribution and 3) the set is representative of the range of sequences that make up a subtype.
@@ -109,14 +109,11 @@ Specifically, each new subtype is subject to two tests in the \texttt{new} pipel
 The first test checks that the distribution of inter-patristic phylogenetic distances between the instances of the same subtype is both smaller and distinct from non-identical subtypes.
 This test can identify isolated cases of potentially mislabelled subtype genes that are tightly clustered with other subtypes.
 A second check computes the accuracy measure, F-score, through a leave-one-out cross-validation; a procedure which uses each sequence in the training set as a test input to estimate positive and negative prediction rates (Supplementary Methods).
-The performance metrics: recall and F-score rapidly decrease as the correspondence of training set phylogeny and subtype distribution decreases (Supplementary Figure)
+The performance metrics: recall and F-score rapidly decrease as the correlation between the training set phylogeny and subtype distribution decreases (Supplementary Figure)
 These checks will verify that the training set sequences' phylogenetic grouping is predictive of the subtype.
 There is no check that can confirm the training set covers all subtypes in a particular scheme; it is important that the user monitor and update schemes as gaps are identified.
 Phylotyper is designed to return a \texttt{non-significant/undetermined} result when encountering a unknown subtype that has no representative in the training set.
 Phylotyper is comparatively more robust than other methods as it generates fewer Type-I errors when encountering novel alleles or subtypes not present in the training set (see Results section for details).
-
-To grow the Phylotyper resource, we encourage users to contact us with their new subtype schemes or updates to schemes (\url{https://github.com/superphy/insilico-subtyping}). 
-We will continue to expand the Phylotyper resource by adding and updating high-quality subtype schemes in the Phylotyper repository.
 
 \section{Results}
 
@@ -153,16 +150,20 @@ The F-score and recall rapidly decrease as the proportion of altered subtypes in
 
 From assembled WGS data, Phylotyper can assign unclassifed strains a molecular subtype.
 Currently the Phylotyper software offers subtyping schemes for \textit{E. coli}.
-It can, however, be applied to most molecular subtype schemes and Phylotyper includes functionality to build new schemes.
+It can, however, be applied to other molecular subtype schemes and Phylotyper includes functionality to build new schemes.
+Phylotyper can produce predicted subtypes from any input sequence that is strongly correlated with the subtype distribution, however, input sequences with a direct biological casual link to the subtype will have fewer cavaets; A gene sequence that is casual cannot become dissassociated from the subtype through recombination or horizontal gene transfer as a gene sequence that is merely correlated with the subtype.
+Outside of \textit{E. coli}, the PCR-based capsular typing system for \textit{Haemophilus influenzae}, Neurotoxin serotyping in \textit{Clostridium botulinum} and the haemagglutinin (HA) and neuraminidase (NA) types in Influenza A virus are all examples of potential future subtype schemes that can be incorporated into Phylotyper.
+We plan on expanding the Phylotyper resource by adding and updating high-quality subtype schemes for other pathogens.
+We encourage users to contact us with their new subtype schemes or updates to schemes (\url{https://github.com/superphy/insilico-subtyping}).
 
-One of the strategies for predicting subtypes is to use sequence similarity to annotated loci alleles.
+The main strategy currently in use by other \textit{in silico} tools for predicting subtypes is to use sequence similarity to annotated loci alleles.
 Query genomes or genes are matched to alleles that are attributed the subtype phenotype or are correlated with the distribution of the subtype.
 For example SerotypeFinder uses BLAST to find the top matches based on sequence similarity to O-antigen processing genes for \textid{in silico} O-typing, and the flagellin genes for H-typing \textit{E. coli} genes.  
 O-type and H-type are transfered from the top matches to the queries provided they are above coverage and percent identity thresholds.
 This general strategy of allele matching is also applied in EcOH database, however, the EcOH can directly use unassembled sequence reads as input. The EcOH tool aligns reads to alleles linked to \textit{E. coli} O-types and H-types, and identifies the top candidates that have an alignment score above pre-defined thresholds.
 Performance testing showed that Phylotyper is more robust than an approach based solely on sequence similarity.
 With a strict allele matching stategy, the reference or training set make-up can be critical to performance.
-When alleles or even subtypes are missing, the sequence similarity approach more frequently generates type-I errors.
+When alleles or even subtypes are missing in the reference database, the sequence similarity approach more frequently generates type-I errors.
 Alternatively, Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences.
 By estimating the phylogenetic distribution of each subtype, Phylotyper is less likely to make type-I error when encountering a novel subtype or allele. 
 The empircal testing we performed demonstrated this behavior; 

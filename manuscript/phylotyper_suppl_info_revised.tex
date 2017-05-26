@@ -42,12 +42,9 @@
 
 \section{Supplementary Methods}
 
+
 \subsection{Phylotyper Verifications Performed on New Subtype Schemes}
 
-Phylotyper conducts two tests for submitted new subtype schemes. The purpose of the first check is to identify isolated cases of distinct subtypes that are clustered together in the phylogenetic tree. In large-scale cases, descendent clades in the phylogenetic tree with multiple distinct subtypes may indicate a subtype that is not correlated with the phylogeny. In limited cases, it might indicate annotation errors. Phylotyper computes an inter-patritristic distances for all leaves in the subtype phylogenetic tree for the given subtype scheme. It then computes a threshold is equivalent to 0.4 probability that inter-patristic distances equal to or greater then threshold belong to the same-subtype distribution. To estimate the distributions, all inter-patristic distances for nodes with the same subtype and all distances for nodes with different subtypes are fit with R's Mclust package. Subtrees with a max inter-patristic distance less than this threshold that have distinct subtypes are flagged. Users will be notified and an updated subtype scheme will be generated with proposed corrections when this situation is detected.
-
-
-All new subtype schemes are subject to a leave-one-out cross-validation analysis. You will be notified if the F1-score (a equally weighted average of precision and recall) is below 0.9.
 
 
 
