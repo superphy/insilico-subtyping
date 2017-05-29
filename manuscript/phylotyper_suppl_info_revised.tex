@@ -43,11 +43,6 @@
 \section{Supplementary Methods}
 
 
-\subsection{Phylotyper Verifications Performed on New Subtype Schemes}
-
-
-
-
 \subsection{BLAST-based method}
 
 For comparison purposes, we developed a generalized sequence-similarity predictor of subtypes using BLAST. Following \citep{Jenkins2015}, a training set of sequences with annotated subtypes is used to build a BLAST database (the training sets are from the the Phylotyper repository). To predict a subtype, query sequences are searched against the training BLAST database and the top hit is recorded. If the top hit's alignment with the query has at least 60\% coverage with the reference sequence and is above the percent identity cutoff, then the subtype of the top hit is returned as the predicted subtype of the query sequence. The cutoff impacts performance in one of two ways: too low and non-equivalent subtype alleles may be matched with the query (e.g. type I error), too high and valid subtype allele BLAST hits are filtered out (e.g. type II error). To select the ideal cutoff that balances these competing sources of error, a cross-validation simulation was run to estimate false discovery and true positive rates across varying percent identity cutoffs. A 10-fold cross-validation was performed; 10\% of the training set was randomly selected. The remaining 90\% was used to build the reference BLAST database. The 10\% test set was then searched against this database using BLAST and positive and negative results were recorded. This step was repeated 100 times and the F1-score, which is a weighted average of the precision and recall, was calculated. Precision is defined as: 

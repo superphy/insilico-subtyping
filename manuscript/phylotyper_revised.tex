@@ -88,8 +88,7 @@ Detailed descriptions on how to run Phylotyper and the underlying methods are pr
 \begin{figure}[!tpb]%figure1
 \centerline{\includegraphics{fig01.eps}}
 \caption{Phylogenetic tree for select Stx2 genes. 
-The subtype marginal likelihood is displayed at each node as a pie chart.
-The full Stx2 tree is displayed in Supplementary Figure S1.}\label{fig:01}
+The subtype marginal likelihood is displayed at each node as a pie chart. Subtype is indicated by color as shown in the legend. The full Stx2 tree is displayed in Supplementary Figure S1.}\label{fig:01}
 \end{figure}
 
 Phylotyper was designed to be incorporated into a WGS workflow.  
@@ -99,12 +98,12 @@ The identified loci are then sent to the Phylotyper subtype prediction module.
 It is possible in Phylotyper to use multiple loci for subtype prediction.
 Individual loci alignments are concatenated to form a single superalignment that is used to build the phylogenetic tree.
 
-Currently, subtype schemes for \emph{Escherichia coli} (\textit{E. coli}) are available in the Phylotyper package, and in addition to Stx include intimin and serotype O- and H-types  (Supplementary Table~1).
+Currently, the Phylotyper package includes the following subtype schemes for \emph{Escherichia coli} (\textit{E. coli}): Stx, intimin and serotype O- and H-types  (Supplementary Table~1).
 However, the Phylotyper software also has the capability to add new subtype schemes (instructions are provided here: \url{https://github.com/superphy/insilico-subtyping}). 
 Creating a new subtype scheme will save the required reference files, allowing newly added schemes to be easily re-run from Phylotyper.
 To add a new subtype scheme for use in Phylotyper, users require a training set of homologous sequences with assigned subtype whose phylogenetic grouping is predictive of the subtype.
 Phylotyper assumes that the provided training sequences are 1) homologous, specifically, they are suitable for alignment and phylogenetic reconstruction 2) the sequence phylogeny is correlated with the subtype distribution and 3) the set is representative of the range of sequences that make up a subtype.
-Where possible, checks are built-in to the \texttt{new} pipeline to ensure the assumptions of the Phylotyper approach are not violated.
+Where possible, checks are built-in to the \texttt{new} pipeline to validate the submitted reference set.
 Specifically, each new subtype is subject to two tests in the \texttt{new} pipeline and results are reported to the user.
 The first test checks that the distribution of inter-patristic phylogenetic distances between the instances of the same subtype is both smaller and distinct from non-identical subtypes.
 This test can identify isolated cases of potentially mislabelled subtype genes that are tightly clustered with other subtypes.
@@ -117,8 +116,8 @@ Phylotyper is comparatively more robust than other methods as it generates fewer
 
 \section{Results}
 
-Phylotyper marks a progression from the sequence-similarity approach widely used in \it{in silico} subtyping strategies.
-It's performance extends beyond allele matching, to perform accurate inference of subtypes for input gene sequences that not in the training data or reference database.
+Phylotyper marks a progression from the sequence-similarity approach that is the basis of multiple \it{in silico} subtyping strategies.
+It's performance extends beyond allele matching, to perform accurate inference of subtypes for input gene sequences that are not in the training data or reference database.
 To compare Phylotyper to a sequence similarity-based approach, we ran two validations that looked at how both methods perform when confronted with 1) gene sequence or 2) subtype class not present in the training set.
 The first validation was a leave-one-out cross-validation test that iterated through each gene in the training set, retraining the prediction tools on a training set which excludes the selected test gene, and then confirming if the retrained predictor could recover the subtype of the test gene.
 This validation tests how the predictors perform when run on a distinct sequence that is not in the training set.
@@ -127,6 +126,7 @@ In this validation, each subtype was iterated over and all genes that are assign
 In each iteration, we recorded the number of false-positive subtype assignments when the test sequences were used as input.
 The correct response for the predictors was to return a negative result, since the subtype does not exist in the training set.
 For these assessments, we developed a sequence-similarity based tool that assigns putative subtypes using BLAST.
+This generalized BLAST tool assigns a subtype when the top BLAST match for an unknown query gene against an annotated reference database is above a pre-selected percent identify and alignment coverage; the query is given the subtype from the top match in this case
 Details for the BLAST tool and how the assessment was conducted are available in supplementary methods section.
 The assessment examined the five subtype schemes available in Phylotyper: Stx1, Stx2, Eae, H-type (FliC), O-type (Wzy \& Wzx).
 When tasked with assigning a novel gene sequence (i.e. one that is not in the training set) in the leave-one-out validation, Phylotyper consistently had higher precision than a top-BLAST hit approach.
@@ -144,7 +144,7 @@ The test is part of the \texttt{add} pipeline and is used to estimate the F-scor
 The F-score reflects that predictive capability of the subtype scheme. 
 If the associated phylogeny for training set gene sequences are not correlated with the subtype distribution, this will be reflected in the F-score. 
 To demonstrate this property, we randomly assigned subtypes for increasing proportions of the genes in the training set and computed the F-score with the leave-one-out validation for each proportion level.
-The F-score and recall rapidly decrease as the proportion of altered subtypes increased (Supplementary Figure S2).
+The F-score and recall rapidly decrease as the proportion of randomly altered subtypes increases (Supplementary Figure S2).
 
 \section{Discussion}
 

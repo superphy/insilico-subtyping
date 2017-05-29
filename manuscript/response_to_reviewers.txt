@@ -46,7 +46,7 @@ Introduction:
 1.      The authors should elaborate on the "current subtype systems" for readers that would not be familiar with clinical microbiology standards.
 
 *Response*:
-We added a high-level description of mechanisms currently in use to perform subtyping, namely phenotype- and DNA-based methods, with specific examples in each category. We feel this will give the readers an understanding of the breadth of subtyping methods. We also describe the characteristics of the subtypes that have been adapted for in silico prediction using WGS data. Our intention was to convey the wide range of subtyping approaches, and how certain subtyping  can be considated and recapitulated with WGS data.
+We added a high-level description of mechanisms currently in use to perform subtyping, namely phenotype- and DNA-based methods, with specific examples in each category. We feel this will give the readers an understanding of the breadth of subtyping methods. We also describe the characteristics of the subtypes that have been adapted for in silico prediction using WGS data. Our intention was to convey the wide range of subtyping approaches, and how certain subtyping approaches can be recapitulated from WGS data.
 
 Implementation:
 2.      Phylotyper currently only has a scheme for Escherichia coli, which limits its use, and the interest resides in the possibility to build schemes for other bacteria. Therefore, it would be useful for the reader to have more information regarding how to build a new scheme in the contribution, and for example which existing resources of typing schemes could be used for main pathogens.
@@ -58,21 +58,29 @@ A detailed step-by-step account of how to run Phylotyper's automated build pipel
 3.      Please provide more details regarding the “assumptions of the Phylotyper approach” and how/why they would be violated when building new subtype schemes.
 
 *Response*: 
-The Phylotyper assumptions, and its mechanisms to detect possible violations, are now outlined in the Implementation section. The revised Implementat covers the basis of the assumptions, how they can be violated, and two built-in mechanisms we developed to alert users of possible violations.
+The Phylotyper assumptions are now outlined in the Implementation section. The revised Implementation section covers the basis of the assumptions, how they can be violated, and two built-in mechanisms we developed to alert users of possible violations.
 
 Results:
 4.      Whiteside et al compare here their tool with another BLAST based approach that they have developed for the comparison, and not methods published by other groups. The description of the method used for both the BLAST method and the cross validation is imprecise and would benefit from more being more detailed within the main article rather than in the supplementary material. Moreover, a comparison - at least theoretical - with other existing tools would strengthen the uniqueness of Phylotyper highlighted in the discussion.
 
 *Response*:
-Our main goal in the performance assessment was to compare how the prediction methods generalize to an independent dataset. There may exists differences in the reference training sets that underpin the tools, and these differences may mask the true performance of the method.  We wanted to evalute the predictive capability of the methods themselves. SeroTypeFinder is provided as a web service. The software for SeroTypeFinder has not been made publicly available. Without access to the software, we cannot manipulate the training and test datasets to perform cross-validation analysis. The EcOH tool works directly on unassembled small reads and not assembled genome sequences. A direct comparison of the performance with these tools with Phylotyper is not possible. The intention of using a general BLAST-based approach is demonstrate the benefit of Hidden State Prediction with a phylogenetic tree over approaches that directly match input sequences against a reference database. BLAST, as used in our assessment with a percent identity and coverage cutoff, is the basis of the SeroTypeFinder tool. We used a more stringent cutoff however. OUur simulations indicated that most subtype alleles had higher alignment metrics than the reported to be used in SeroTypeFinder. EcOH employs a more sophisticated algorithm for matching alleles in order to filter out spurious small reads that might align by chance. At its core, it is still matching alleles and does not develop a model of allele sequence evolution to define boundaries on subtype sequences. We feel that our comparison to the generalized BLAST-based method does make a valid case for HSP in subtype prediction.
+Our main goal in the performance assessment was to compare how the prediction methods generalize to an independent dataset. There may exists differences in the reference training sets that underpin the tools, and these differences may mask the true performance of the method and we wanted to evalute the predictive capability of the methods themselves. SeroTypeFinder is provided as a web service. The software for SeroTypeFinder has not been made publicly available. Without access to the software, we cannot manipulate the training and test datasets to perform cross-validation analysis. The EcOH tool works directly on unassembled small reads and not assembled genome sequences. A direct comparison of the performance with these tools with Phylotyper is not possible. The intention of using a general BLAST-based approach is demonstrate the benefit of Hidden State Prediction with a phylogenetic tree over approaches that directly match input sequences against a reference database. BLAST, as used in our assessment with a percent identity and coverage cutoff, is the basis of the SeroTypeFinder tool. EcOH employs a more sophisticated algorithm for matching alleles in order to filter out spurious small reads that might align by chance. At its core, it is still matching alleles and does not develop a model of allele sequence evolution to define boundaries on subtype sequences. We feel that our performance comparison to the generalized BLAST-based method does make a valid case for using HSP in subtype prediction. We did add a direct comparison of Phylotyper to Vtyper for Stx genes. The performance results are summerized in the Results section and details on how we selected the test set are provided in Supplementary Information.
 
-We added a direct comparison of Phylotyper to Vtyper for Stx genes. The performance results are summerized in the Results section and further details are provided in Supplementary Information. We were cautious in making the test set; all test genes were required to have sufficient upstream and downstream sequence to for the in silico PCR approach to work. Phylotyper has no such constraint. 
+To address the reviwers comment that the BLAST and cross-validation method descriptions are imprecise, we have added more thorough descriptions of the BLAST method and the cross-validation analysis. Our aim with the revised descriptions is to provide readers sufficient information give them a complete understanding of the mechanics of the methods. Implementation details, such as percent identity cutoff or number of iterations, remain in Supplementary Information. This was done to fit with page constraints of the article type.
 
+As suggested, we also added a theoretical comparison of the tools to the Discussion; the theoretical comparison looks at use cases, potential issues, and additional benefits outside of performance for the tools.
 
 
 Discussion:
 5.      There is no data to support the claim that Phylotyper easily identifies novel subtype. Did the author try to remove all alleles of one subtype and compute the predictions to see if/how phylotyper creates a consistent subtype? Also, when a new subtype is identified, does Phylotyper includes it in his typing scheme automatically? What would be the recommended tests/further analysis recommended to researchers using Phylotyper in the case a new subtype is identified?
+
+*Response*:
+
 6.      “Subtypes are mainly used [..] the main uses of subtype information”. Please revise this paragraph, to allow a better logical flow. Also, Debroy et al have shown the discrepancy between between serotype-based typing and the genetic similarity of O antigen gene clusters, suggesting to replace serotyping by molecular typing. They did not particularly emphasize discrepancies between existing molecular typing scheme and whole genome data as suggested by Whiteside et al.
+
+*Response*:
+
+We have revised this paragraph and clarified our point on the suitability of Phylotyper for predicting subtypes from WGS; namely that Phylotyper helps identify discrepancies between a subtype and genome region that is used for prediction.
 
 Minor comments:
 1.      The abstract mentions a python package only whereas the text in the implementation mentions python and R. Please revise where necessary.
@@ -87,6 +95,9 @@ Fixed.
 
 3.      “… in addition to Stx include intimin and serotyping” Please revise the sentence.
 
+*Response*:
+Change made.
+
 4.      Replace aslo by also
 
 *Response*:
@@ -94,20 +105,36 @@ Fixed.
 
 5.      Revise the sentence “This type of approach, there is…”.
 
+*Response*:
+Sentence replaced.
+
 Figure 1.
 6.      Please check the label that is cut on the side of the figure. Also, what does the letter at the end of each label correspond to - the expected subtype whereas the predicted subtype is color coded? Please better describe in the legend. Or remove if this is redundant information.
-7.      The colors used by Phylotyper could be improved to increase readability of the output for the allele labels. There are several good packages to select colors within R or python.
+
 *Response*:
-Switched to discriminatory palette "Set1" in R's RColorBrewer package. Phylotyper uses 
+Removed the subtype letters at the end of the label; this was redundant information that was also conveyed by the color. Added information in the figure description on the meaning of the colors. Fixed labels so they fit in the window.
+
+7.      The colors used by Phylotyper could be improved to increase readability of the output for the allele labels. There are several good packages to select colors within R or python.
+
+*Response*:
+Switched to discriminatory palette "Set1" in R's RColorBrewer package. Phylotyper uses RColorRamp and this palette to generate sufficient colors for all subtypes.
 
 Sup. Figure 1.
 8.      Please plot the legend so that it does not overall the labels
+
 *Response*:
-Change made
+Change made.
+
 9.      Labels are too close and therefore difficult to read if there were several query allele as an input.
+
+*Response*:
+Spacing increased.
 
 Supplementary table S2:
 1.      Four or five E. coli schemes?
+
+*Response*:
+The E. coli serotypes available in Phylotyper comprise two schemes: O- and H-type (here incorrectly counted as one), resulting in five tested schemes. The reference to four has been removed.
 
 
 
