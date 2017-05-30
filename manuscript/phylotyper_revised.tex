@@ -27,7 +27,7 @@ Subtyping; a  is used in public health to infer phenotypes and distinguish bacte
 Phylotyper is a novel solution for \textit{in silico} subtype prediction from gene sequences.
 Designed for incorporation into WGS pipelines, it is a general prediction tool that can be applied to most molecular subtype schemes.
 Phylotyper uses phylogeny to model the evolution of the subtype and infer subtypes for unannotated sequences.
-The phylogenic framework in Phylotyper improves accuracy and provides useful contextual feedback, then approaches based solely on sequence similarity.\\
+The phylogenic framework in Phylotyper improves accuracy and provides useful contextual feedback, compared to approaches based solely on sequence similarity.\\
 \textbf{Availability and Implementation:} Phylotyper is a python and R package. It is available from: \url{https://github.com/superphy/insilico-subtyping}.\\
 \textbf{Contact:} \href{matthew.whiteside@phac-aspc.gc.ca}{matthew.whiteside@phac-aspc.gc.ca}\\
 \textbf{Supplementary information:} Supplementary data are available at \textit{Bioinformatics}
@@ -117,7 +117,7 @@ Phylotyper is comparatively more robust than other methods as it generates fewer
 
 \section{Results}
 
-Phylotyper marks a progression from the sequence-similarity approach that is the basis of multiple \it{in silico} subtyping strategies.
+Phylotyper marks a progression from the sequence-similarity approach that is the basis of multiple \textit{in silico} subtyping strategies.
 It's performance extends beyond allele matching, to perform accurate inference of subtypes for input gene sequences that are not in the training data or reference database.
 To compare Phylotyper to a sequence similarity-based approach, we ran two validations that looked at how both methods perform when confronted with 1) gene sequence or 2) subtype class not present in the training set.
 The first validation was a leave-one-out cross-validation test that iterated through each gene in the training set, retraining the prediction tools on a training set which excludes the selected test gene, and then confirming if the retrained predictor could recover the subtype of the test gene.
@@ -135,7 +135,7 @@ The average precision in Phylotyper was 0.99 versus 0.96 in the top-BLAST hit ap
 In order to achieve this level of precision, the BLAST approach often had lower recall rates; it had an average recall of 0.81 compared to 0.90 with Phylotyper
 Similarily, when entire subtype classes were withheld from the training set, Phylotyper had consistenly lower false positive rates for all subtypes schemes tested; the average false positive rate in this test case was 0.11, while in the BLAST approach, the average false positive rate was 0.30.
 A separate assessment for the V-typer tool; a Stx subtype predictor, was run using selected Stx gene sequences from the experimentally-verified Phylotyper training set.
-The test Stx genes had sufficent surrounding DNA sequence to support \it{in silico} PCR.
+The test Stx genes had sufficent surrounding DNA sequence to support \textit{in silico} PCR.
 In total, 24 Stx gene sequences were tested with the V-typer tool and V-typer returned results for 7, all correct.
 Phylotyper can correctly predict the subtype for all these genes.
 Based on this level of recall, it appears conditions in the Stx subtype setting are challenging for simulated PCR.
@@ -159,7 +159,7 @@ We encourage users to contact us with their new subtype schemes or updates to sc
 
 The main strategy currently in use by other \textit{in silico} tools for predicting subtypes is to use sequence similarity to annotated loci alleles.
 Query genomes or genes are matched to alleles that are attributed the subtype phenotype or are correlated with the distribution of the subtype.
-For example SerotypeFinder uses BLAST to find the top matches based on sequence similarity to O-antigen processing genes for \textid{in silico} O-typing, and the flagellin genes for H-typing \textit{E. coli} genes.  
+For example SerotypeFinder uses BLAST to find the top matches based on sequence similarity to O-antigen processing genes for \textit{in silico} O-typing, and the flagellin genes for H-typing \textit{E. coli} genes.  
 O-type and H-type are transfered from the top matches to the queries provided they are above coverage and percent identity thresholds.
 This general strategy of allele matching is also applied in EcOH database, however, the EcOH can directly use unassembled sequence reads as input. The EcOH tool aligns reads to alleles linked to \textit{E. coli} O-types and H-types, and identifies the top candidates that have an alignment score above pre-defined thresholds.
 Performance testing showed that Phylotyper is more robust than an approach based solely on sequence similarity.
