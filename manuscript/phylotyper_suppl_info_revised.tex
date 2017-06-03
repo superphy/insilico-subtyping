@@ -42,10 +42,9 @@
 
 \section{Supplementary Methods}
 
-
 \subsection{BLAST-based method}
 
-For comparison purposes, we developed a generalized sequence-similarity predictor of subtypes using BLAST. Following \citep{Jenkins2015}, a training set of sequences with annotated subtypes is used to build a BLAST database (the training sets are from the the Phylotyper repository). To predict a subtype, query sequences are searched against the training BLAST database and the top hit is recorded. If the top hit's alignment with the query has at least 60\% coverage with the reference sequence and is above the percent identity cutoff, then the subtype of the top hit is returned as the predicted subtype of the query sequence. The cutoff impacts performance in one of two ways: too low and non-equivalent subtype alleles may be matched with the query (e.g. type I error), too high and valid subtype allele BLAST hits are filtered out (e.g. type II error). To select the ideal cutoff that balances these competing sources of error, a cross-validation simulation was run to estimate false discovery and true positive rates across varying percent identity cutoffs. A 10-fold cross-validation was performed; 10\% of the training set was randomly selected. The remaining 90\% was used to build the reference BLAST database. The 10\% test set was then searched against this database using BLAST and positive and negative results were recorded. This step was repeated 100 times and the F1-score, which is a weighted average of the precision and recall, was calculated. Precision is defined as: 
+For comparison purposes, we developed a generalized sequence-similarity predictor of subtypes using BLAST. A training set of sequences with annotated subtypes is used to build a BLAST database (the training sets are from the the Phylotyper repository). To predict a subtype, query sequences are searched against the training BLAST database and the top hit is recorded. If the top hit's alignment with the query has at least 60\% coverage with the reference sequence and is above the percent identity cutoff, then the subtype of the top hit is returned as the predicted subtype of the query sequence. The cutoff impacts performance in one of two ways: too low and non-equivalent subtype alleles may be matched with the query (i.e. Type-I error), too high and valid subtype allele BLAST hits are filtered out (i.e. Type-II error). To select the ideal cutoff that balances these competing sources of error, a cross-validation simulation was run to estimate false discovery and true positive rates across varying percent identity cutoffs. A 10-fold cross-validation was performed; 10\% of the training set was randomly selected. The remaining 90\% was used to build the reference BLAST database. The 10\% test set was then searched against this database using BLAST and positive and negative results were recorded. This step was repeated 100 times and the F1-score, which is a weighted average of the precision and recall, was calculated. Precision is defined as: 
 
 $Precision = TP / (TP + FP)$
 
@@ -57,20 +56,21 @@ These values are then combined to produce an F-score as follows:
 
 $2 * ( precision * recall ) / ( precision + recall )$
 
-The F-score; a binary classifer metric, was recorded individually for each subtype and then averaged to create a single performance metric for this multi-class predictor.  F-score was computed for increasing percent identities, and the lowest percent identity corresponding to the maximum F-score was selected as the cutoff. The percent identity cutoff was selected as 0.97.
+$TP = True~Positive,~~FP = False~Positive,~~FN = False~Negative$
+
+The F-score; a binary classifier metric, was recorded individually for each subtype and then averaged to create a single performance metric for this multi-class predictor.  F-score was computed for increasing percent identities, and the lowest percent identity corresponding to the maximum F-score was selected as the cutoff. The percent identity cutoff was selected as 0.96.
 
 \subsection{Performance Assessment}
 
-Two separate cross-validation tests were performed to compare the performance of Phylotyper with the BLAST method. The comparison to vtyper is a separate analysis, as vtyper does not use a training set and a cross-validation test would not work in this situation. A leave-one-out cross-validation analysis was performed where each sequence in the training set is withheld and the remaining sequences are used for form the phylogenetic tree for Phylotyper or are used to build the BLAST database for the BLAST-based approach. The predicted result for the test sequence is then compared to the true value.
-
-The second validation iterated over each subtype and removed all genes assigned that subtype from the training set. The removed genes or test set was then used as input to identify the level of false positive predictions that occur when the tools are presented with novel subtypes not in the training set.
-
-Precision, recall and the F-score as defined earlier for a multi-classifier test, were computed for the validations.
+Two separate cross-validation tests were performed to compare the performance of Phylotyper with the BLAST method. The comparison to V-typer is a separate analysis, as V-typer does not use a training set and a cross-validation test would not work in this situation. A leave-one-out cross-validation analysis was performed. For testing Phylotyper, the subtype label of each sequence in the training set was hidden, one at a time and the remaining training set sequences were used to predict the subtype state of the test gene. For the BLAST-based subtype predictor, each gene was removed from the BLAST database and used as a query input. Positive and negative results are recorded for each cross-validation iteration. The second validation iterated over each subtype and removed all genes assigned that subtype from the training set. The removed genes or test set was then used as input to identify the level of false positive predictions that occur when the tools are presented with novel subtypes not in the training set. Precision, recall and the F-score as defined earlier for a multi-classifier test, were computed for the validations.
 
 \subsubsection{V-typer Assessment}
 
-The V-typer tool predicts Stx1 or Stx2 subtypes by simulating PCR (i.e. mapping primers). Due to the unique method in V-typer,  which does not use a training dataset, the cross-validation assessment was adapted to test V-typer. Each experimentally-verified Stx gene sequence that makes up Phylotyper training dataset was searched for against the NCBI nt database to retrieve surrounding sequence that may be involved in the PCR detection by V-typer.  Specifically, regions that have at least 5 kB up- and downstream from the Stx gene were selected for the assessment. V-typer was run on each sequence and the results recorded in supplmentary table XXXX.
+The V-typer tool predicts Stx1 or Stx2 subtypes by simulating PCR (i.e. mapping primers to the genome). Due to the unique method in V-typer, which does not use a training dataset, the cross-validation assessment was not used. Instead, a special test set of Stx1 and Stx2 genes was collected and used to evaluate the performance of V-typer relative to Phylotyper. Each experimentally-verified Stx gene sequence that makes up the Phylotyper training dataset was searched against the NCBI nt database to retrieve surrounding sequence that may be involved in PCR primer mapping by V-typer. Specifically, sequences that have at least 5 kB up- and downstream from the Stx gene were selected for the assessment. V-typer was run on each sequence and the results recorded in Supplementary Table S3.
 
+\subsection{Randomizing Subtype Labels}
+
+The Phylotyper method assumes the reference sequence phylogeny aligns with the subtype distribution. To validate this assumption, an empirically computed F-score is generated for each new subtype scheme (the F-score is computed through a leave-one-out cross-validation test as described in the Performance Assessment section). The F-score indicates the ability of the reference sequence phylogeny to predict the subtype. To test how the F-score is impacted by the level of correlation between the subtype distribution and the subtype sequence phylogeny, we ran a simulation where we randomly assigned subtypes to a select proportion of the reference set sequences. In the simulation, we randomly selected proportions ranging from 10 to 50 percent of the reference set and then randomly assigned the selected sequence a new subtype (so selected subtypes did not match original subtype label). With the modified dataset, F-score was computed through Phylotyper's leave-one-out cross-validation test. For each proportion, 100 iterations were performed and metrics averaged.
 
 \section{Supplementary Figures}
 
@@ -154,6 +154,10 @@ $TP = True~Positive,~~FP = False~Positive,~~FN = False~Negative$
 $^{1}$ Run-time is for an {\it Escherichia coli} genome containing a unique gene which triggers the full phylotyper pipeline.
 
 \end{minipage}
+
+\clearpage
+
+\subsection{Supplementary Table S3}
 
 \begin{minipage}{\linewidth}
 \centering
