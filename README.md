@@ -439,8 +439,21 @@ proposed corrections and written to the output directory.
 
 #### Check 2. The predictive performance is above a minimum threshold
 
-All new subtype schemes are subject to a leave-one-out cross-validation
-analysis. You will be notified if the F1-score (a equally weighted
+All new subtype schemes are subject to a leave-one-out cross-validation analysis that assesses the performance of the given phylogeny to predict the subtype. In the leave-out-out cross-validation simulation, the subtype label of each gene in the training set is removed, one at a time, and the remaining genes in training set are used to predict the subtype of the test gene. Positive and negative results are required and the F1-score, which is a weighted average of the precision and recall, is calculated. Precision is defined as: 
+
+Precision = TP / (TP + FP)
+
+and recall as:
+
+Recall = TP / (TP + FN)
+
+These values are then combined to produce an F-score as follows:
+
+2 * ( precision * recall ) / ( precision + recall )
+
+TP = TruePositive,  FP = False Positive, FN = False Negative
+
+The F-score; a binary classifer metric, was recorded individually for each subtype and then averaged to create a single performance metric for this multi-class predictor. You will be notified if the F1-score (a equally weighted
 average of precision and recall) is below 0.9.
 
 CONTACT
