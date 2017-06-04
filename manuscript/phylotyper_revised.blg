@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2015)
+Capacity: max_strings=150000, hash_size=150000, hash_prime=127507
+The top-level auxiliary file: phylotyper_revised.aux
+The style file: natbib.bst
+Database file #1: phylotyper.bib
+You've used 10 entries,
+            2378 wiz_defined-function locations,
+            612 strings with 6028 characters,
+and the built_in function-call counts, 4759 in all, are:
+= -- 492
+> -- 181
+< -- 10
++ -- 51
+- -- 51
+* -- 458
+:= -- 779
+add.period$ -- 58
+call.type$ -- 10
+change.case$ -- 61
+chr.to.int$ -- 10
+cite$ -- 10
+duplicate$ -- 215
+empty$ -- 341
+format.name$ -- 69
+if$ -- 941
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 10
+newline$ -- 53
+num.names$ -- 40
+pop$ -- 41
+preamble$ -- 1
+purify$ -- 61
+quote$ -- 0
+skip$ -- 136
+stack$ -- 0
+substring$ -- 364
+swap$ -- 48
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 90
+warning$ -- 0
+while$ -- 45
+width$ -- 0
+write$ -- 132

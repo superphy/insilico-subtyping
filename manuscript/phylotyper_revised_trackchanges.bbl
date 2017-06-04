@@ -1,0 +1,62 @@
+\begin{thebibliography}{}
+
+\bibitem[Camacho {\em et~al.}(2009)Camacho {\em et~al.}]{Camacho2009}
+Camacho, C. {\em et~al.} (2009).
+\newblock {BLAST}$+$: architecture and applications.
+\newblock {\em {BMC} Bioinformatics\/}, {\bf 10}(1), 421.
+
+\bibitem[Carrillo {\em et~al.}(2016)Carrillo {\em et~al.}]{CARRILLO2016}
+Carrillo, C.~D. {\em et~al.} (2016).
+\newblock Comparative evaluation of genomic and laboratory approaches for
+  determination of shiga toxin subtypes in escherichia coli.
+\newblock {\em Journal of Food Protection\/}, {\bf 79}(12), 2078--2085.
+
+\bibitem[DebRoy {\em et~al.}(2016)DebRoy {\em et~al.}]{DebRoy2016}
+DebRoy, C. {\em et~al.} (2016).
+\newblock Comparison of o-antigen gene clusters of all o-serogroups of
+  escherichia coli and proposal for adopting a new nomenclature for o-typing.
+\newblock {\em {PLOS} {ONE}\/}, {\bf 11}(1), e0147434.
+
+\bibitem[Ingle {\em et~al.}(2016)Ingle {\em et~al.}]{Ingle2016}
+Ingle, D.~J. {\em et~al.} (2016).
+\newblock In silico serotyping of e. coli from short read data identifies
+  limited novel o-loci but extensive diversity of o:h serotype combinations
+  within and between pathogenic lineages.
+\newblock {\em Microbial Genomics\/}, {\bf 2}(7).
+
+\bibitem[Jenkins(2015)Jenkins]{Jenkins2015}
+Jenkins, C. (2015).
+\newblock Whole-genome sequencing data for serotyping escherichia
+  coli{\textemdash}it{\textquotesingle}s time for a change!
+\newblock {\em Journal of Clinical Microbiology\/}, {\bf 53}(8), 2402--2403.
+
+\bibitem[Joensen {\em et~al.}(2015)Joensen {\em et~al.}]{Joensen2015}
+Joensen, K.~G. {\em et~al.} (2015).
+\newblock Rapid and {EasyIn} {SilicoSerotyping} of escherichia coli isolates by
+  use of whole-genome sequencing data.
+\newblock {\em Journal of Clinical Microbiology\/}, {\bf 53}(8), 2410--2426.
+
+\bibitem[Katoh and Standley(2013)Katoh and Standley]{Katoh2013}
+Katoh, K. and Standley, D.~M. (2013).
+\newblock {MAFFT} multiple sequence alignment software version 7: Improvements
+  in performance and usability.
+\newblock {\em Molecular Biology and Evolution\/}, {\bf 30}(4), 772--780.
+
+\bibitem[Price {\em et~al.}(2010)Price {\em et~al.}]{Price2010}
+Price, M.~N. {\em et~al.} (2010).
+\newblock {FastTree} 2 {\textendash} approximately maximum-likelihood trees for
+  large alignments.
+\newblock {\em {PLoS} {ONE}\/}, {\bf 5}(3), e9490.
+
+\bibitem[Revell(2011)Revell]{Revell2011}
+Revell, L.~J. (2011).
+\newblock phytools: an r package for phylogenetic comparative biology (and
+  other things).
+\newblock {\em Methods in Ecology and Evolution\/}, {\bf 3}(2), 217--223.
+
+\bibitem[Wiedmann(2002)Wiedmann]{Wiedmann2002}
+Wiedmann, M. (2002).
+\newblock {{S}ubtyping of bacterial foodborne pathogens}.
+\newblock {\em Nutr. Rev.}, {\bf 60}(7 Pt 1), 201--208.
+
+\end{thebibliography}
