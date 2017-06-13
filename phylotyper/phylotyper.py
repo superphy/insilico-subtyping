@@ -131,7 +131,7 @@ class Phylotyper(object):
         # Plot pp on the tree
         if plot_name:
             rcode = '''
-            dim = phylotyper$plotDim(tree)
+            dim = phylotyper$plotDim(tree, 'phylogram')
             graphics.off()
             png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']])
             do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
@@ -339,13 +339,3 @@ class Phylotyper(object):
         robjects.r('setwd("%s")' % self.cwd)
 
 
-
-
-        
-
-
-       
-
-
-  
-	

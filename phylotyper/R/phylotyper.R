@@ -448,6 +448,10 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	#   nothing
 	#
 
+	# Setup device
+	margin = 2
+	par(mai=c(1.02,margin,0.82,0.42),xpd=TRUE)
+
 	tree = fit$rerootedTree
 
 	# Save original node assignments in the node.label field
@@ -475,8 +479,11 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 		piecol=cols,
 		cex=0.4)
 	
-	add.simmap.legend(colors=cols,x=0.1*par()$usr[2],
-		y=0.9*par()$usr[4],prompt=FALSE)
+	user.range <- par("usr")[c(2,4)] - par("usr")[c(1,3)]
+	region.pin <- par("pin")[c(2,4)] - par("pin")[c(1,3)]
+	pin.per.xy = region.pin / user.range
+	phylotyper$add.simmap.legend.wide(colors=cols,x=-margin/pin.per.xy[1],
+		y=0.95*par()$usr[4],prompt=FALSE,fsize=1)
 
 }
 
@@ -495,6 +502,7 @@ phylotyper$plotDim <- function(tree, type='fan') {
 	y_scale = 16
 	x_max = 1728
 	y_max = 1728
+	margin = 100
 	res = 72
 
 	# X
@@ -505,7 +513,7 @@ phylotyper$plotDim <- function(tree, type='fan') {
 	if(type != 'fan') {
 		# Y
 		l = length(tree$tip.label)
-		y = l * y_scale
+		y = l * y_scale + margin
 		y = ifelse(y > y_max, y_max, y)
 	} else {
 		y <- x
@@ -514,8 +522,50 @@ phylotyper$plotDim <- function(tree, type='fan') {
 	return(list(x=x,y=y,res=res))
 }
 
+phylotyper$add.simmap.legend.wide<-function(leg=NULL,colors,prompt=TRUE,vertical=TRUE,...){
+	# Adapted from phytools add.simmap.legend written by Liam J. Revell
+	#
+	# Increases size of squares
+
+
+    if(hasArg(shape)) shape<-list(...)$shape
+    else shape<-"square"
+    if(prompt){
+        cat("Click where you want to draw the legend\n")
+        x<-unlist(locator(1))
+        y<-x[2]
+        x<-x[1]
+    } else {
+        if(hasArg(x)) x<-list(...)$x
+        else x<-0
+        if(hasArg(y)) y<-list(...)$y
+        else y<-0
+    }
+    if(hasArg(fsize)) fsize<-list(...)$fsize
+    else fsize<-1.0
+    if(is.null(leg)) leg<-names(colors)
+    h<-fsize*strheight(LETTERS[1])
+    w<-2*par()$mfcol[2]*h*abs(diff(par()$usr[1:2])/diff(par()$usr[3:4]))
+    if(vertical){
+        y<-y-0:(length(leg)-1)*1.5*h
+        x<-rep(x+w/2,length(y))     
+        text(x+w,y,leg,pos=4,cex=fsize/par()$cex)
+    } else {
+        sp<-fsize*max(strwidth(leg))
+        x<-x-w/2+0:(length(leg)-1)*1.5*(sp+w)
+        y<-rep(y+w/2,length(x))
+        text(x,y,leg,pos=4,cex=fsize/par()$cex)
+    }
+    if(shape=="square") symbols(x,y,squares=rep(w,length(x)),bg=colors,add=TRUE,inches=FALSE)
+    else if(shape=="circle") nulo<-mapply(draw.circle,x=x,y=y,col=colors,
+        MoreArgs=list(nv=200,radius=w/2))
+    else stop(paste("shape=\"",shape,"\" is not a recognized option.",sep=""))
+}
+
+
+
 phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("ER","SYM"),fixedQ=NULL) {
-	# Adapted from phytools rerootingMethod
+	# Adapted from phytools rerootingMethod written by Liam J. Revell
 	#
 	# It computes the marginal posterior probabiliyt of a tip in tree by rooting at lowest point
 	# on edge descending to tip. Unlike the original rerootingMethod that this function
