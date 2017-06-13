@@ -43,15 +43,14 @@ Adoption of WGS in public health, however, requires transitioning of historical 
 One of the workhorse methods in public health is subtyping.
 Subtyping methods can broadly be categorized as phenotype-based or DNA-based.
 Phenotype-based subtypes are, for example, interrogated by biochemical tests (biotyping), detection of surface antigens (serotyping) or susceptibility to bacteriophage (phagetyping) \citep{Wiedmann2002}.
-Alternatively, DNA-based subtyping examines and classifies bacteria based on genetic content.
-DNA-based subtypes use a variety of methods from PCR to Pulse Field Gel Electrophoresis to DNA sequencing to assign groups to bacteria \citep{Wiedmann2002}.
+Alternatively, DNA-based subtyping examines and classifies bacteria based on genetic content. DNA-based subtypes use a variety of methods from PCR and Pulse Field Gel Electrophoresis, to DNA sequencing to assign subtype designations to bacterial isolates \citep{Wiedmann2002}.
 As a surveillance tool, subtypes provide a clear cut designation that is typically used to distinguish taxonomic groups and infer phenotypes.
 A WGS-based approach to subtyping would have several benefits over current subtype systems; it would be faster, have improved discrimination and would be cheaper and easier to maintain\citep{Jenkins2015}.
 Accordingly, new \textit{in silico} tools have been developed to predict subtypes from WGS data \citep{Joensen2015,Ingle2016,CARRILLO2016}.
-To predict from WGS data, these tools have targeted subtypes (either Phenotype-based or DNA-based systems) that can be predicted by sequence variation in a specific region or gene in the genome.
+To predict from WGS data, these tools target subtypes (either Phenotype-based or DNA-based systems) that can be predicted by sequence variation in a specific region or gene in the genome.
 \textit{In silico} subtype prediction is not applied to subtyping methods that already directly use the DNA sequence to assign subtype such as Multi-Locus Sequence Typing (MLST). 
 No inference or extrapolation is needed to integrate a direct DNA sequence-based method, like MLST, into a WGS system.
-An example of a subtyping system that has been adapted for WGS is serotyping in \textit{Escherichia coli}.
+An example of a subtyping system that has been adapted for WGS is serotyping of \textit{Escherichia coli}.
 The sequence of O-antigen processing genes in \textit{E. coli} is used to predict O-antigen group serotype in \citep{Joensen2015,Ingle2016}.
 Another example is the Shiga toxin subtype (Stx); a DNA-based subtyping scheme generated using PCR.
 The tool in \citep{CARRILLO2016} predicts Stx subtype by simulating PCR \textit{in silico}.
@@ -108,7 +107,7 @@ The first test checks that the distribution of inter-patristic phylogenetic dist
 This test can identify isolated cases of potentially mislabelled subtype genes that are tightly clustered with other subtypes.
 A second check computes the accuracy measure, F-score, through a leave-one-out cross-validation; a procedure which uses each sequence in the training set as a test input to estimate positive and negative prediction rates (see Supplementary Methods for details).
 The performance metrics: recall and F-score rapidly decrease as the correlation between the training set phylogeny and subtype distribution decreases (Supplementary Figure S2).
-These checks verify that the training set sequences' phylogenetic grouping is predictive of the subtype.
+These checks verify that the phylogenetic grouping provided by the training set is predictive of the subtype.
 There is no check that can confirm the training set covers all subtypes in a particular scheme; Phylotyper can only predict subtypes that are represented in the training set.
 It is important that the user monitor schemes and update it as gaps are identified.
 Phylotyper is designed to return a \texttt{non-significant/undetermined} result when encountering an unknown subtype that has no representative in the training set.
@@ -119,17 +118,17 @@ Phylotyper is a progression from the sequence-similarity approach that is the ba
 To compare Phylotyper to a sequence similarity-based approach, we ran two validations that looked at how both methods perform when confronted with 1) gene sequence or 2) subtype class not present in the training set.
 The first validation was a leave-one-out cross-validation test that iterated through each gene in the training set, retraining the prediction tools on a reduced training set that excludes the selected test gene, and then confirming if the retrained predictor could recover the subtype of the test gene.
 This validation tests how the predictors perform when run on a distinct sequence that is not in the training set.
-The second validation examined how the predictors perform when tested with a gene that has a subtype, not in the reference set.
-In this validation, each subtype was iterated over and all genes that are assigned the subtype were removed from the training set.
+The second validation examined how the predictors perform when tested with a gene that has a subtype not in the reference set.
+In this validation, each subtype was iterated over and all genes that were assigned the subtype were removed from the training set.
 In each iteration, we recorded the number of false-positive subtype assignments when the test sequences were used as input.
 The correct response for the predictors was to return a negative result since the subtype does not exist in the training set.
 For these assessments, we developed a sequence-similarity based tool that assigns putative subtypes using BLAST.
 This generalized BLAST tool, based on the approach used in \citep{Joensen2015}, assigns a query sequence a subtype when the top BLAST match from an annotated reference database is above a pre-selected percent identity and alignment coverage cutoff.
-Details how the assessment was conducted are available in Supplementary methods.
+Details how the assessment was conducted are available in Supplementary Methods.
 The assessment examined the five subtype schemes available in Phylotyper: Stx1, Stx2, Eae, H-type (FliC), O-type (Wzy \& Wzx).
 When tasked with assigning a novel gene sequence not in the training set in the leave-one-out validation, Phylotyper consistently had higher precision than a top-BLAST-hit approach.
 The average precision in Phylotyper was 0.99 versus 0.96 in the top-BLAST-hit approach (Supplementary Table S2).
-The BLAST approach also often had lower recall rates; it had an average recall of 0.81 compared to 0.90 with Phylotyper.
+The BLAST approach also had lower recall rates; it had an average recall of 0.81 compared to 0.90 with Phylotyper.
 Similarly, when entire subtype classes were withheld from the training set, Phylotyper had consistently lower false positive rates for all subtypes schemes tested; the average false positive rate in this test case was 0.11, while in the BLAST approach, the average false positive rate was 0.30.
 A separate assessment for the V-typer tool; a Stx subtype predictor, was run using selected Stx gene sequences from the experimentally-verified Phylotyper training set \citep{CARRILLO2016}.
 The test Stx genes had sufficient surrounding DNA sequence to support \textit{in silico} PCR.
@@ -155,14 +154,14 @@ We plan on expanding the Phylotyper resource by adding and updating high-quality
 We encourage users to contact us with their new subtype schemes or updates to schemes (\url{https://github.com/superphy/insilico-subtyping}).
 
 The main strategy currently in use by other \textit{in silico} tools for predicting subtypes is to use sequence similarity to annotated gene alleles.
-Query genomes or genes are matched to alleles that are attributed the subtype phenotype or are correlated with the distribution of the subtype.
+Query genomes or genes are matched to alleles that attribute the subtype, or that are correlated with the subtype.
 For example, SerotypeFinder uses BLAST to find the top matches based on sequence similarity to O-antigen processing genes for \textit{in silico} O-typing and the flagellin genes for H-typing \textit{E. coli} genes \citep{Jenkins2015}.  
 O-type and H-type are transferred from the top matches to the queries provided they are above coverage and percent identity thresholds.
 This general strategy of allele matching is also applied in the EcOH tool \citep{Ingle2016}, however, the EcOH tool can directly use unassembled sequence reads as input. The EcOH tool aligns reads to alleles linked to \textit{E. coli} O-types and H-types, and identifies the top candidates that have an alignment score above pre-defined thresholds.
 Phylotyper is comparatively more robust as it generates fewer Type-I errors when encountering novel alleles or subtypes not present in the training set.
 With the allele matching strategy, the reference set make-up can have a greater impact on performance.
 When alleles or even subtypes are missing in the reference database, the sequence similarity approach more frequently generates false positive predictions.
-Alternatively, Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences.
+In contrast, Phylotyper computes an empirical model of subtype evolution to predict subtypes for unclassified sequences.
 By estimating the phylogenetic distribution of each subtype, Phylotyper is less likely to make a Type-I error when encountering a novel subtype or allele. 
 The empirical testing we performed demonstrated this behavior; 
 the rate of false positive classifications was significantly lower than in a sequence-similarity approach in validations where we withheld an allele or an entire subtype from the training set and used it as a test input.
@@ -176,12 +175,12 @@ Subtypes are mainly used as a proxy for evolutionarily-related bacterial strain 
 A recent analysis of O-antigen serotypes and their associated O-antigen gene sequences in \textit{E. coli} found that the sequence data indicated several changes to the organization of the O-groups \citep{DebRoy2016}.
 There are potentially other subtype schemes that would show discrepancies between genetic data and subtype grouping.
 A tool that can evaluate the ability of a genotype to predict a subtype would be better equipped for developing the new subtype schemes or updating current schemes for WGS workflows.
-Phylotyper's \texttt{add} pipeline tests subtype schemes for their predictive accuracy by returning an F-score based on a cross-validation assessment.
+The \texttt{add} pipeline in Phylotyper tests subtype schemes for their predictive accuracy by returning an F-score based on a cross-validation assessment.
 The validation verifies that the phylogeny generated by the training set sequences can be used to predict the subtypes with a high level of accuracy.
 We showed in empirical tests that the farther a subtype is dissociated from the input gene's phylogeny, the lower the F-score computed in the Phylotyper \texttt{add} pipeline.
 In addition to this subtype-level verification, Phylotyper also computes confidence scores for each individual prediction that reflect the rate of subtype change occurring at the input gene's phylogenetic locale.
 If an input sequence falls in a region in the phylogenetic tree where the subtype is highly fluid due to evolution or poor subtype-genotype correlation, users would be notified in the confidence score and in the phylogenetic tree visualization output by Phylotyper. 
-Phylotyper's ability to inform users about the level of agreement between the subtype assignments and genotype makes it uniquely capable of transitioning historical subtype data to new whole genome sequence-based systems.\vspace*{-10pt}
+The ability of Phylotyper to inform users about the level of agreement between the subtype assignments and genotype makes it uniquely capable of transitioning historical subtype data to new whole genome sequence-based systems.\vspace*{-10pt}
 
 
 \section*{Funding}
