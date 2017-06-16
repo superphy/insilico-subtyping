@@ -18,8 +18,6 @@ class SequenceManipulationTests(unittest.TestCase):
             inputs.append(os.path.join(self.data_dir, i))
         sequences = concat.load(inputs)[0]
 
-	print sequences
-
         correctlen = [ len(ts) == 3 for ts in sequences['genome1'] ]
        
         self.assertTrue(all([
@@ -46,8 +44,8 @@ class SequenceManipulationTests(unittest.TestCase):
 
         self.assertTrue(all([
             testseq1.seq() == 'ATGCTACGAA',
-            testseq2.seq() == 'ATGGTACGAA',
-            testseq3.seq() == 'ATGCTACGAT',
+            testseq2.seq() == 'ATGCTACGAT',
+            testseq3.seq() == 'ATGGTACGAA',
             testseq4.seq() == 'ATGGTACGAT',
         ]))
 

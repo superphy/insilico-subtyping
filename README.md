@@ -20,6 +20,7 @@ CONTENTS
     1. [Running Phylotyper using built-in subtype scheme](#running-phylotyper-using-built-in-subtype-scheme)
     1. [Built-in subtype schemes](#built-in-subtype-schemes)
     1. [Adding new subtype scheme to Phylotyper](#adding-new-subtype-scheme-to-phylotyper)
+1. [Contributing to Phylotyper]((#contributing-to-phylotyper)
 1. [About Phylotyper](#about-phylotyper)
 1. [Contact](#contact)
 
@@ -291,7 +292,7 @@ To create a new subtype for use in phylotyper:
 4.  `--description` - A help description for the subtype scheme.
 
 If you would like to contribute a subtype scheme to the main repository,
-please contact us.
+please contact me, Matt Whiteside <matthew.whiteside@phac-aspc.gc.ca>.
 
 ### Input Formats for New Pipeline:
 
@@ -312,10 +313,21 @@ The subtype file is a tab-delimited text file containing two colums:
 
 `genome_identifier<\tab>subtype`
 
+
+CONTRIBUTING TO PHYLOTYPER
+========================================
+
+We would welcome any updates, new user subtype schemes or suggestions for new subtype schemes. We will add submitted subtype schemes to the Phylotyper repository. Please contact me at <matthew.whiteside@phac-aspc.gc.ca>.
+
 ABOUT PHYLOTYPER
 ================
 
 ### Ancestral State Reconstruction
+
+Phylotyper employs a Hidden State Prediction (HSP) algorithm to predict subtypes for unannotated strains. HSP itself is an extension of Ancestral State Reconstruction (ASR). These algorithms use phylogenetic models to predict features or properties. ASR estimates properties of ancestral organisms from the properties of the extant descendents in the tree. In contrast, HSP estimates the properties of a limited number of unannotated strains at the tips of the tree. Both methods use an inferred phylogenetic tree built from a reference set of sequences with known subtype. The algorithms calculate subtype states, for ancestors in ASR, or for unannotated tips and ancestors in HSP, that maximizes the likelihood given the observed subtype states in the tips and the estimated model of subtype evolution and phylogeny. In Phylotyper we use the `rerootingMethod` function from the Phytools R package. This function can estimate discrete properties such as subtypes for unknown tip nodes. Internally, `rerootingMethod` uses the ASR method of Yang et al., 2006 which estimates the marginal likelihood of all subtype states at the root of the tree. To estimate tip states for HSP, the Phytools function roots the tree at the unannotated tip and runs the Yang algorithm to calculate, in this case, the empirical baysian estimate of the tip's state.
+
+For more information, see [Zaneveld, J & Thurber R, 2014](http://journal.frontiersin.org/article/10.3389/fmicb.2014.00431) for a general review of HSP and its applications, and the [Phytools manual](https://cran.r-project.org/web/packages/phytools/phytools.pdf) for details on the `rerootingMethod` used in Phylotyper.
+     
 
 ### Steps in the Phylotyper pipeline
 
@@ -459,7 +471,8 @@ average of precision and recall) is below 0.9.
 CONTACT
 =======
 
-Matt Whiteside matthew.whiteside@phac-aspc.gc.ca
+Matt Whiteside <matthew.whiteside@phac-aspc.gc.ca>
+Vic Gannon <vic.gannon@canada.ca>
 
 TODO
 ====
