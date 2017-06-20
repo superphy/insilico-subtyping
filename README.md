@@ -38,7 +38,7 @@ Details [here](#setting-up-phylotyper-config-file).
     `phylotyper genome stx2 example_data/output/ example_data/genome.fasta \`
     `--config yourconfigfile.ini`
 
-See `example_data/output/` for the results. Find the full list of available schemes and their sequence types [here](#built-in-subtype-schemes). Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLTYPER_CONFIG` instead of the `--config` option.
+See `example_data/output/` for the results. Find the full list of available schemes and their sequence types [here](#built-in-subtype-schemes). Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLOTYPER_CONFIG` instead of the `--config` option.
 
 3. Add your own DNA subtype scheme called `myexample`:
 
@@ -49,7 +49,7 @@ See `example_data/output/` for the results. Find the full list of available sche
 
     `PHYLOTYPER_CONFIG=yourconfigfile.ini phylotyper genome myexample example_data/output/ example_data/genome.fasta`
 
-See `example_data/output/` for the results. Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLTYPER_CONFIG` instead of the `--config` option.
+See `example_data/output/` for the results. Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme).
 
 5. Add your own multi-loci amino acid subtype scheme called `myexample2`:
 
