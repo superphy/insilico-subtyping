@@ -42,26 +42,26 @@ See `example_data/output/` for the results. Find the full list of available sche
 
 3. Add your own DNA subtype scheme called `myexample`:
 
-    `phylotyper new myexample phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output/ \`
+    `phylotyper new myexample phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output3/ \`
     `phylotyper/example_data/dna_example_genes.fasta --config yourconfigfile.ini`
 
 4. Use this new DNA subtype scheme to predict subtypes:
 
-    `PHYLOTYPER_CONFIG=yourconfigfile.ini phylotyper genome myexample example_data/output/ example_data/genome.fasta`
+    `PHYLOTYPER_CONFIG=yourconfigfile.ini phylotyper genome myexample example_data/output4/ example_data/genome.fasta`
 
-See `example_data/output/` for the results. Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme).
+See `example_data/output4/` for the results. Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme).
 
 5. Add your own multi-loci amino acid subtype scheme called `myexample2`:
 
-    `phylotyper new myexample2 phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output/ \`
+    `phylotyper new myexample2 phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output5/ \`
     `phylotyper/example_data/aa_example_genes_loci1.fasta phylotyper/example_data/aa_example_genes_loci2.fasta --aa \`
     `--config yourconfigfile.ini`
 
 6. Use this new amino-acid subtype scheme to predict subtypes:
 
-    `phylotyper genome myexample2 example_data/output/ example_data/genome.fasta --config yourconfigfile.ini`
+    `phylotyper genome myexample2 example_data/output6/ example_data/genome.fasta --config yourconfigfile.ini`
 
-See `example_data/output/` for the results.
+See `example_data/output6/` for the results.
 
 INSTALLATION
 ============
