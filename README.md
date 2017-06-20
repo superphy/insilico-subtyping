@@ -27,7 +27,7 @@ CONTENTS
 EXAMPLES
 ========
 
-After [installing](#installation) phylotyper and its dependencies, here is a quick example to demonstrate its usage:
+The following instructions provide a quick demonstration of Phylotypers functions. After [installing](#installation) phylotyper and its dependencies, switch into the Phylotyper source directory (if following the Installation Instructions in this document, this location would be `phylotypervm/src/phylotyper/`).
 
 1. Inform phylotyper of the locations for the dependencies by setting up a [INI config file](https://raw.githubusercontent.com/superphy/insilico-subtyping/master/phylotyper_example.ini)
 
@@ -83,21 +83,16 @@ using python virtual environments:
 
 pip install -e git+https://github.com/superphy/insilico-subtyping.git#egg=Phylotyper
 
--   `mkdir phylotyper; git clone https://github.com/superphy/insilico-subtyping.git phylotyper`.
-    Clone the phylotyper git repository into the directory replacing
-    `phylotyper` with the directory name you want to use for phylotyper.
-    Use this directory in subsequent steps.
--   `virtualenv -p python2.7 phylotyper`. Install virtual environment.
--   `source phylotyper/bin/activate`. Activate the virtual enviroment.
--   `cd phylotyper/`. Move into the phylotyper directory.
--   `python setup.py install`. Install dependencies and create
-    `phylotyper` executable.
+-   `virtualenv -p python2.7 phylotypervm`. Install virtual environment.
+-   `source phylotypervm/bin/activate`. Activate the virtual enviroment.
+-   `pip install -e git+https://github.com/superphy/insilico-subtyping.git#egg=Phylotyper`. Install Phylotyper.
 
 Running tests:
 
 -   After installing external packages, create config file. See section
     [Setting up Phylotyper config
     file](#setting-up-phylotyper-config-file)
+-   `cd phylotypervm/src/phylotyper/`. Move into the phylotyper source directory.
 -   `PHYLOTYPER_CONFIG=/path/to/config/file python setup.py test`. Run
     tests.
 

@@ -25,5 +25,5 @@ setup(name='phylotyper',
     # test_suite = 'nose.collector',
     # tests_require = ['nose']
     setup_requires=['pytest-runner'],
-    test_require = ['pytest']
+    tests_require = ['pytest']
 )
