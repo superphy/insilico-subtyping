@@ -35,15 +35,16 @@ Details [here](#setting-up-phylotyper-config-file).
 
 2. Predict a subtype for one of the amino acid schemes packaged in phylotyper:
 
-    `phylotyper genome stx2 example_data/output/ example_data/genome.fasta \`
-    `--config yourconfigfile.ini`
+    `phylotyper genome stx2 example_data/output/ example_data/genome.fasta --config yourconfigfile.ini`
 
 See `example_data/output/` for the results. Find the full list of available schemes and their sequence types [here](#built-in-subtype-schemes). Details on the results can be found [here](#running-phylotyper-using-built-in-subtype-scheme). Note: the config file can also be specified using the enviromentment variable `PHYLOTYPER_CONFIG` instead of the `--config` option.
 
 3. Add your own DNA subtype scheme called `myexample`:
 
-    `phylotyper new myexample phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output3/ \`
-    `phylotyper/example_data/dna_example_genes.fasta --config yourconfigfile.ini`
+    `phylotyper new myexample example_data/example_subtypes.tsv example_data/output3/ \`
+    `example_data/dna_example_genes.fasta --config yourconfigfile.ini`
+
+Note: that this scheme has a low prediction F1-score. Compare this score to the 2-loci amino acid value in step 5. Using amino acid vs. DNA sequences or multiple vs single loci can alter the performance when the associated phylogenetic tree does better or worse at separating subtypes.
 
 4. Use this new DNA subtype scheme to predict subtypes:
 
@@ -53,8 +54,8 @@ See `example_data/output4/` for the results. Details on the results can be found
 
 5. Add your own multi-loci amino acid subtype scheme called `myexample2`:
 
-    `phylotyper new myexample2 phylotyper/example_data/example_subtypes.tsv phylotyper/example_data/output5/ \`
-    `phylotyper/example_data/aa_example_genes_loci1.fasta phylotyper/example_data/aa_example_genes_loci2.fasta --aa \`
+    `phylotyper new myexample2 example_data/example_subtypes.tsv example_data/output5/ \`
+    `example_data/aa_example_genes_loci1.fasta example_data/aa_example_genes_loci2.fasta --aa \`
     `--config yourconfigfile.ini`
 
 6. Use this new amino-acid subtype scheme to predict subtypes:

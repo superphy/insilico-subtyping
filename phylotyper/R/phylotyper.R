@@ -157,7 +157,7 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	
 	# Install libraries from CRAN
 	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust",
-		"robustbase", "fitdistrplus", "igraph", "ROCR")
+		"fitdistrplus", "igraph", "ROCR")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)

@@ -703,8 +703,8 @@ subtype.diameter <- function(tree, subtypes, p) {
 	same = bdist[bdist$subtype == 'same',]
 	x = same$distance
 
-	# Outlier detection - remove the worst offenders
-	x <- x[!x %in% adjboxStats(x)$out]
+	# Filter out extreme data for fitting
+	x <- x[!x %in% boxplot.stats(x)$out]
 
 	# Try fitting the following models:
 	models <- c('exp','norm')
