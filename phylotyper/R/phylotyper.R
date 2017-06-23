@@ -211,6 +211,8 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 	if(resolve.polytomies) {
 		tree <- multi2di(tree,random=TRUE)
 	}
+	# Replace all zero length edges with a small value
+	tree$edge.length[tree$edge.length == 0] <- 1e-50
 
 	res=list(tree=tree, multif=otree)
 
