@@ -76,8 +76,8 @@ def is_number(val):
         return False
 
 
-def is_string(val):
-    """Checks if value is string
+def is_string_or_null(val):
+    """Checks if value is string or empty
 
     Args:
         val (str)
@@ -86,7 +86,8 @@ def is_string(val):
         bool: True if successful, False otherwise
 
     """
-
+    if val is None:
+        return True
     return isinstance(val, str)
 
 
@@ -125,30 +126,27 @@ class PhylotyperOptions(object):
 
         required = {
             'external': [
-                ('fasttree', which),
-                ('mafft', which),
-                ('trimal', which),
-                ('blastn', which),
-                ('blastx', which),
-                ('makeblastdb', which),
-                ('blastdbcmd', which)
+                ('fasttree', which, 'FastTree'),
+                ('mafft', which, 'mafft'),
+                ('trimal', which, 'trimal'),
+                ('blastn', which, 'blastn'),
+                ('blastx', which, 'blastx'),
+                ('makeblastdb', which, 'makeblastdb'),
+                ('blastdbcmd', which, 'blastdbcmd')
             ],
             'R': [
-                ('lib', is_string),
-                ('repo', is_string),
-                ('rscript', which)
+                ('rscript', which),
+                ('lib', is_string_or_null, None),
+                ('repo', is_string_or_null, None),
             ],
             'phylotyper': [
-                ('prediction_threshold', is_number)
+                ('prediction_threshold', is_number, 0.9)
             ]
         }
 
-        # optional = {
-            
-        # }
-
         config = ConfigParser.ConfigParser()
-        config.read(inifile)
+        if inifile:
+            config.read(inifile)
 
         for section in required.keys():
             # Define dict for section
@@ -158,19 +156,17 @@ class PhylotyperOptions(object):
             for option_set in required[section]:
                 option = option_set[0]
                 validation_func = option_set[1]
+                value = option_set[2]
                 option_name = "%s.%s" % (section,option)
 
-                if not config.has_option(section, option):
-                    raise Exception("Missing option in config file: %s." % option_name)
+                if config.has_option(section, option):
+                    value = config.get(section, option)
 
-                value = config.get(section, option)
-
-                if not validation_func(value):
-                    raise Exception("Invalid option in config file: %s" % option_name)
+                    if not validation_func(value):
+                        raise Exception("Invalid option in config file: %s" % option_name)
 
                 self._options[section][option] = value
                 self._valid_option_names.append(option_name)
-
 
 
     @property

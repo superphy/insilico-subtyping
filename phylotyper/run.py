@@ -606,9 +606,10 @@ def main():
     elif os.environ.get('PHYLOTYPER_CONFIG'):
         config_file = os.environ.get('PHYLOTYPER_CONFIG')
     else:
-        msg = 'Missing config file argument.\nMust provide Phylotyper config file using' \
+        msg = 'No config file argument. Using default settings.\nYou can provide a Phylotyper config file using' \
             ' enviroment variable PHYLOTYPER_CONFIG or command-line argument --config.'
-        raise Exception(msg)
+        logger.info(msg)
+        config_file = None
     config = PhylotyperOptions(config_file)
 
     # Default index location
