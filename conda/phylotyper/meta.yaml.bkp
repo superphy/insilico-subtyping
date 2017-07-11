@@ -1,0 +1,78 @@
+package:
+  name: phylotyper
+  version: "0.1.0"
+
+source:
+  fn: master.zip
+  url: https://github.com/superphy/insilico-subtyping/archive/master.zip
+  # md5: 
+#  patches:
+   # List any patch files here
+   # - fix.patch
+
+build:
+  # noarch: python
+  preserve_egg_dir: True
+  entry_points:
+    # Put any entry points (scripts to be generated automatically) here. The
+    # syntax is module:function.  For example
+    #
+    # - phylotyper = phylotyper:main
+    #
+    # Would create an entry point called phylotyper that calls phylotyper.main()
+
+    - phylotyper = phylotyper.__main__:main
+
+  # If this is a new build for the same version, increment the build
+  # number. If you do not include this key, it defaults to 0.
+  # number: 1
+
+requirements:
+  build:
+    - python
+    - biopython
+    - pyaml
+    - rpy2
+    - setuptools
+
+  run:
+    - python
+    - biopython
+    - pyaml
+    - rpy2
+    - setuptools
+
+test:
+  # Python imports
+  imports:
+    - phylotyper
+    - phylotyper.data
+    - phylotyper.data.download
+    - phylotyper.genome
+    - phylotyper.performance
+    - phylotyper.test
+    - phylotyper.tree
+
+  commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+    - phylotyper --help
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
+  requires:
+    - pytest
+    # Put any additional test requirements here.  For example
+    # - nose
+
+about:
+  home: https://github.com/superphy/insilico-subtyping
+  license: APL 2.0
+  summary: 'Phylogenetic-based prediction of subtypes'
+  license_family: OTHER
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
