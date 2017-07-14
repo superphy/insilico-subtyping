@@ -145,11 +145,12 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 
 	# Install libraries from Bioconductor
 	bioc.libs = c("Biostrings")
-	if(!exists('biocLite')) {
-		source("http://bioconductor.org/biocLite.R")
-	}
+	
 	for(x in bioc.libs) {
 		if (!require(x,character.only = TRUE)) {
+			if(!exists('biocLite')) {
+				source("http://bioconductor.org/biocLite.R")
+			}
 	  		biocLite(x)
 	    	if(!require(x,character.only = TRUE)) stop(paste("Package not loaded: ",x))
 		}
@@ -442,8 +443,10 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	#
 
 	# Setup device
-	margin = 2
-	par(mai=c(1.02,margin,0.82,0.42),xpd=TRUE)
+	#margin = 2
+	#par(mai=c(1.02,margin,0.82,0.42),xpd=TRUE)
+	margin = 10
+	par(xpd=TRUE, mar = par()$mar + c(0,margin,0,0))
 
 	tree = fit$rerootedTree
 
@@ -462,7 +465,7 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 
 	tiplabels(pie=probs[tree$tip.label,],
 		piecol=cols,
-		cex=0.2)
+		cex=0.8)
 
 	original.nodes = tree$node.label[tree$node.label != "Root"]
 	nstates = ncol(fit$conditional.likelihoods)
@@ -470,13 +473,21 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	probs2 = rbind(root.prior, fit$conditional.likelihoods[original.nodes,])
 	nodelabels(pie=phylotyper$piecolors(probs2),
 		piecol=cols,
-		cex=0.4)
+		cex=1.2)
 	
-	user.range <- par("usr")[c(2,4)] - par("usr")[c(1,3)]
-	region.pin <- par("pin")[c(2,4)] - par("pin")[c(1,3)]
-	pin.per.xy = region.pin / user.range
-	phylotyper$add.simmap.legend.wide(colors=cols,x=-margin/pin.per.xy[1],
+	# user.range <- par("usr")[c(2,4)] - par("usr")[c(1,3)]
+	# region.pin <- par("pin")[c(2,4)] - par("pin")[c(1,3)]
+	# pin.per.xy = region.pin / user.range
+	# # phylotyper$add.simmap.legend.wide(colors=cols,x=-margin/pin.per.xy[1],
+	# # 	y=0.95*par()$usr[4],prompt=FALSE,fsize=1)
+
+	lablen = max(nchar(levels(subtypes))) * 0.005 + 0.01
+	lablen = ifelse(lablen > 0.1, 0.1, lablen)
+	lablen = ifelse(lablen < 0.05, 0.05, lablen)
+
+	phylotyper$add.simmap.legend.wide(colors=cols,x=-lablen,
 		y=0.95*par()$usr[4],prompt=FALSE,fsize=1)
+
 
 }
 
@@ -492,22 +503,28 @@ phylotyper$plotDim <- function(tree, type='fan') {
 	#
 
 	x_scale = 3600
+	letter_scale = 5
 	y_scale = 16
 	x_max = 1728
+	x_min = 500
+	y_min = 700
 	y_max = 1728
 	margin = 100
 	res = 72
 
 	# X
 	h = max(nodeHeights(tree))
-	x = h * x_scale
+	labelh = max(sapply(tree$tip.label, nchar))
+	x = h * x_scale + labelh * letter_scale + letter_scale*10
 	x = ifelse(x > x_max, x_max, x)
+	x = ifelse(x < x_min, x_min, x)
 
 	if(type != 'fan') {
 		# Y
 		l = length(tree$tip.label)
 		y = l * y_scale + margin
 		y = ifelse(y > y_max, y_max, y)
+		y = ifelse(y < y_min, y_min, y)
 	} else {
 		y <- x
 	}
