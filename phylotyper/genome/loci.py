@@ -185,7 +185,7 @@ class LociSearch(object):
         try:
             info = check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
         except CalledProcessError as e:
-            msg = "LociSearch failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+            msg = "LociSearch command {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
             raise Exception(msg)
 
         database_header = r'Database: {}'.format(self._db_title)
@@ -205,7 +205,7 @@ class LociSearch(object):
         try:
             lengths = check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
         except CalledProcessError as e:
-            msg = "LociSearch failed: {} (return code: {}).".format(e.output, e.returncode)                                                                                                   
+            msg = "LociSearch command {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
             raise Exception(msg)
 
         self._sequence_lengths = {}

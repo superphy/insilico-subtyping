@@ -135,7 +135,7 @@ class PhylotyperOptions(object):
                 ('blastdbcmd', which, 'blastdbcmd')
             ],
             'R': [
-                ('rscript', which),
+                ('rscript', which, 'Rscript'),
                 ('lib', is_string_or_null, None),
                 ('repo', is_string_or_null, None),
             ],
@@ -162,8 +162,8 @@ class PhylotyperOptions(object):
                 if config.has_option(section, option):
                     value = config.get(section, option)
 
-                    if not validation_func(value):
-                        raise Exception("Invalid option in config file: %s" % option_name)
+                if not validation_func(value):
+                    raise Exception("Invalid option: %s" % option_name)
 
                 self._options[section][option] = value
                 self._valid_option_names.append(option_name)

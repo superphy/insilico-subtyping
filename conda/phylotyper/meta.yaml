@@ -34,14 +34,53 @@ requirements:
     - pyaml
     - rpy2
     - setuptools
+    - pytest
     - pytest-runner
+    - r-base
+    - r-ggplot2
+    - r-optparse
+    - r-fitdistrplus
+    - r-mclust
+    - r-expm
+    - r-ape
+    - r-rocr
+    - r-rcolorbrewer
+    - r-devtools
+    - r-phangorn
+    - r-phytools
+    - r-igraph
+    - bioconductor-biostrings
+    - mafft
+    - blast 2.6.0
+    - fasttree
+    - trimal 
 
   run:
     - python 
-    - biopython
+    - biopython 
     - pyaml
     - rpy2
     - setuptools
+    - pytest
+    - pytest-runner
+    - r
+    - r-ggplot2
+    - r-optparse
+    - r-fitdistrplus
+    - r-mclust
+    - r-ape
+    - r-expm
+    - r-rocr
+    - r-rcolorbrewer
+    - r-devtools
+    - r-phangorn
+    - r-phytools
+    - r-igraph
+    - bioconductor-biostrings
+    - mafft
+    - blast
+    - fasttree
+    - trimal
 
 test:
   # Python imports

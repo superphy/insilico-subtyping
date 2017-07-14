@@ -25,19 +25,18 @@ class SubtypeTests(unittest.TestCase):
 
     def tearDown(self):
         # Remove previous directories created
-        #shutil.rmtree(self.test_dir)
+        shutil.rmtree(self.test_dir)
         pass
 
 
     def init(self, scheme):
 
-        if not os.environ.get('PHYLOTYPER_CONFIG'):
-            msg = 'Missing config file enviroment variable.\nMust provide Phylotyper config file using' \
-                ' enviroment variable PHYLOTYPER_CONFIG for testing'
-            raise Exception(msg)
+        config_file = None
+        if os.environ.get('PHYLOTYPER_CONFIG'):
+            config_file = os.environ.get('PHYLOTYPER_CONFIG')
 
         # Parse .ini config file       
-        config = PhylotyperOptions(os.environ.get('PHYLOTYPER_CONFIG'))
+        config = PhylotyperOptions(config_file)
 
         # Load subtype options
         stConfig = SubtypeConfig(self.yamlfile)

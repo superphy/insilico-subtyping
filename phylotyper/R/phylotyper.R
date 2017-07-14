@@ -157,23 +157,12 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	
 	# Install libraries from CRAN
 	cran.libs = c("devtools", "ape", "phangorn", "RColorBrewer", "ggplot2", "optparse", "mclust",
-		"fitdistrplus", "igraph", "ROCR")
+		"fitdistrplus", "igraph", "ROCR", "phytools", "expm")
 	for(x in cran.libs) {
 		if (!require(x,character.only = TRUE)) {
 	  		install.packages(x,dep=TRUE)
 	  		library(x)
 	    	if(!require(x,character.only = TRUE)) stop(paste("Package not loaded: ",x))
-		}
-	}
-	
-	# Install libraries from Github
-	git.libs = data.frame(lib=c("phytools"), git.path=c("liamrevell/phytools"))
-	for(i in 1:nrow(git.libs)) {
-    	lib = git.libs[i,1]
-   		path = git.libs[i,2]
-    	if (!require(lib, character.only = TRUE)) {
-  			install_github(path)
-    		if(!require(lib, character.only = TRUE)) stop(paste("Package not loaded:",lib))
 		}
 	}
 
@@ -182,6 +171,8 @@ phylotyper$loadInstallLibraries <- function(libloc="~/R/", repo="http://cran.sta
 	source('root.R')
 	# Reload methods that rely on root.R methods
 	source('rerootingMethod.R')
+	# Uses non-buggy version of matrix exponential function expm
+	source('fitMk.R')
 	source('utilities.R')
 }
 
@@ -648,9 +639,23 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 		XX <- YY$lik.anc[1,,drop=FALSE]
 	}
 	rownames(XX)<-tipnames
+
+	# Gets a bit fucky near boundary cases
+	for(i in 1:nrow(XX)) {
+		hmmm <- XX[i,] >= 1
+		if(sum(hmmm) > 1) {
+			stop('fitMk method failed. matexpo method returned negative values')
+		}
+		if(any(hmmm)) {
+			warning('fitMk method returned abnormal values. Rounding posterior probability values...')
+			XX[i, !hmmm] <- 0
+			XX[i, hmmm] <- 1
+		}
+	}
+
 	liks <- YY$lik.anc
 	rownames(liks) <- 1:tt$Nnode+n
-
+	
 	return(list(loglik=YY$logLik,Q=Q,marginal.anc=XX,conditional.likelihoods=liks,rerootedTree=tt,tips=uncertain))
 }
 
