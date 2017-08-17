@@ -193,7 +193,6 @@ def subtype_pipeline(options, config):
     logger.info('Settings:\n%s' % (pprint.pformat(options)))
     logger.info('Config:\n%s' % (config.pformat()))
 
-
     # Predict subtypes
     with open(options['result'], 'w') as resfile:
         assignments = csv.DictWriter(resfile, fieldnames=results_header(), delimiter='\t', quoting=csv.QUOTE_MINIMAL)

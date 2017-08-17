@@ -101,6 +101,25 @@ class Phylotyper(object):
         rcode = 'est.scheme = 5; result = phylotyper$runSubtypeProcedure(tree, priorM, est.scheme, tips=untyped, fixedQ=Q)'
         robjects.r(rcode)
 
+        # Reset anomylous results
+        # Sometimes off target nodes are assigned negative probabilities when target node probability is really high
+        # Not sure why
+        rcode = '''
+        if(any(result$result$conditional.likelihoods < 0)) {
+            warning('subtype procedure returned negative probability values')
+            result$result$conditional.likelihoods[result$result$conditional.likelihoods < 0] <- 0
+        }
+        '''
+        robjects.r(rcode)
+
+        rcode = '''
+        if(any(result$result$marginal.anc < 0)) {
+            warning('subtype procedure returned negative probability values')
+            result$result$marginal.anc[result$result$marginal.anc < 0] <- 0
+        }
+        '''
+        robjects.r(rcode)
+
         # Write subtype predictions
         rcode = '''
         cn = colnames(result$tip.pp);
@@ -109,6 +128,7 @@ class Phylotyper(object):
         predictions = robjects.r(rcode)
         subtype_states = predictions.colnames
         assignments = {}
+        
 
         # Find largest pp
         for genome in untyped:

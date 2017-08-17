@@ -233,7 +233,7 @@ class SubtypeTests(unittest.TestCase):
 
         self.init('wz')
         self.thatgenome()
-
+        
         subtype_pipeline(self.subtype_options, self.configObj)
 
         # Check predictions
