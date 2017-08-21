@@ -469,7 +469,6 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	probs = phylotyper$makePriors(tree, subtypes)$prior.matrix
 	probs[rownames(fit$marginal.anc),] = fit$marginal.anc
 
-
 	plot(tree,label.offset=0.001,cex=0.7,type='phylo',align.tip.label=TRUE,
 		tip.col=cols[subtypes[tree$tip.label]], 
 		main=wrap_strings(paste('Posterior probability and associated subtree conditional likelihoods for tip',fit$tip),
@@ -492,8 +491,8 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 
 	# print(userperinch)
 	
-	legend("bottomleft", inset=c(-0.41/userperinch,0), bty='n', xpd=TRUE,
-		legend=names(cols), fill=cols)
+	# legend("bottomleft", inset=c(-0.41/userperinch,0), bty='n', xpd=TRUE,
+	# 	legend=names(cols), fill=cols)
 
 	par(oldpar)
 }

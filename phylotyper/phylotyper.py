@@ -153,11 +153,12 @@ class Phylotyper(object):
             rcode = '''
             dim = phylotyper$plotDim(tree, 'phylogram')
             graphics.off()
-            png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']])
+            png(filename="%s", width=dim[['x']],height=dim[['y']],res=dim[['res']],units="in")
             do.call(result$plot.function, list(tree=tree, fit=result$result, subtypes=subtypes))
             graphics.off()
             ''' % (plot_name)
             robjects.r(rcode)
+
 
         # Return assignments
         robjects.r('setwd("%s")' % self.cwd)
