@@ -27,9 +27,9 @@ CONTENTS
 EXAMPLES
 ========
 
-The following instructions provide a quick demonstration of Phylotypers functions. After [installing](#installation) phylotyper and its dependencies, switch into the Phylotyper source directory (if following the Installation Instructions in this document, this location would be `phylotypervm/src/phylotyper/`).
+The following instructions provide a quick demonstration of Phylotypers functions. After [installing](#installation) phylotyper and its dependencies, switch into the Phylotyper source directory (if following the Installation Instructions for pip in this document, this location would be `phylotypervm/src/phylotyper/`).
 
-1. Inform phylotyper of the locations for the dependencies by setting up a [INI config file](https://raw.githubusercontent.com/superphy/insilico-subtyping/master/phylotyper_example.ini)
+1. Inform phylotyper of the locations for non-default dependencies by setting up a [INI config file](https://raw.githubusercontent.com/superphy/insilico-subtyping/master/phylotyper_example.ini)
 
 Details [here](#setting-up-phylotyper-config-file).
 
@@ -79,23 +79,30 @@ Phylotyper requires the following external programs:
     ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
 5.  R (tested with version 3.3.2) - https://cran.r-project.org/
 
-Phylotyper was built and tested with python 2.7. To install Phylotyper
-using python virtual environments:
+Phylotyper was built and tested with python 2.7. 
 
-pip install -e git+https://github.com/superphy/insilico-subtyping.git#egg=Phylotyper
+There are two ways to install Phylotyper 1) with pip, external programs are installed by user or 2) with conda and all external programs are automatically installed via conda
+
+1. To install Phylotyper using pip in a python virtual environment:
 
 -   `virtualenv -p python2.7 phylotypervm`. Install virtual environment.
 -   `source phylotypervm/bin/activate`. Activate the virtual enviroment.
 -   `pip install -e git+https://github.com/superphy/insilico-subtyping.git#egg=Phylotyper`. Install Phylotyper.
+-   If external programs are not available in the Linux search path, they need to be defined using a config file.  See section
+    [Setting up Phylotyper config file](#setting-up-phylotyper-config-file)
 
 Running tests:
 
--   After installing external packages, create config file. See section
-    [Setting up Phylotyper config
-    file](#setting-up-phylotyper-config-file)
 -   `cd phylotypervm/src/phylotyper/`. Move into the phylotyper source directory.
 -   `PHYLOTYPER_CONFIG=/path/to/config/file python setup.py test`. Run
     tests.
+
+2. To install Phylotyper and external programs in a conda environment:
+
+-    `conda create --name phylotyper`. Create environment.
+-    `source activate phylotyper`. Activate environment.
+-    `conda install -c mdwhitesi phylotyper`. Install Phylotyper and dependencies in environment.
+
 
 RUNNING PHYLOTYPER
 ==================
@@ -104,8 +111,10 @@ Setting up Phylotyper config file
 ---------------------------------
 
 Phylotyper has user-defined settings and also requires several external
-programs. These are provided to Phylotyper through a INI-config file.
-The config file must contain the following settings:
+programs. If external programs are not available in the Linux search path, the location of the
+executable can be provided to Phylotyper through a INI-config file.
+Also if you wish to override the default for probability cutoff of 0.9 for assigning subtypes, you can do this in the config file.
+The config file can contain the following settings:
 
 ~~~~ {include="phylotyper_example.ini"}
 ; Sample Phylotyper config file

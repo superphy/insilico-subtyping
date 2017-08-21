@@ -1,0 +1,12 @@
+# Conda notes
+
+# Remove local build tarballs
+conda build purge-all
+conda clean --all
+
+# Install from local tarball
+conda install --use-local phylotyper
+
+# Push up to Anaconda repo
+anaconda upload /home/matt/anaconda3/conda-bld/linux-64/phylotyper-0.1.0-py27r332hefc3a68_0.tar.bz2
+
