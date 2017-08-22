@@ -91,12 +91,6 @@ There are two ways to install Phylotyper 1) with pip, external programs are inst
 -   If external programs are not available in the Linux search path, they need to be defined using a config file.  See section
     [Setting up Phylotyper config file](#setting-up-phylotyper-config-file)
 
-Running tests:
-
--   `cd phylotypervm/src/phylotyper/`. Move into the phylotyper source directory.
--   `PHYLOTYPER_CONFIG=/path/to/config/file python setup.py test`. Run
-    tests.
-
 2. To install Phylotyper and external programs in a conda environment:
 
 -    `conda create --name phylotyper`. Create environment.

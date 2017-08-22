@@ -479,7 +479,7 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 
 	tiplabels(pie=probs[tree$tip.label,],
 		piecol=cols,
-		cex= 3/userperinch)
+		cex = 3/userperinch)
 
 	original.nodes = tree$node.label[tree$node.label != "Root"]
 	nstates = ncol(fit$conditional.likelihoods)
@@ -487,12 +487,12 @@ phylotyper$plotTPP <- function(fit, tree, subtypes) {
 	probs2 = rbind(root.prior, fit$conditional.likelihoods[original.nodes,])
 	nodelabels(pie=phylotyper$piecolors(probs2),
 		piecol=cols,
-		cex= 4.5/userperinch)
+		cex = 4.5/userperinch)
 
 	# print(userperinch)
-	
-	# legend("bottomleft", inset=c(-0.41/userperinch,0), bty='n', xpd=TRUE,
-	# 	legend=names(cols), fill=cols)
+
+	legend( grconvertX(0, from='npc'), grconvertY(0, from='npc'), yjust=0, xjust=1, 
+		legend=names(cols), fill=cols, bty='n', xpd=TRUE)
 
 	par(oldpar)
 }
