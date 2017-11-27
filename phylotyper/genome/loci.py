@@ -404,7 +404,7 @@ class LociSearch(object):
             mx = len(starts)
             while s < (mx-1):
                 # Find the next non-overlapping in the list 
-                l = [i for i in range(s+1,mx) if starts[i][1] > starts[s][1]]
+                l = [i for i in range(s+1,mx) if starts[i][0] > starts[s][1]]
                 if l:
                     s = l[0]
                     addr = self.locad(q, starts[s][0], starts[s][1])

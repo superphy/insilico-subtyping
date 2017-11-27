@@ -102,8 +102,6 @@ class SeqAligner(object):
         cmd_args = self.aligner_args
         cmd = "{} {} {} > {}".format(self.aligner, cmd_args, fasta_file, alignment_file)
 
-        #print cmd
-
         try:
             check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
         except CalledProcessError as e:
@@ -124,7 +122,6 @@ class SeqAligner(object):
             None
 
         """
-
         cmd_args = self.aligner_add_args
         cmd = "{} {} {} {} > {}".format(self.aligner, cmd_args, fasta_file, existing_alignment_file, 
             output_alignment_file)

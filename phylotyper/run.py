@@ -73,7 +73,6 @@ def align_new_sequences(inputs, alignments, trim_summary, output, config):
     """
 
     logger.debug('Aligning genes to existing alignment')
-
     aln = SeqAligner(config)
     aln.madd(inputs, alignments, output)
     aln.trim(output, output, trimming_summary_file=trim_summary)
