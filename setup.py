@@ -15,7 +15,7 @@ setup(name='phylotyper',
     install_requires=[
         'biopython',
         'pyyaml',
-        'rpy2',
+        'rpy2<=2.8',
         'setuptools',
     ],
     install_package_data = True,
