@@ -1,6 +1,6 @@
 package:
   name: phylotyper
-  version: "0.1.1"
+  version: "0.1.2"
 
 source:
   fn: master.zip
@@ -30,12 +30,12 @@ build:
 requirements:
   build:
     - python 
-    - biopython 
-    - pyaml
+    - biopython
     - rpy2
     - setuptools
     - pytest
     - pytest-runner
+    - pyaml
     - r-base
     - r-ggplot2
     - r-optparse
@@ -58,11 +58,11 @@ requirements:
   run:
     - python 
     - biopython 
-    - pyaml
     - rpy2
     - setuptools
     - pytest
     - pytest-runner
+    - pyaml
     - r
     - r-ggplot2
     - r-optparse
