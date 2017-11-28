@@ -35,7 +35,7 @@ requirements:
     - setuptools
     - pytest
     - pytest-runner
-    - pyaml
+    - pyyaml
     - r-base
     - r-ggplot2
     - r-optparse
@@ -62,7 +62,7 @@ requirements:
     - setuptools
     - pytest
     - pytest-runner
-    - pyaml
+    - pyyaml
     - r
     - r-ggplot2
     - r-optparse
@@ -103,7 +103,7 @@ test:
   # at test time.
 
   requires:
-    - pytest
+    # - pytest
     # Put any additional test requirements here.  For example
     # - nose
 
