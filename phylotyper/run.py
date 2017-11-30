@@ -359,6 +359,99 @@ def build_pipeline(options, config):
     evaluate_subtypes(options, config, seqdict)
 
 
+def loci_pipeline(options, config):
+    """Find gene alleles
+
+    Using BLAST, find subtyping alleles in input genomes,
+    for a given subtype scheme.
+
+    No subtype prediction is preformed.
+
+    Args:
+        options (dict): user defined settings from __main__
+        config (obj): PhylotyperConfig with .ini file settings
+
+    """
+
+    # Define files
+    locifiles = []
+    for i in xrange(options['nloci']):
+        file_name = os.path.join(options['output_directory'], 'search_results.locus{}'.format(i))
+        locifiles.append( file_name )
+        # Overwrite existing files
+        try:
+            os.remove(file_name)
+        except OSError:
+            pass
+            
+    options['input'] = locifiles
+
+    logger.info('Settings:\n%s' % (pprint.pformat(options)))
+    logger.info('Config:\n%s' % (config.pformat()))
+
+    # Predict subtypes
+    with open(options['result'], 'w') as resfile:
+        assignments = csv.DictWriter(resfile, fieldnames=results_header(), delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+        assignments.writeheader()
+
+        loci_found = 0
+        
+        # Identify loci in input genomes
+        seqtype = 'prot' if options['seq'] == 'aa' else 'nucl'
+        detector = LociSearch(config, options['search_database'], None, seqtype, options['nloci'])
+
+        for genome in options['genomes']:
+            genome_label, nhits = detector.search(genome, options['input'], append=True)
+
+            if nhits == 0:
+                assignments.writerow({
+                    'genome': genome_label,
+                    'tree_label': 'not applicable',
+                    'subtype': 'not applicable',
+                    'probability': 'not applicable',
+                    'phylotyper_assignment': 'Subtype loci not found in genome',
+                    'loci': 'not applicable'
+                })
+            else:
+                loci_found += nhits
+              
+
+        # Check if sequences match known subtyped sequences
+        remaining = []
+        if loci_found > 0:
+            remaining = identical_sequences(options, assignments)
+
+        for genome in remaining:
+            allele = 1
+            filename = genome.replace('|','_')
+
+            for alleleset in remaining[genome]:
+
+                loci = 1
+                tree_label = "{}-allele{}".format(genome,allele)
+                
+                # Only one gene, don't need to distinguish alleles
+                if len(remaining[genome]) == 1:
+                    tree_label = genome
+
+                for s in alleleset.seqlist():
+                    infile = os.path.join(options['output_directory'], "{}_loci{}.fasta".format(filename, loci))
+                    loci += 1
+                    with open(infile, 'a') as outfh:
+                        outfh.write('>{}\n{}\n'.format(tree_label, s))
+                   
+                assignments.writerow({
+                    'genome': genome,
+                    'tree_label': 'not applicable',
+                    'subtype': 'not applicable',
+                    'probability': 'not applicable',
+                    'phylotyper_assignment': 'not applicable',
+                    'loci': alleleset.iddump()
+                })
+                  
+                allele += 1
+
+
 def identical_sequences(options, identified):
     """Looks for exact matches
 
@@ -577,6 +670,15 @@ def main():
     genome_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     genome_parser.set_defaults(which='genome')
 
+    # Builtin loci-finder command with genome as input
+    loci_parser = subparsers.add_parser('loci', help='Find gene loci for scheme provided in phylotyper for genome input')
+    loci_parser.add_argument('gene', action='store', help='Subtype gene name')
+    loci_parser.add_argument('output', action='store', help='Directory for loci outputs')
+    loci_parser.add_argument('inputs', nargs='+', help='Fasta input for genomes')
+    loci_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
+    loci_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    loci_parser.set_defaults(which='genome')
+
     # Builtin subtype command with gene as input
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
     # INCOMPLETE
@@ -731,6 +833,37 @@ def main():
 
         # Run pipeline
         subtype_pipeline(subtype_options, config)
+
+    elif options.which == 'loci':
+        # Find subtype loci for builtin scheme
+
+        # Genome input
+
+        # Check arguments
+
+        # Check input file exists
+        n_genomes = 0
+        for f in options.inputs:
+            if not os.path.isfile(f):
+                msg = 'Invalid/missing input file argument.'
+                raise Exception(msg)
+            n_genomes += 1
+
+        # Check output directory exists, if not create it if possible
+        if not os.path.exists(options.output):
+            os.makedirs(options.output)
+
+        # Load requested subtype data files
+        scheme = options.gene
+        loci_options = stConfig.get_subtype_config(scheme)
+
+        # Add pipeline options
+        loci_options['genomes'] = [os.path.abspath(f) for f in options.inputs]
+        loci_options['output_directory'] = os.path.abspath(options.output)
+        loci_options['ngenomes'] = n_genomes
+
+        # Run pipeline
+        loci_pipeline(subtype_options, config)
 
     elif options.which == 'list':
 

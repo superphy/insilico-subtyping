@@ -1,5 +1,8 @@
 # Conda notes
 
+# Init env
+conda create --name ptbuilder python=2.7 R=3.3.2 numpy=1.13
+
 # Remove local build tarballs
 conda build purge-all
 conda clean --all
@@ -9,4 +12,6 @@ conda install --use-local phylotyper
 
 # Push up to Anaconda repo
 anaconda upload /home/matt/anaconda3/conda-bld/linux-64/phylotyper-0.1.0-py27r332hefc3a68_0.tar.bz2
+
+anaconda upload /home/matt/anaconda3/conda-bld/linux-64/phylotyper-0.1.2-py27r332h08832ce_0.tar.bz2
 

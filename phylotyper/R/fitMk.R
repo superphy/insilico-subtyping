@@ -72,7 +72,6 @@ fitMk<-function(tree,x,model="SYM",fixedQ=NULL,use.eigen=FALSE,use.expm=FALSE,..
 	pw<-reorder(tree,"pruningwise")
 
 	if (use.eigen) {
-		print("GOING IN")
         lik<-function(pp,output.liks=FALSE,pi) {
             if(any(is.nan(pp))||any(is.infinite(pp))) return(1e50)
 			comp<-vector(length=N+M,mode="numeric")
@@ -119,14 +118,20 @@ fitMk<-function(tree,x,model="SYM",fixedQ=NULL,use.eigen=FALSE,use.expm=FALSE,..
 			diag(Q)<--rowSums(Q)
 			parents<-unique(pw$edge[,1])
 			root<-min(parents)
+			
 			for(i in 1:length(parents)){
 				anc<-parents[i]
 				ii<-which(pw$edge[,1]==parents[i])
 				desc<-pw$edge[ii,2]
 				el<-pw$edge.length[ii]
 				v<-vector(length=length(desc),mode="list")
-				for(j in 1:length(v))
+				for(j in 1:length(v)) {
+					if(any(E(Q*el[j]) < 0)){
+						print('Negative likelihood!')
+						print(el[j])
+					}
 					v[[j]]<-E(Q*el[j])%*%liks[desc[j],]
+				}
 				vv<-if(anc==root) Reduce('*',v)[,1]*pi else Reduce('*',v)[,1]
 				comp[anc]<-sum(vv)
 				liks[anc,]<-vv/comp[anc]
@@ -142,7 +147,7 @@ fitMk<-function(tree,x,model="SYM",fixedQ=NULL,use.eigen=FALSE,use.expm=FALSE,..
 		if(opt.method=="optim")
 			fit<-optim(q.init,function(p) lik(p,pi=pi),method="L-BFGS-B",lower=rep(min.q,k))
 		else	
-			fit<-nlminb(q.init,function(p) lik(p,pi=pi),lower=rep(0,k),upper=rep(1e50,k))
+			fit<-nlminb(q.init,function(p) lik(p,pi=pi),lower=rep(0,k),upper=rep(1e6,k))
 		obj<-list(logLik=
 			if(opt.method=="optim") -fit$value else -fit$objective,
 			rates=fit$par,

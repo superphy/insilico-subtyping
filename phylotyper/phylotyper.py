@@ -286,7 +286,7 @@ class Phylotyper(object):
         
         if(nsubs > 10) {
 
-            if(nsubs < 150) {
+            if(nsubs < 40) {
                 rs = transition.rate.parameters(tree, subtypes)
                 models[['iterative_binning']] = rs$model
             }

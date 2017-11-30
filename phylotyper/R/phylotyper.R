@@ -204,7 +204,7 @@ phylotyper$loadSubtype <- function(treefile, stfile=NULL, do.root=TRUE, resolve.
 		tree <- multi2di(tree,random=TRUE)
 	}
 	# Replace all zero length edges with a small value
-	tree$edge.length[tree$edge.length == 0] <- 1e-50
+	tree$edge.length[tree$edge.length < 1e-7] <- 1e-7
 
 	res=list(tree=tree, multif=otree)
 
@@ -593,20 +593,20 @@ phylotyper$tip.posterior.probability <- function(tree,priorM,uncertain,model=c("
 	tt <- reroot(tree,nn1,tree$edge.length[which(tree$edge[,2]==nn1)])
 
 	if(is.null(fixedQ)) {
-		YY<-fitMk(tt,yy,model=model,output.liks=TRUE)
+		YY<-fitMk(tt,yy,model=model,output.liks=TRUE,use.expm=TRUE)
 		Q <- phylotyper$makeQ(YY)
 	} else {
 		if(!is.matrix(fixedQ)){ 
 			stop("fixedQ should be a matrix")
 		}
 		Q <- fixedQ
-		YY<-fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)
+		YY<-fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE,use.expm=TRUE)
 	}
 	
 	# Repeat for remaining tips
 	ff<-function(nn){
 		tt <- reroot(tree,nn,tree$edge.length[which(tree$edge[,2]==nn)])
-		res = fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE)
+		res = fitMk(tt,yy,model=model,fixedQ=Q,output.liks=TRUE,use.expm=TRUE)
 		#print(paste('tip node:',nn))
 		res$lik.anc[1,]
 	}

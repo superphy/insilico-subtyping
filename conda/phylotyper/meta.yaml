@@ -31,7 +31,7 @@ requirements:
   build:
     - python 
     - biopython
-    - rpy2
+    - rpy2 <=2.8
     - setuptools
     - pytest
     - pytest-runner
@@ -58,7 +58,7 @@ requirements:
   run:
     - python 
     - biopython 
-    - rpy2
+    - rpy2 <=2.8
     - setuptools
     - pytest
     - pytest-runner

@@ -109,11 +109,12 @@ class LociSearch(object):
             'entry': 'all'
         }
 
+        self._blastlengthsfile = database + '.lengths'
+
         self._makeblastdb_exe = config.get('external', 'makeblastdb')
         blastexe = 'blastn' if self.seqtype == 'nucl' else 'blastx'
         self._blast_exe = config.get('external', blastexe)
         self._blastdbcmd_exe = config.get('external', 'blastdbcmd')
-
 
         if inputs:
             if len(inputs) != n_loci:
@@ -136,7 +137,7 @@ class LociSearch(object):
         """
 
         # Create naming system that identifies loci sets in the database
-        with tempfile.NamedTemporaryFile() as tmpfh:
+        with tempfile.NamedTemporaryFile() as tmpfh, open(self._blastlengthsfile, 'w') as outfh:
 
             # Assign a loci set identifier
             loci_id = 1
@@ -144,7 +145,9 @@ class LociSearch(object):
                 fasta = SeqIO.parse(ff, 'fasta')
                 for record in fasta:
                     newheader = '{}{}|{}'.format(self._db_prefix, loci_id, record.description)
-                    tmpfh.write(">{}\n{}\n".format(newheader, record.seq))
+                    fastaseq = ">{}\n{}\n".format(newheader, record.seq)
+                    tmpfh.write(fastaseq)
+                    outfh.write("{}\t{}\n".format(newheader, len(record)))
 
                 loci_id += 1
 
@@ -196,26 +199,34 @@ class LociSearch(object):
             self.logger.debug('Verified Phylotyper Blast database')
 
         # Load subject lengths
-        opts = self._blastdbcmd_options2
-        cmd = "{blastcmd} -db {db} -entry {entry} -outfmt \"{outfmt}\"".format(blastcmd=self._blastdbcmd_exe, **opts)
-
-        self.logger.debug('Loading sequence lengths')
-        self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
-
-        try:
-            lengths = check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
-        except CalledProcessError as e:
-            msg = "LociSearch command {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
-            raise Exception(msg)
-
         self._sequence_lengths = {}
-        for line in lengths.splitlines():
-            [desc, length] = line.split('\t',2)
-            
-            if not re.match(r'^{}'.format(self._db_prefix), desc):
-                raise Exception('Improperly formatted sequence title in database: {}'.format(desc))
+        with open(self._blastlengthsfile, 'r') as infh:
+            for line in infh:
+                [desc, length] = line.split('\t',2)
+                if not re.match(r'^{}'.format(self._db_prefix), desc):
+                    raise Exception('Improperly formatted sequence title in database: {}'.format(desc))
+                self._sequence_lengths[desc] = int(length)
 
-            self._sequence_lengths[desc] = int(length)
+        # opts = self._blastdbcmd_options2
+        # cmd = "{blastcmd} -db {db} -entry {entry} -outfmt \"{outfmt}\"".format(blastcmd=self._blastdbcmd_exe, **opts)
+
+        # self.logger.debug('Loading sequence lengths')
+        # self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
+
+        # try:
+        #     lengths = check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+        # except CalledProcessError as e:
+        #     msg = "LociSearch command {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
+        #     raise Exception(msg)
+
+        # self._sequence_lengths = {}
+        # for line in lengths.splitlines():
+        #     [desc, length] = line.split('\t',2)
+            
+        #     if not re.match(r'^{}'.format(self._db_prefix), desc):
+        #         raise Exception('Improperly formatted sequence title in database: {}'.format(desc))
+
+        #     self._sequence_lengths[desc] = int(length)
 
         None
 

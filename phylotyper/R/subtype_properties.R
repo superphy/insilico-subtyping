@@ -33,39 +33,16 @@ branchDistances <- function(tree, subtypes=NULL, plot.name=NULL) {
 	do.subtypes = !is.null(subtypes)
 
 	d = cophenetic(tree)
-	tips = tree$tip.label
-	pairs = combn(tips,2)
+	df = as.data.frame.table(d)
 
-	nr = 3
 	rn = c('t1','t2','distance')
+	colnames(df) = rn
+
 	if(do.subtypes) {
-		nr <- 4
-		rn <- c(rn, 'subtype')
-	}
-	df = matrix(ncol=ncol(pairs),nrow=nr)
-	rownames(df) = rn
-	
-
-	for(c in 1:ncol(pairs)) {
-		pair = pairs[,c]
-
-		a = pair[1]
-		b = pair[2]
-
-		df[1:3,c] = c(a,b,d[a,b])
-
-		if(do.subtypes) {
-			if(subtypes[a] == subtypes[b]) {
-				df[4,c] = 'same'
-			}
-			else {
-				df[4,c] = 'diff'
-			}
-		}
+		df$same.subtype = subtypes[df[,'t1']] == subtypes[df[,'t2']]
 	}
 
 	# Plot with density and rug
-	df = data.frame(t(df), stringsAsFactors=FALSE)
 	df$distance = as.numeric(df$distance)
 	if(!is.null(plot.name)) {
 		if(do.subtypes) {
@@ -331,7 +308,7 @@ lineup <- function(pdist, tree, subtypes, Q=NULL) {
 #
 
 	if(is.null(Q)) {
-		fit <- fitMk(tree, subtypes, model='SYM', tips=FALSE)
+		fit <- fitMk(tree, subtypes, model='SYM', use.expm=TRUE)
 		Q <- matrix(c(0,fit$rates)[fit$index.matrix+1],length(fit$states),
 			length(fit$states),dimnames=list(fit$states,fit$states))
 		diag(Q)<--colSums(Q,na.rm=TRUE)
@@ -362,82 +339,15 @@ lineup <- function(pdist, tree, subtypes, Q=NULL) {
 mppd <- function(pdist, subtypes) {
 	# Get median patristic distances
 
-	states <- sort(levels(subtypes))
-	n <- length(states)
-	state.groups <- split(names(subtypes), subtypes)
-	state.pairs <- combn(states,2)
-	keyfunc <- function(t1,t2) {
-		paste( sort(c(t1,t2)), collapse='__')
-	} 
-	pdist$key <- apply(pdist, 1, function(r) { keyfunc(r['t1'],r['t2']) })
-	mppd = matrix(NA, nrow=n, ncol=n)
-	rownames(mppd) = colnames(mppd) = states
+	pdist$s1 = subtypes[pdist$t1]
+	pdist$s2 = subtypes[pdist$t2]
+	medpat = aggregate(pdist$distance, by=list(s1=pdist$s1,s2=pdist$s2), FUN=median)
 
-	# Compute median pairwise patristic distance between state subtrees
-	for(i in 1:ncol(state.pairs)) {
-		st <- sort(state.pairs[,i])
+	n = length(levels(subtypes))
+	mpd = matrix(medpat$x,n,n,byrow=TRUE)
+	colnames(mpd) = rownames(mpd) = medpat$s1[1:n]
 
-		grp1 <- state.groups[[st[1]]]
-		grp2 <- state.groups[[st[2]]]
-
-		patdist <- array(NA, dim=length(grp1)*length(grp2))
-		j <- 1
-
-		for(g1 in grp1) {
-			for(g2 in grp2) {
-				k <- keyfunc(g1,g2)
-				if(k %in% pdist$key) {
-					patdist[j] <- pdist$distance[pdist$key == k]
-					j <- j + 1
-				} else {
-					stop(paste('patristic distance not found for inter-leaf pair: ',g1,', ',g2,sep=''))
-				}
-
-			}
-		}
-
-		med <- median(patdist)
-		mppd[st[1],st[2]] <- med
-	}
-
-	# Compute median pairwise patristic distance within each subtype
-	for(i in 1:n) {
-
-		st <- states[i]
-		grp <- state.groups[[st]]
-		ng <- length(grp)
-
-		if(ng == 1) {
-			mppd[st,st] <- NA
-
-		} else {
-			l <- ng*(ng-1)/2
-			patdist <- array(NA, dim=l)
-			j <- 1
-
-			for(p in 1:(ng-1)) {
-				for(q in (p+1):ng) {
-					g1 <- grp[p]
-					g2 <- grp[q]
-				
-					k <- keyfunc(g1,g2)
-					if(k %in% pdist$key) {
-						patdist[j] <- pdist$distance[pdist$key == k]
-						j <- j + 1
-					} else {
-						stop(paste('patristic distance not found for intra-leaf pair: ',g1,', ',g2,sep=''))
-					}
-				}
-			}
-
-			med <- median(patdist)
-			mppd[st,st] <- med
-		}
-	}
-
-	mppd[lower.tri(mppd)] <- t(mppd)[lower.tri(mppd)]
-
-	return(mppd)
+	return(mpd)
 }
 
 transitions <- function(tree, subtypes, plot.name=NULL) {
@@ -587,7 +497,7 @@ transition.rate.parameters <- function(tree, subtypes, zero=TRUE, nbins=3:12) {
 		s1 <- state.pairs[1,i]
 		s2 <- state.pairs[2,i]
 		model.params <- isolate.rate(states, s1, s2)
-		fit <- fitMk(tree, subtypes, model=model.params)
+		fit <- fitMk(tree, subtypes, model=model.params, use.expm=TRUE)
 		rate <- fit$rates[2]
 
 		k <- paste(c(s1, s2), collapse='__')
@@ -631,15 +541,18 @@ transition.rate.parameters2 <- function(tree, subtypes) {
 	mppds <- mppd(bdist, subtypes)
 	intermppds <- mppds[lower.tri(mppds)]
 
-	# Set all pairs in lower quantiles as free parameter
-	# Leave pairs in higher quantiles as same parameter
-	cutoffs <- quantile(intermppds, c(.25,.75))
-	clusters <- rep(1, length(intermppds))
-	clusters[intermppds >= cutoffs[2]] <- 2
-	nfree <- sum(intermppds < cutoffs[1])
-	#clusters[intermppds < cutoffs[1]] <- 3:(nfree+2)
-	clusters[intermppds < cutoffs[1]] <- 3
+	# Assign free parameters to each quartile of "stretched" distribution of distances
+	# The stretching transformation assigns a free parameter to a smaller range at the lowest distances
+	cutoffs <- quantile(intermppds^1.5, c(.25,.5,.75))
+	cutoffs <- c(0, cutoffs, max(intermppds))
+	clusters <- cut(intermppds, cutoffs, include.lowest=TRUE)
 
+	i = 1
+	for(l in levels(clusters)) {
+		levels(clusters)[levels(clusters)==l] <- i
+		i <- i+1
+	}
+	
 	qp[lower.tri(qp)] = clusters
 
 	qp[upper.tri(qp)] = t(qp)[upper.tri(qp)]
@@ -700,7 +613,7 @@ subtype.diameter <- function(tree, subtypes, p) {
 	bdist = branchDistances(tree, subtypes, plot.name=NULL)
 
 	# Isolate distances for genomes in same subtype
-	same = bdist[bdist$subtype == 'same',]
+	same = bdist[bdist$same.subtype,]
 	x = same$distance
 
 	# Filter out extreme data for fitting
