@@ -373,6 +373,8 @@ def loci_pipeline(options, config):
 
     """
 
+    options['result'] = os.path.join(options['output_directory'], 'subtype_gene_predictions.tsv')
+
     # Define files
     locifiles = []
     for i in xrange(options['nloci']):
@@ -391,7 +393,8 @@ def loci_pipeline(options, config):
 
     # Predict subtypes
     with open(options['result'], 'w') as resfile:
-        assignments = csv.DictWriter(resfile, fieldnames=results_header(), delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+        assignments = csv.DictWriter(resfile, fieldnames=['genome','loci'],
+            delimiter='\t', quoting=csv.QUOTE_MINIMAL)
         assignments.writeheader()
 
         loci_found = 0
@@ -406,11 +409,7 @@ def loci_pipeline(options, config):
             if nhits == 0:
                 assignments.writerow({
                     'genome': genome_label,
-                    'tree_label': 'not applicable',
-                    'subtype': 'not applicable',
-                    'probability': 'not applicable',
-                    'phylotyper_assignment': 'Subtype loci not found in genome',
-                    'loci': 'not applicable'
+                    'loci': 'Subtype loci not found in genome'
                 })
             else:
                 loci_found += nhits
@@ -442,10 +441,6 @@ def loci_pipeline(options, config):
                    
                 assignments.writerow({
                     'genome': genome,
-                    'tree_label': 'not applicable',
-                    'subtype': 'not applicable',
-                    'probability': 'not applicable',
-                    'phylotyper_assignment': 'not applicable',
                     'loci': alleleset.iddump()
                 })
                   
@@ -677,7 +672,7 @@ def main():
     loci_parser.add_argument('inputs', nargs='+', help='Fasta input for genomes')
     loci_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     loci_parser.add_argument('--config', action='store', help='Phylotyper config options file')
-    loci_parser.set_defaults(which='genome')
+    loci_parser.set_defaults(which='loci')
 
     # Builtin subtype command with gene as input
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
@@ -863,7 +858,7 @@ def main():
         loci_options['ngenomes'] = n_genomes
 
         # Run pipeline
-        loci_pipeline(subtype_options, config)
+        loci_pipeline(loci_options, config)
 
     elif options.which == 'list':
 
