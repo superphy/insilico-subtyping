@@ -13,13 +13,17 @@
 INPUTDIR=$1
 OUTPUTDIR=$2
 
-files=($INPUTDIR/*.fasta)
-g=2
+files=($INPUTDIR/*.ffn)
+g=100
 
 for((i=0; i < ${#files[@]}; i+=g))
 do
   part=( "${files[@]:i:g}" )
-  python -m phylotyper loci wz $OUTPUTDIR "$part[*]"
-  cat $OUTPUTDIR/subtype_gene_predictions.tsv >> $OUTPUTDIR/batch_subtype_gene_predictions.tsv
+  python -m phylotyper loci wz $OUTPUTDIR "${part[@]}"
+  cat $OUTPUTDIR/subtype_gene_predictions.tsv >> $OUTPUTDIR/all_subtype_gene_predictions.tsv
 done
+
+
+for file in $OUTPUTDIR/*_loci2.fasta; do mv "$file" "${file/_loci2.fasta/_wzx.fasta}"; done
+for file in $OUTPUTDIR/*_loci1.fasta; do mv "$file" "${file/_loci1.fasta/_wzy.fasta}"; done
 
