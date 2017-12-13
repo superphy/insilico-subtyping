@@ -220,11 +220,32 @@ class SeqDict(object):
         return acc_map
 
 
+    def get_dict(self):
+        """Return dict of SeqDict names mapped to subtype data
+
+        Returns:
+            dict:
+                loci: list of allele sequences,
+                subtype: str
+                accessions: list of original accessions
+        """
+        subt_map = {}
+        for seqkey,seqs in self._seqdict.iteritems():
+            for seq,seqentry in seqs.iteritems():
+                subt_map[seqentry['name']] = {
+                    'subtype': seqentry['subtype'],
+                    'accessions': seqentry['accessions'],
+                    'loci': seqentry['loci']
+                }
+
+        return subt_map
+
+
     def format_name(self, name, subtype):
         """Standard gene naming"""
 
         # Try to isolate NCBI accession
-        nm = re.sub(r'^(?:\d+\-)?([A-Z0-9\.]+)_.+$', r'\1', name.upper())
+        nm = re.sub(r'^(?:\d+\-)?([A-Z0-9\._]+)', r'\1', name.upper())
         genename = '{}-{}__{}'.format(self._genenum, nm, subtype.lower())
 
         return genename

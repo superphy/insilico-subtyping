@@ -18,6 +18,7 @@ import logging
 import os
 import pprint
 import pkg_resources
+import re
 from Bio import SeqIO
 from collections import Counter, defaultdict
 
@@ -359,6 +360,68 @@ def build_pipeline(options, config):
     evaluate_subtypes(options, config, seqdict)
 
 
+def update_pipeline(options, config):
+    """Add new sequences to reference alignment for subtyping
+
+    User provides new reference sequences for subtyping. After
+    appending new sequences to existing sequences, build_pipeline
+    is called.
+
+    Args:
+        options (dict): user defined settings from __main__
+        config (obj): PhylotyperConfig with .ini file settings
+
+    """
+
+    lookup = SeqDict()
+    lookup.load(options['lookup'])
+    subtype_data = lookup.get_dict()
+    p = re.compile("\s+")
+
+    # Temp files for holding new and old sequences
+    tmpfiles = []
+    tmpfhs = []
+    for i in xrange(options['nloci']):
+        infile = os.path.basename(options['input'][i])
+        tmpfiles.append(os.path.join(options['output_directory'], '{}.updated_set{}'.format(infile, i)))
+        tmpfhs.append(open(tmpfiles[i],'w'))
+
+    # Append new sequences to current subtype data
+    newsubtype_file = os.path.join(options['output_directory'], 'phylotyper_subtypes.csv')
+    with open(newsubtype_file, 'w') as stfh:
+
+        for subtype_dict in subtype_data.itervalues():
+            subtype = subtype_dict['subtype']
+            original_genome_labels = subtype_dict['accessions']
+            loci = subtype_dict['loci']
+
+            for genome in original_genome_labels:
+                stfh.write("{}\t{}\n".format(genome, subtype))
+
+                for i in xrange(options['nloci']):
+                    tmpfhs[i].write(">{}\n{}\n".format(genome, loci[i])) 
+    
+        with open(options['subtype_orig'], 'r') as infh:
+            for line in infh:
+                line = line.strip()
+                result = p.split(line)
+                (genome, subtype) = result
+                stfh.write("{}\t{}\n".format(genome, subtype.lower()))
+
+    for i in xrange(options['nloci']):
+        f1 = options['input'][i]
+        with open(f1, 'r') as fh1:
+            for line in fh1:
+                tmpfhs[i].write(line)
+        tmpfhs[i].close()
+
+    options['input'] = tmpfiles
+    options['subtype_orig'] = newsubtype_file
+
+    # Run build with updated dataset
+    build_pipeline(options, config)
+
+
 def loci_pipeline(options, config):
     """Find gene alleles
 
@@ -393,7 +456,7 @@ def loci_pipeline(options, config):
 
     # Predict subtypes
     with open(options['result'], 'w') as resfile:
-        assignments = csv.DictWriter(resfile, fieldnames=['genome','loci'],
+        assignments = csv.DictWriter(resfile, fieldnames=results_header(),
             delimiter='\t', quoting=csv.QUOTE_MINIMAL)
         assignments.writeheader()
 
@@ -408,9 +471,13 @@ def loci_pipeline(options, config):
 
             if nhits == 0:
                 assignments.writerow({
-                    'genome': genome_label,
-                    'loci': 'Subtype loci not found in genome'
-                })
+                        'genome': genome,
+                        'tree_label': 'not applicable',
+                        'subtype': 'not applicable',
+                        'probability': 'not applicable',
+                        'phylotyper_assignment': 'blast',
+                        'loci': 'not found'
+                    })
             else:
                 loci_found += nhits
               
@@ -427,7 +494,7 @@ def loci_pipeline(options, config):
             for alleleset in remaining[genome]:
 
                 loci = 1
-                tree_label = "{}-allele{}".format(genome,allele)
+                tree_label = "{}|allele{}".format(genome,allele)
                 
                 # Only one gene, don't need to distinguish alleles
                 if len(remaining[genome]) == 1:
@@ -441,13 +508,17 @@ def loci_pipeline(options, config):
                    
                 assignments.writerow({
                     'genome': genome,
-                    'loci': alleleset.iddump()
+                    'tree_label': 'not applicable',
+                    'subtype': 'not applicable',
+                    'probability': 'not applicable',
+                    'phylotyper_assignment': 'blast',
+                    'loci': alleleset.iddump() # Use the power of json to ecode this fasta header string
                 })
                   
                 allele += 1
 
 
-def identical_sequences(options, identified):
+def identical_sequences(options, identified=None):
     """Looks for exact matches
 
     Sequences that are identical to subtyped sequences in 
@@ -496,15 +567,15 @@ def identical_sequences(options, identified):
 
                     subt = found['subtype']
                     hit = found['name']
-                    identified.writerow({
-                        'genome': genome,
-                        'tree_label': 'not applicable',
-                        'subtype': subt,
-                        'probability': 'identical to {}'.format(hit),
-                        'phylotyper_assignment': subt,
-                        'loci': alleleset.iddump() # Use the power of json to ecode this fasta header string
-                    })
-
+                    if identified:
+                        identified.writerow({
+                            'genome': genome,
+                            'tree_label': 'not applicable',
+                            'subtype': subt,
+                            'probability': 'identical to {}'.format(hit),
+                            'phylotyper_assignment': subt,
+                            'loci': alleleset.iddump() # Use the power of json to encode this fasta header string
+                        })
                 else:
                     # Need to run through phylotyper
                     remaining[genome].append(alleleset)
@@ -635,7 +706,7 @@ def main():
 
     """
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
    
     # Parse command-line args
     # Phylotyper functions are broken up into commands
@@ -673,6 +744,16 @@ def main():
     loci_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
     loci_parser.add_argument('--config', action='store', help='Phylotyper config options file')
     loci_parser.set_defaults(which='loci')
+
+    # Update subtype command
+    new_parser = subparsers.add_parser('update', help='Update subtype scheme')
+    new_parser.add_argument('gene', action='store', help='Subtype name')
+    new_parser.add_argument('subtype', action='store', help='Subtypes for reference sequences')
+    new_parser.add_argument('results', action='store', help='Directory for evaluation result files')
+    new_parser.add_argument('ref', nargs='+', metavar='reference', help='Fasta input(s) for reference sequences')
+    new_parser.add_argument('--index', help='Specify non-default location of YAML-formatted file index for pre-built subtype schemes')
+    new_parser.add_argument('--config', action='store', help='Phylotyper config options file')
+    new_parser.set_defaults(which='update')
 
     # Builtin subtype command with gene as input
     subtype_parser = subparsers.add_parser('subtype', help='Predict subtype for scheme provided in phylotyper')
@@ -859,6 +940,50 @@ def main():
 
         # Run pipeline
         loci_pipeline(loci_options, config)
+
+    elif options.which == 'update':
+        # Update subtype alignment
+
+        # Check arguments
+
+        # Check input files exists
+        n_loci = 0
+        for f in options.ref:
+            if not os.path.isfile(f):
+                msg = 'Invalid/missing input file argument.'
+                raise Exception(msg)
+            n_loci += 1
+
+        # Check subtype file exists
+        if not os.path.isfile(options.subtype):
+            msg = 'Invalid/missing subtype file argument.'
+            raise Exception(msg)
+
+        # Check output directory exists, if not create it if possible
+        if not os.path.exists(options.results):
+            os.makedirs(options.results)
+        outdir = os.path.abspath(options.results)
+
+        # Load requested subtype data files
+        scheme = options.gene
+        subtype_options = stConfig.get_subtype_config(scheme)
+
+        if n_loci != subtype_options['nloci']:
+            msg = 'Invalid/missing input file argument. Number of loci provided does not match subtype scheme'
+            raise Exception(msg)
+
+        # Save additional build options inputted by user
+        subtype_options['input'] = [os.path.abspath(f) for f in options.ref]
+        subtype_options['subtype_orig'] = os.path.abspath(options.subtype)
+        subtype_options['output_directory'] = outdir
+        subtype_options['fast'] = False
+
+        # Make backup of subtype data
+        stConfig.backup_subtype(scheme)
+
+        # Run pipeline
+        update_pipeline(subtype_options, config)
+
 
     elif options.which == 'list':
 

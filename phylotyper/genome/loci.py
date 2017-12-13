@@ -100,13 +100,15 @@ class LociSearch(object):
         }
 
         self._blastdbcmd_options = {
-            'db': database
+            'db': database,
+            'dbtype': self.seqtype,
         }
 
         self._blastdbcmd_options2 = {
             'db': database,
             'outfmt': '%t\t%l',
-            'entry': 'all'
+            'entry': 'all',
+            'dbtype': self.seqtype
         }
 
         self._blastlengthsfile = database + '.lengths'
@@ -180,7 +182,7 @@ class LociSearch(object):
         """
 
         opts = self._blastdbcmd_options
-        cmd = "{blastcmd} -info -db {db}".format(blastcmd=self._blastdbcmd_exe, **opts)
+        cmd = "{blastcmd} -info -db {db} -dbtype {dbtype}".format(blastcmd=self._blastdbcmd_exe, **opts)
 
         self.logger.debug('Checking blast database')
         self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
@@ -208,7 +210,7 @@ class LociSearch(object):
                 self._sequence_lengths[desc] = int(length)
 
         # opts = self._blastdbcmd_options2
-        # cmd = "{blastcmd} -db {db} -entry {entry} -outfmt \"{outfmt}\"".format(blastcmd=self._blastdbcmd_exe, **opts)
+        # cmd = "{blastcmd} -db {db} -entry {entry} -dbtype {dbtype} -outfmt \"{outfmt}\"".format(blastcmd=self._blastdbcmd_exe, **opts)
 
         # self.logger.debug('Loading sequence lengths')
         # self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
@@ -461,6 +463,44 @@ class LociSearch(object):
 
 
                 loci[ls][l] = pobj
+
+    def dump_sequences(self, files):
+        # Dump fasta sequences
+
+        if self.nloci != len(files):
+            raise Exception('Missing output files')
+
+        fhs = [ open(file, 'w') for file in files]
+
+        opts = self._blastdbcmd_options
+        cmd = "{blastcmd} -db {db} -dbtype {dbtype} -entry all".format(blastcmd=self._blastdbcmd_exe, **opts)
+
+        self.logger.debug('Dumping blast database')
+        self.logger.debug('Running Blast command-line command:\n{}'.format(cmd))
+
+        try:
+            output = check_output(cmd, stderr=STDOUT, shell=True, universal_newlines=True)                         
+        except CalledProcessError as e:
+            msg = "LociSearch command {} failed: {} (return code: {}).".format(cmd, e.output, e.returncode)                                                                                                   
+            raise Exception(msg)
+
+        sequences = output.split('>')
+        for fasta in sequences:
+            if not fasta or fasta == '':
+                continue
+            lines = fasta.split('\n')
+            header = lines.pop(0)
+            match = re.search(r'^ptloci(\d+)\|(.+)', header)
+
+            if not match:
+                raise Exception('Invalid phylotyper fasta header: {}\n{}'.format(header, ''.join(lines)))
+            (locus, acc) = match.groups()
+
+            fh = fhs[int(locus)-1]
+            fh.write(">{}\n{}\n".format(acc, ''.join(lines)))
+
+        for fh in fhs:
+            fh.close()
 
 
 

@@ -3,9 +3,7 @@
 ##########################################################
 ## File: subtype_properties.R
 ##
-##  Functions to 
-##
-##
+##  Subtype Phylogenetic tree methods
 ##
 ## author: Matt Whiteside
 ## copyright: Copyright Government of Canada 2012-2015. Funded by the Government of Canada Genomics Research and Development Initiative
@@ -46,7 +44,7 @@ branchDistances <- function(tree, subtypes=NULL, plot.name=NULL) {
 	df$distance = as.numeric(df$distance)
 	if(!is.null(plot.name)) {
 		if(do.subtypes) {
-			ggplot(df, aes(x = distance, colour = subtype)) +
+			ggplot(df, aes(x = distance, colour = same.subtype)) +
 				geom_freqpoly(binwidth = .01)
 		} else {
 			ggplot(df, aes(x = distance)) +
@@ -119,10 +117,8 @@ plotMclustFit <- function(fit, plot.name) {
 
 mykeyFunc = function(trow) {
 	# Internal function
-
 	return(paste(as.character(sort(trow)),collapse='__'))
 }
-
 
 assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verbose=FALSE) {
 # Identify subtrees where all patristic distances between leaves are below 
@@ -146,8 +142,353 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
 	assign <- rep(0,ntips)
 	names(assign) <- tree$tip.label
 
-	# Lookup key for patristic data.frame
-	row.keys <- as.character(apply(pdist[,c('t1','t2')], 1, mykeyFunc))
+	# Subtree leaves 
+	subtree.tips <- new.env(hash=TRUE, size=nnodes+1)
+	
+	# Record nodes that are break points
+	breaks <- c(rep(FALSE, ntips), rep(FALSE, nnodes))
+
+	# Below threshold
+	pdist$below.cutoff <- pdist$distance < patristic.distance
+
+	# DFS tree
+	igraph.tree <- graph.edgelist(tree$edge) # tree in igraph form
+	dfs <- graph.dfs(igraph.tree,root=ntips+1,neimode='out',order=TRUE,dist=TRUE)
+
+	# Travese the tree in reverse depth first order
+	ord <- rev(dfs$order)
+	
+	for(i in 1:length(ord)) {
+		node <- ord[i]
+    	
+    	if(node <= ntips) {
+    		# Skip leaves
+    		next
+    	}
+    	
+    	# Save new leaves encountered in this internal node
+    	this.children <- Children(tree, node)
+    	is.leaf <- this.children <= ntips
+    	inodes <- this.children[!is.leaf]
+ 		tmp <- lapply(inodes, function(j) subtree.tips[[as.character(j)]])
+ 		leaves <- c(this.children[is.leaf], unlist(tmp))
+
+    	if(verbose)
+    		print(paste("At internal node",node,"with tips:",paste(tree$tip.label[leaves], collapse=',')))
+    	
+    	subtree.tips[[as.character(node)]] <- leaves
+
+    	# If one of the descendants of this node was a break point
+    	# Assign all subtrees to separate subtypes if they haven't been assigned
+    	broken = any(breaks[inodes])
+
+    	if(broken) {
+    		# Descendant was break point
+
+    		if(verbose) {
+	    		print(paste("Descendant in node",node,"is a break point"))
+	    	}
+
+    		# Assign any unassigned subtrees to subtypes
+    		for(c in this.children) {
+    			if(c <= ntips) {
+    				# Leaf
+    				cnum = cnum + 1
+    				assign[c] = cnum
+    			}
+    			else {
+    				# Subtree
+    				if(!breaks[c]) {
+    					# Subtree was not assiged
+	    				descendants = subtree.tips[[as.character(c)]]
+	    				cnum = cnum + 1
+	    				assign[descendants] = cnum
+    				}
+    			}
+    		}
+
+    		breaks[node] = TRUE
+
+    	} else {
+    		# Check if this node is a break point
+
+    		# Compute inter patristic distances between tips in subtree
+	    	# Assumes lower subtrees have already passed condition, so
+	    	# only checks new tip pairs added by this subtree
+	    	tips = tree$tip.label[leaves]
+	    	pass.cond = pdist$below.cutoff[pdist$t1 %in% tips & pdist$t2 %in% tips]
+	    	
+	    	if(all(pass.cond)) {
+	    		# This subtree passes condition
+	    		if(verbose) {
+		    		print(paste("Node",node,"is valid subtype cluster"))
+		    	}
+		    	next
+
+	    	} else {
+	    		# This node is the break point, subtrees must be separate subtypes
+
+	    		if(verbose) {
+		    		print(paste("Node",node,"is a break point"))
+		    	}
+
+	    		for(c in this.children) {
+	    			if(c <= ntips) {
+	    				# Leaf
+	    				cnum = cnum + 1
+	    				assign[c] = cnum
+	    			}
+	    			else {
+	    				# Subtree
+	    				descendants = subtree.tips[[as.character(c)]]
+	    				cnum = cnum + 1
+	    				assign[descendants] = cnum
+	    			}
+	    		}
+
+	    		breaks[node] = TRUE
+
+	    	}
+    	}
+    }
+
+    subtype.subtrees = factor(assign)
+	if(!is.null(plot.name)) {
+		graphics.off()
+		png(filename=plot.name,
+	        width=12*72,height=12*72
+	    )
+		phylotyper$plot.subtype2(tree, subtype.subtrees)
+		graphics.off()
+	}
+
+    return(subtype.subtrees)
+}
+
+prune.subtrees <- function(tree, subtypes, min.size=5, max.diss=1e-6, verbose=FALSE) {
+
+	#subt = subtype.subtrees(tree, subtypes, verbose=verbose)
+	subt = subtype.subtrees(tree, subtypes)
+	d = cophenetic(tree)
+
+	finalset = list()
+	i = 1
+
+	for(t in levels(subt)) {
+		intree = subt == t
+		leaves = names(subt)[intree]
+		keep = leaves
+		n = sum(intree)
+		if(verbose)
+    		print(paste("Subtree:",paste(leaves, collapse=',')))
+		if(n > min.size) {
+			# Found a cluster large enough to prune
+
+			subd = d[leaves,leaves]
+
+			# Step through different cluster sizes
+			# to find smallest number of medoids that
+			# have a dissimilarity value less than threshold
+			lo = min.size
+  			hi = n-1
+  			lastbest = NULL
+
+  			while (lo <= hi) {
+  				mid = ceiling((lo + hi) / 2)
+				cl <- pam(subd, mid, diss=TRUE)
+				cluster_diss = max(cl$clusinfo[,'max_diss'])
+				if(verbose) {
+					cat("lo, mid, hi = ", lo, mid, hi, "\n")
+					cat("max dissimilarity:",cluster_diss,"\n")
+				}
+
+				if(cluster_diss >= max.diss) {
+					lo = mid + 1
+				} else {
+					lastbest = cl
+					hi = mid - 1
+				}
+  			}
+
+
+  			if(is.null(lastbest)) {
+  				# Nodes too spread out, need all nodes
+				if(verbose) print(paste("Too spread out"))
+
+  			} else {
+  				cluster_diss = max(lastbest$clusinfo[,'max_diss'])
+
+				if(cluster_diss < max.diss) {
+					# Found a reduced set of nodes with sufficient coverage
+					medoids <- lastbest$medoids
+					keep <- medoids
+					if(verbose) print(paste("Reduced to:",length(medoids)))
+
+				} else {
+					# Nodes too spread out, need all nodes
+					if(verbose) print(paste("Too spread out"))
+				}
+			}
+
+  			
+		} else {
+			# Too few nodes, need all nodes
+			if(verbose) print(paste("Too small"))
+		}
+
+		finalset[[i]] <- keep
+		i = i+1
+	}
+
+	return(finalset)
+}
+
+subtype.subtrees <- function(tree, subtypes, verbose=FALSE) {
+# Find monophyletic single-subtype subtrees 
+#
+# Args:
+#  pdist: data.frame with tip.labels pairs and patristic distances
+#  tree: phylo object containing subtype tree
+#  patristic.distance: patristic distance threshold
+#  plot.name[OPTIONAL]: Plot output filename
+#
+# Returns:
+#   factor of tip.label names assigned to subtype
+#
+
+	ntips<-Ntip(tree)
+	nnodes <- Nnode(tree)
+
+	# Subtype group assignment
+	cnum <- 0 # cluster number
+	assign <- rep(0,ntips)
+	names(assign) <- tree$tip.label
+
+	# Subtree leaves 
+	subtree.tips <- new.env(hash=TRUE, size=nnodes+1)
+	
+	# Record nodes that are break points
+	breaks <- c(rep(FALSE, ntips), rep(FALSE, nnodes))
+
+	# DFS tree
+	igraph.tree <- graph.edgelist(tree$edge) # tree in igraph form
+	dfs <- graph.dfs(igraph.tree,root=ntips+1,neimode='out',order=TRUE,dist=TRUE)
+
+	# Travese the tree in reverse depth first order
+	ord <- rev(dfs$order)
+	
+	for(i in 1:length(ord)) {
+		node <- ord[i]
+    	
+    	#if(i > 20) return(0)
+    	if(node <= ntips) {
+    		# Skip leaves
+    		next
+    	}
+    	
+    	# Save new leaves encountered in this internal node
+    	this.children <- Children(tree, node)
+    	is.leaf <- this.children <= ntips
+    	inodes <- this.children[!is.leaf]
+ 		leaves <- this.children[is.leaf]
+ 		tmp <- lapply(inodes, function(j) subtree.tips[[as.character(j)]])
+ 		leaves <- append(leaves, unlist(tmp))
+
+    	if(verbose)
+    		print(paste("At internal node",node,"with tips:",paste(tree$tip.label[leaves], collapse=',')))
+    	
+    	subtree.tips[[as.character(node)]] <- leaves
+
+    	# If one of the descendants of this node was a break point
+    	# Assign all subtrees to separate subtypes if they haven't been assigned
+    	broken = any(breaks[inodes])
+
+    	if(broken) {
+    		# Descendant was break point
+
+    		if(verbose) {
+	    		print(paste("Descendant in node",node,"is a break point"))
+	    	}
+
+    		# Assign any unassigned subtrees to subtypes
+    		for(c in this.children) {
+    			if(c <= ntips) {
+    				# Leaf
+    				cnum = cnum + 1
+    				assign[c] = cnum
+    			}
+    			else {
+    				# Subtree
+    				if(!breaks[c]) {
+    					# Subtree was not assiged
+	    				descendants = subtree.tips[[as.character(c)]]
+	    				cnum = cnum + 1
+	    				assign[descendants] = cnum
+    				}
+    			}
+    		}
+
+    		breaks[node] = TRUE
+
+    	} else {
+    		# Check if this node is a break point
+
+    		clade = tree$tip.label[leaves]
+    		labels = as.character(subtypes[clade])
+        	
+	    	if(length(unique(labels)) == 1) {
+	    		if(verbose) {
+		    		print(paste("Node",node,"is valid subtype cluster"))
+		    	}
+		    	next
+	    	} else {
+	    	
+	    		if(verbose) {
+		    		print(paste("Node",node,"is a break point"))
+		    	}
+
+	    		for(c in this.children) {
+	    			if(c <= ntips) {
+	    				# Leaf
+	    				cnum = cnum + 1
+	    				assign[c] = cnum
+	    			}
+	    			else {
+	    				# Subtree
+	    				descendants = subtree.tips[[as.character(c)]]
+	    				cnum = cnum + 1
+	    				assign[descendants] = cnum
+	    			}
+	    		}
+
+	    		breaks[node] = TRUE
+	    	}
+    	}
+    }
+
+    subtype.subtrees = factor(assign)
+    return(subtype.subtrees)
+}
+
+
+cladewise.subtype.distances <- function(tree, subtypes, pdist, verbose=FALSE, plot.name=NULL) {
+# Identify patristic distances that are part of same monophyletic 
+# clade and have same subtype
+#
+# Args:
+#  pdist: data.frame with tip.labels pairs and patristic distances
+#  tree: phylo object containing subtype tree
+#  plot.name[OPTIONAL]: Plot output filename
+#
+# Returns:
+#   factor of tip.label names assigned to subtype
+#
+
+	# Add column for distances inside conserved clade
+	pdist <- cbind(pdist, conserved.clade=FALSE)
+	
+	ntips<-Ntip(tree)
+	nnodes <- Nnode(tree)
 
 	# Subtree leaves 
 	subtree.tips <- list()
@@ -157,7 +498,7 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
 
 	# DFS tree
 	igraph.tree <- graph.edgelist(tree$edge) # tree in igraph form
-	dfs <- graph.dfs(igraph.tree,root=ntips+1,neimode='out', order=TRUE,dist=TRUE)
+	dfs <- graph.dfs(igraph.tree,root=ntips+1,neimode='out',order=TRUE,dist=TRUE)
 
 	# Travese the tree in reverse depth first order
 	ord <- rev(dfs$order)
@@ -198,22 +539,27 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
 	    		print(paste("Descendant in node",node,"is a break point"))
 	    	}
 
-    		# Assign any unassigned subtrees to subtypes
+    		# Count any uncounted subtrees
     		for(c in this.children) {
-    			if(c <= ntips) {
-    				# Leaf
-    				cnum = cnum + 1
-    				assign[c] = cnum
-    			}
-    			else {
+    			if(c > ntips) {
     				# Subtree
     				if(!breaks[c]) {
-    					# Subtree was not assiged
-    					
+    					# Subtree was not counted
 	    				descendants = Descendants(tree, c, 'tips')[[1]]
-	    				cnum = cnum + 1
-	    				assign[descendants] = cnum
+	    				tips = tree$tip.label[descendants]
+	    				pdist$conserved.clade[pdist$t1 %in% tips & pdist$t2 %in% tips] = TRUE
+	    				if(verbose) {
+				    		print(paste("Subtree node",c,"assigned as subtype cluster"))
+				    	}
+    				} else {
+    					if(verbose) {
+				    		print(paste("Subtree node",c,"already assigned as subtype cluster"))
+				    	}
     				}
+    			} else {
+    				if(verbose) {
+			    		print(paste("Subtree node",c,"is leaf"))
+			    	}
     			}
     		}
 
@@ -222,36 +568,16 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
     	} else {
     		# Check if this node is a break point
 
-    		# Compute inter patristic distances between tips in subtree
-	    	# Assumes lower subtrees have already passed condition, so
-	    	# only checks new tip pairs added by this subtree
-	    	r = length(leaves)
-	    	pairwise.dists <- unlist(sapply(1:r, function(x) if(x < r) sapply((x+1):r, function(y) {
-
-				l1 = leaves[[x]]
-				l2 = leaves[[y]]
-
-				for(s in l1) {
-					for(t in l2) {
-						k = mykeyFunc(c(tree$tip.label[s], tree$tip.label[t]))
-						return(pdist$distance[row.keys == k])
-					}
-				}
-				
-	    	})))
-
-	    	if(verbose) {
-	    		mx <- max(pairwise.dists)
-	    		print(paste("Node",node,"largest pairwise patristic distance between tips:", mx))
-	    	}
+    		# Count subtypes in leaves
+    		clade = tree$tip.label[unlist(leaves)]
+    		res=table(as.character(subtypes[clade]))
+        	perc_conserved = max(res)/sum(res)
 	    	
-	    	if(all(pairwise.dists < patristic.distance)) {
-	    		# This subtree passes condition
+	    	if(perc_conserved > .95) {
 	    		if(verbose) {
 		    		print(paste("Node",node,"is valid subtype cluster"))
 		    	}
 		    	next
-
 	    	} else {
 	    		# This node is the break point, subtrees must be separate subtypes
 
@@ -260,39 +586,39 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
 		    	}
 
 	    		for(c in this.children) {
-	    			if(c <= ntips) {
-	    				# Leaf
-	    				cnum = cnum + 1
-	    				assign[c] = cnum
-	    			}
-	    			else {
+		    		
+	    			if(c > ntips) {
 	    				# Subtree
 	    				descendants = Descendants(tree, c, 'tips')[[1]]
-	    				cnum = cnum + 1
-	    				assign[descendants] = cnum
+	    				tips = tree$tip.label[descendants]
+	    				pdist$conserved.clade[pdist$t1 %in% tips & pdist$t2 %in% tips] = TRUE
+	    				if(verbose) {
+				    		print(paste("Subtree node",c,"assigned as subtype cluster"))
+				    	}
+	    			} else {
+	    				if(verbose) {
+				    		print(paste("Subtree node",c,"is leaf"))
+				    	}
 	    			}
 	    		}
 
 	    		breaks[node] = TRUE
-
 	    	}
     	}
     }
 
-    subtype.subtrees = factor(assign)
+    # Plot with density and rug
 	if(!is.null(plot.name)) {
-		graphics.off()
-		png(filename=plot.name,
-	        width=12*72,height=12*72
-	    )
-		phylotyper$plot.subtype2(tree, subtype.subtrees)
-		graphics.off()
+		
+		ggplot(pdist, aes(x = distance, colour = conserved.clade)) +
+			geom_freqpoly(binwidth = .01)
+		
+		ggsave(file=plot.name)
 	}
 
-    	
-    return(subtype.subtrees)
-
+    return(pdist)
 }
+
 
 lineup <- function(pdist, tree, subtypes, Q=NULL) {
 # Compare transition 
@@ -440,8 +766,6 @@ transitions <- function(tree, subtypes, plot.name=NULL) {
 
 }
 
-
-
 plot.liks <- function(fit, index.state) {
 
 	stopifnot(index.state %in% fit$states)
@@ -560,7 +884,6 @@ transition.rate.parameters2 <- function(tree, subtypes) {
 	return(list('model'=qp))
 }
 
-
 reassign.subtypes <- function(tree, subtypes) {
 # Sometimes subtypes are mislabelled. This method finds subtrees that have
 # max patristic distance less than a given threshold (indicating 0.4 probability
@@ -575,11 +898,11 @@ reassign.subtypes <- function(tree, subtypes) {
 # 	data.frame with 'new' and 'prev' subtype factors
 #
 
-	rs = subtype.diameter(tree, subtypes, 0.4)
+	rs = subtype.diameter2(tree, subtypes, 0.4)
 
 	# Find subtrees that fall under this distance threshold
 	print(rs$diameter)
-	subt = assignSubtrees(rs$patristic.distance, tree, rs$diameter, plot.name=NULL)
+	subt = assignSubtrees(rs$patristic.distances, tree, rs$diameter, plot.name=NULL)
 	newsubt = subt
 
 	for(s in levels(subt)) {
@@ -645,6 +968,56 @@ subtype.diameter <- function(tree, subtypes, p) {
 	return(list(diameter=dcutoff,patristic.distances=bdist))
 }
 
+subtype.diameter2 <- function(tree, subtypes, p) {
+# Determine a distance cutoff based on the intra-subtype distance
+# distribution for a given probability value (indicating likelihood distances 
+# equal to or greater then distance cutoff belong to intra-subtype distribution)
+#
+# This version uses subtype patristic branch distances that fall into the same
+# subtree, not all subtype patristic branch distances which may be scattered
+# across tree
+#
+# Args:
+#  tree: phylo object containing subtype tree
+#  subtypes: factor list of subtype assignments for tree$tip.label entries.
+#  p: probability
+#
+# Returns:
+# 	diameterquantile value for given probability
+#
+	bdist = branchDistances(tree, subtypes, plot.name=NULL)
+	bdist = cladewise.subtype.distances(tree, subtypes, bdist)
+
+	# Isolate distances for genomes in same subtype
+	same = bdist[bdist$conserved.clade,]
+	x = same$distance
+
+	# Try fitting the following models:
+	models <- c('exp','norm')
+	aics <- array(NA, dim=length(models))
+	names(aics) = models
+
+	for(m in models) {
+		aics[m] = fitdist(x, distr=m)$aic
+	}
+
+	# Best fitting distribution
+	distr = names(aics)[which.min(aics)]
+	fit = fitdist(x, distr=distr)
+	# file <- 'subtype_patristic_distribution_fit'
+	# fn = file.path(output_dir, paste(file, '.png', sep=''))
+	# graphics.off()
+	# png(filename=fn)
+	# plot(fit)
+	# graphics.off()
+
+	qmethod = paste('q',distr,sep='')
+	param = c(p=p, as.list(fit$estimate), lower.tail=FALSE)
+	dcutoff = do.call(qmethod, param)
+
+	return(list(diameter=dcutoff,patristic.distances=bdist))
+}
+
 
 monophyletic.subtypes <- function(tree, subtypes) {
 # Assigns each subtree under a given max patristic threshold (indicating 0.05 probability
@@ -660,10 +1033,10 @@ monophyletic.subtypes <- function(tree, subtypes) {
 # 	data.frame with 'new' and 'prev' subtype factors
 #
 
-	rs = subtype.diameter(tree, subtypes, 0.05)
+	rs = subtype.diameter2(tree, subtypes, 0.05)
 
 	# Find subtrees that fall under this distance threshold
-	subt = assignSubtrees(rs$patristic.distance, tree, rs$diameter, plot.name=NULL)
+	subt = assignSubtrees(rs$patristic.distances, tree, rs$diameter, plot.name=NULL)
 
 	# Generate new subtype names based old subtype naming scheme
 

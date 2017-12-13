@@ -21,6 +21,7 @@ are also implicitly created anytime a new section starts.
 import os
 import yaml
 from datetime import datetime
+from shutil import copytree
 
 __author__ = "Matthew Whiteside"
 __copyright__ = "Copyright 2016, Public Health Agency of Canada"
@@ -213,8 +214,6 @@ class SubtypeConfig(object):
         for i in xrange(num_loci):
             alignment_file_list.append(os.path.join(scheme, '{}_reference{}.affn'.format(scheme, i)))
 
-        print description
-
         rel_paths = {
             'alignment': alignment_file_list,
             'subtype': os.path.join(scheme, '{}_subtypes.csv'.format(scheme)),
@@ -273,6 +272,25 @@ class SubtypeConfig(object):
         with open(self._yamlfile, 'w') as w:
             w.write(output)
             w.flush()
+
+
+    def backup_subtype(self, scheme):
+        """Copy subtype to backup directory
+
+        Args:
+            scheme (str): YAML subtype key and directory name
+
+        """
+
+        if not self._config[scheme]:
+            raise Exception("Unknown subtype: %s" % (scheme))
+
+        current_time = datetime.now()
+        time_stamp =  current_time.strftime("%b-%d-%y-%H.%M.%S")
+        
+        srcdir = os.path.join(self._root_dir, scheme)
+        backupdir = srcdir +'_'+ time_stamp
+        copytree(srcdir, backupdir)
 
 
     def list(self):
