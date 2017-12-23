@@ -275,7 +275,6 @@ class Phylotyper(object):
                 with this one and re-run the build script.
                 '''.format('\n  '.join(tuple(suspect)), newsubtype_file, newsubtype_file))
 
-
         # Examine different transition matrix models
         rcode = '''
         models <- list('equal_rates'='ER')

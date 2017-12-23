@@ -265,10 +265,9 @@ assignSubtrees <- function(pdist, tree, patristic.distance, plot.name=NULL, verb
     return(subtype.subtrees)
 }
 
-prune.subtrees <- function(tree, subtypes, min.size=5, max.diss=1e-6, verbose=FALSE) {
+prune.subtrees <- function(tree, subtypes, min.size=5, max.diss=1e-6, verbose=FALSE, plot.name=NULL) {
 
-	#subt = subtype.subtrees(tree, subtypes, verbose=verbose)
-	subt = subtype.subtrees(tree, subtypes)
+	subt = subtype.subtrees(tree, subtypes, verbose=verbose)
 	d = cophenetic(tree)
 
 	finalset = list()
@@ -338,6 +337,21 @@ prune.subtrees <- function(tree, subtypes, min.size=5, max.diss=1e-6, verbose=FA
 
 		finalset[[i]] <- keep
 		i = i+1
+	}
+
+	if(!is.null(plot.name)) {
+		graphics.off()
+		png(filename=plot.name,
+	        width=12*72,height=16*72
+	    )
+	    tipcols = rep('black', Ntip(tree))
+	    tipcols[tree$tip.label %in% unlist(finalset)] <- 'red'
+		plot(tree, tip.color=tipcols, cex=0.4)
+		graphics.off()
+	}
+
+	if(!is.null(output.file)) {
+		write.table(unlist(finalset), output.file, as.is=TRUE)
 	}
 
 	return(finalset)

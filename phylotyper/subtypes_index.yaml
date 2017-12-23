@@ -20,6 +20,15 @@ subtypes:
     search_database: flic/flic_search_database
     seq: nt
     subtype: flic/flic_subtypes.csv
+  flic2:
+    alignment: [flic2/flic2_reference0.affn]
+    desc: Escherichia coli H-serotype based on fliC gene
+    lookup: flic2/flic2_dictionary.json
+    nloci: 1
+    rate_matrix: flic2/flic2_rate_matrix.rds
+    search_database: flic2/flic2_search_database
+    seq: nt
+    subtype: flic2/flic2_subtypes.csv
   stx1:
     alignment: [stx1/stx1_reference0.affn, stx1/stx1_reference1.affn]
     desc: Escherichia coli Shiga-toxin 1 (Stx2) subtype

@@ -88,7 +88,7 @@ if __name__ == "__main__":
     """
 
     logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger('data.stx.translate')
+    logger = logging.getLogger('data.download.translate')
 
     # Parse command-line args
     parser = argparse.ArgumentParser()

@@ -380,10 +380,8 @@ class LociSearch(object):
                         for h,s in new_loci[ls].iteritems():
                             outfh.write("\n>{}pt_allele{} {}\n{}".format(fasta_prefix, genome_copy, h, s))
                             genome_copy += 1
-
-                    nhits += 1
+                            nhits += 1
                     locus += 1
-
 
         return (fasta_prefix, nhits)
 

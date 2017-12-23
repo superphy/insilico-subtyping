@@ -208,7 +208,7 @@ def subtype_pipeline(options, config):
                 genome_label, nhits = detector.search(genome, options['input'], append=True)
 
                 if nhits == 0:
-                     assignments.writerow({
+                    assignments.writerow({
                         'genome': genome_label,
                         'tree_label': 'not applicable',
                         'subtype': 'not applicable',
@@ -706,7 +706,7 @@ def main():
 
     """
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
    
     # Parse command-line args
     # Phylotyper functions are broken up into commands
@@ -801,6 +801,8 @@ def main():
     
     if options.which == 'new':
         # Build & evaluate new subtype alignment
+
+        print('what the fuck')
 
         # Check arguments
 

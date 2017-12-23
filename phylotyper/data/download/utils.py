@@ -12,6 +12,8 @@ Examples:
 
 from Bio import Entrez, SeqIO
 from collections import Counter
+from datetime import datetime
+from shutil import copytree
 import logging
 import os
 import re
@@ -764,3 +766,6 @@ class DownloadUtils(object):
         self.logger.debug('Subtypes encountered:\n{}\n'.format(str(subtype_counts)))
 
         return None
+
+
+
