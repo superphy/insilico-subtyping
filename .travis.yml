@@ -27,6 +27,7 @@ script:
   - phylotyper genome stx2 out example_data/genome.fasta
   - phylotyper genome eae out example_data/genome.fasta
 after_failure:
+  # This should not trip after we've update the blast ver.
   - conda update -y blast
   - phylotyper genome stx1 out example_data/genome.fasta
   - phylotyper genome stx2 out example_data/genome.fasta
