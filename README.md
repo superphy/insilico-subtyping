@@ -95,7 +95,7 @@ There are two ways to install Phylotyper 1) with pip, external programs are inst
 
 -    `conda create --name phylotyper`. Create environment.
 -    `source activate phylotyper`. Activate environment.
--    `conda install -c mdwhitesi phylotyper`. Install Phylotyper and dependencies in environment.
+-    `conda install -c mdwhitesi -c bioconda -c conda-forge -c compbiocore phylotyper`. Install Phylotyper and dependencies in environment.
 
 
 RUNNING PHYLOTYPER
