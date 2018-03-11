@@ -1,0 +1,35 @@
+sudo: required
+lanugage: python
+python:
+  - "2.7"
+before_install:
+  - sudo apt-get update
+  # Install miniconda.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+install:
+  - conda create --name phylotyper
+  - source activate phylotyper
+  - conda install -c mdwhitesi -c bioconda -c conda-forge -c compbiocore phylotyper
+  - mkdir out
+script:
+  - phylotyper genome stx1 out example_data/genome.fasta
+  - phylotyper genome stx2 out example_data/genome.fasta
+  - phylotyper genome eae out example_data/genome.fasta
+after_failure:
+  - conda update -y blast
+  - phylotyper genome stx1 out example_data/genome.fasta
+  - phylotyper genome stx2 out example_data/genome.fasta
+  - phylotyper genome eae out example_data/genome.fasta
+notifications:
+  email: false
