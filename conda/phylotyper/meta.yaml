@@ -5,7 +5,7 @@ package:
 source:
   fn: master.zip
   url: https://github.com/superphy/insilico-subtyping/archive/master.zip
-  # md5: 
+  # md5:
 #  patches:
    # List any patch files here
    # - fix.patch
@@ -29,7 +29,7 @@ build:
 
 requirements:
   build:
-    - python 
+    - python
     - biopython
     - rpy2 <=2.8
     - setuptools
@@ -51,13 +51,13 @@ requirements:
     - r-igraph
     - bioconductor-biostrings
     - mafft
-    - blast 2.6.0
+    - blast >= 2.6.0
     - fasttree
-    - trimal 
+    - trimal
 
   run:
-    - python 
-    - biopython 
+    - python
+    - biopython
     - rpy2 <=2.8
     - setuptools
     - pytest
@@ -78,7 +78,7 @@ requirements:
     - r-igraph
     - bioconductor-biostrings
     - mafft
-    - blast
+    - blast >= 2.7.1
     - fasttree
     - trimal
 
